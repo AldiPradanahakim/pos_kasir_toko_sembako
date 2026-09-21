@@ -48,7 +48,7 @@ const LABEL_REF: Record<string, string> = {
 const angkaAtauNull = (v: unknown): number | null =>
   typeof v === 'number' && Number.isFinite(v) ? v : null;
 
-/** Respons daftar: {rows, masuk, keluar, saldo_awal, saldo} — tapi terima array juga. */
+/** Respons daftar: {rows, masuk, keluar, saldo_awal, saldo}, tapi terima array juga. */
 function bacaDaftar(data: unknown): {
   rows: ArusKas[];
   masuk: number | null;
@@ -327,7 +327,7 @@ export default function Keuangan() {
       <Card title={`Arus Kas (${rows.length})`}>
         <p className="mb-3 text-xs text-slate-500">
           Saldo berjalan dihitung urut dari tanggal paling awal pada rentang ini. Baris bertanda "Otomatis" lahir dari
-          penjualan, pembelian, atau retur — ubah lewat transaksinya.
+          penjualan, pembelian, atau retur, dan hanya bisa diubah lewat transaksinya.
         </p>
 
         {/* HP: satu kartu per entri supaya tidak perlu menggeser tabel. */}
@@ -340,7 +340,7 @@ export default function Keuangan() {
                   <p className="text-xs text-slate-500">{formatTanggal(r.tanggal)}</p>
                   {r.keterangan && <p className="mt-0.5 text-xs text-slate-500">{r.keterangan}</p>}
                 </div>
-                <p className={`shrink-0 text-sm font-semibold ${r.tipe === 'masuk' ? 'text-teal-700' : 'text-red-600'}`}>
+                <p className={`shrink-0 text-sm font-semibold ${r.tipe === 'masuk' ? 'text-teal-700' : 'text-red-700'}`}>
                   {r.tipe === 'masuk' ? '+' : '−'}
                   {rupiah(r.jumlah)}
                 </p>
@@ -359,7 +359,7 @@ export default function Keuangan() {
                     <Button
                       variant="ghost"
                       ukuran="sm"
-                      className="text-red-600"
+                      className="text-red-700"
                       onClick={() => void hapus(r)}
                       disabled={!online}
                     >
@@ -400,7 +400,7 @@ export default function Keuangan() {
                     </span>
                   </td>
                   <td className="py-2 pr-3">{r.kategori || 'Tanpa kategori'}</td>
-                  <td className={`py-2 pr-3 text-right ${r.tipe === 'masuk' ? 'text-teal-700' : 'text-red-600'}`}>
+                  <td className={`py-2 pr-3 text-right ${r.tipe === 'masuk' ? 'text-teal-700' : 'text-red-700'}`}>
                     {r.tipe === 'masuk' ? '+' : '−'}
                     {rupiah(r.jumlah)}
                   </td>
@@ -415,7 +415,7 @@ export default function Keuangan() {
                   </td>
                   <td className="whitespace-nowrap py-2 text-right">
                     {r.ref_type ? (
-                      <span className="text-xs text-slate-400">—</span>
+                      <span className="text-xs text-slate-500">-</span>
                     ) : (
                       <>
                         <Button variant="ghost" ukuran="sm" onClick={() => bukaEdit(r)} disabled={!online}>
@@ -424,7 +424,7 @@ export default function Keuangan() {
                         <Button
                           variant="ghost"
                           ukuran="sm"
-                          className="text-red-600"
+                          className="text-red-700"
                           onClick={() => void hapus(r)}
                           disabled={!online}
                         >
@@ -444,8 +444,8 @@ export default function Keuangan() {
                   </td>
                   <td className="whitespace-nowrap py-2 pr-3 text-right">
                     <span className="text-teal-700">+{rupiah(totalMasuk)}</span>
-                    <span className="px-1 text-slate-400">/</span>
-                    <span className="text-red-600">−{rupiah(totalKeluar)}</span>
+                    <span className="px-1 text-slate-500">/</span>
+                    <span className="text-red-700">−{rupiah(totalKeluar)}</span>
                   </td>
                   <td className="py-2 pr-3 text-right">{rupiah(saldoAkhir)}</td>
                   <td colSpan={2} />

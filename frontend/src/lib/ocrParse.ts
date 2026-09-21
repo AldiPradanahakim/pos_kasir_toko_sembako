@@ -165,7 +165,7 @@ const AMBANG = 0.55;
  * terakhir kemiripan teks. `null` = tidak ada yang cukup meyakinkan.
  *
  * ponytail: plafon heuristik ini adalah produk yang namanya mirip-mirip
- * ("Sedaap Soto" vs "Sedaap Ayam") — cukup untuk mengisi pilihan awal, dan
+ * ("Sedaap Soto" vs "Sedaap Ayam"), cukup untuk mengisi pilihan awal, dan
  * hasilnya tetap wajib diperiksa kasir. Kalau salah tebak mulai sering,
  * upgrade: simpan koreksi kasir ke product_aliases lalu pakai Levenshtein
  * ber-bobot kata atau embedding.
@@ -178,7 +178,7 @@ export function tebakProduk(
   const q = normal(nama);
   if (!q) return null;
 
-  // 1. Alias hasil koreksi kasir sebelumnya — paling bisa dipercaya.
+  // 1. Alias hasil koreksi kasir sebelumnya, paling bisa dipercaya.
   let aliasCocok: number | null = null;
   let aliasTerpanjang = 0;
   for (const a of alias) {

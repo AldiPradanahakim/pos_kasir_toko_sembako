@@ -179,8 +179,8 @@ export default function Retur() {
     } catch (err) {
       setErrorForm(
         err instanceof Error
-          ? `${err.message} — isi barang secara manual di bawah.`
-          : 'Gagal memuat rincian dokumen — isi barang secara manual di bawah.',
+          ? `${err.message}. Isi barang secara manual di bawah.`
+          : 'Gagal memuat rincian dokumen. Isi barang secara manual di bawah.',
       );
     } finally {
       setMemuatDok(false);
@@ -327,7 +327,7 @@ export default function Retur() {
                 <Button
                   variant="ghost"
                   ukuran="sm"
-                  className="text-red-600"
+                  className="text-red-700"
                   onClick={() => void hapus(r)}
                   disabled={!online}
                 >
@@ -381,7 +381,7 @@ export default function Retur() {
                     <Button
                       variant="ghost"
                       ukuran="sm"
-                      className="text-red-600"
+                      className="text-red-700"
                       onClick={() => void hapus(r)}
                       disabled={!online}
                     >

@@ -402,7 +402,7 @@ function FormHapus({ sale, onSelesai }: { sale: Sale; onSelesai: (pesan: string)
     setError('');
     setLoading(true);
     try {
-      // Backend mengembalikan stok transaksi 'selesai' — nyatakan itu apa adanya di teks konfirmasi.
+      // Backend mengembalikan stok transaksi 'selesai', nyatakan itu apa adanya di teks konfirmasi.
       await api.del(`/sales/${sale.id}?restore_stock=true`);
       onSelesai(`Transaksi ${nomor} sebesar ${rupiah(sale.total)} dihapus permanen dari riwayat.`);
     } catch (err) {

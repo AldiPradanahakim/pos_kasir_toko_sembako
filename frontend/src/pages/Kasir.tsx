@@ -119,7 +119,7 @@ export default function Kasir() {
   }
 
   /**
-   * Simpan transaksi. `cetak` hanya menentukan apakah dialog cetak dibuka setelahnya —
+   * Simpan transaksi. `cetak` hanya menentukan apakah dialog cetak dibuka setelahnya ,
    * keduanya tetap menyimpan transaksi (lokal + antrean sinkron).
    */
   async function simpan(cetak: boolean) {
@@ -175,7 +175,7 @@ export default function Kasir() {
   /**
    * Dua tombol simpan/cetak. Jumlah kolomnya berbeda menurut tempat: di baris lengket HP
    * selalu dua kolom (mendatar, hemat tinggi), sedangkan di kartu pembayaran baru dua kolom
-   * sejak `lg` — di kolom sempit 768px teks "Simpan Struk" tidak muat satu baris.
+   * sejak `lg`, di kolom sempit 768px teks "Simpan Struk" tidak muat satu baris.
    */
   const tombolSimpan = (kolom: string) => (
     <div className={`grid gap-2 ${kolom}`}>
@@ -190,7 +190,7 @@ export default function Kasir() {
 
   return (
     // Tata letak kasir gaya minimarket: kiri = pelanggan, kotak cari, lalu tabel keranjang
-    // yang besar; kanan = total & pembayaran. Halaman ini tidak menggulir sejak tablet —
+    // yang besar; kanan = total & pembayaran. Halaman ini tidak menggulir sejak tablet ,
     // yang bergulir hanya daftar hasil cari dan tabel keranjang.
     <div className="flex flex-col gap-3 md:min-h-0 md:flex-1">
       <div className="grid min-w-0 grid-cols-1 gap-3 md:min-h-0 md:flex-1 md:grid-cols-[minmax(0,1fr)_minmax(0,300px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,340px)] xl:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
@@ -259,7 +259,7 @@ export default function Kasir() {
             title={`Keranjang (${keranjang.length})`}
             actions={
               keranjang.length ? (
-                <Button variant="ghost" ukuran="sm" className="text-red-600" onClick={() => setKeranjang([])}>
+                <Button variant="ghost" ukuran="sm" className="text-red-700" onClick={() => setKeranjang([])}>
                   Kosongkan
                 </Button>
               ) : null
@@ -314,7 +314,7 @@ export default function Kasir() {
                           type="button"
                           aria-label={`Hapus ${it.name}`}
                           onClick={() => hapusBaris(idx)}
-                          className="min-h-sentuh min-w-sentuh rounded-md text-lg text-red-600 active:bg-red-50"
+                          className="min-h-sentuh min-w-sentuh rounded-md text-lg text-red-700 active:bg-red-50"
                         >
                           ✕
                         </button>
@@ -343,7 +343,7 @@ export default function Kasir() {
                             >
                               +
                             </Button>
-                            <Button variant="ghost" className="ml-auto text-red-600" onClick={() => hapusBaris(idx)}>
+                            <Button variant="ghost" className="ml-auto text-red-700" onClick={() => hapusBaris(idx)}>
                               Hapus barang
                             </Button>
                           </div>
@@ -383,12 +383,12 @@ export default function Kasir() {
           <Card title="Pembayaran" className="shrink-0">
             <div className="space-y-3">
               <div className="rounded-lg bg-slate-900 px-3 py-3 text-right">
-                <p className="text-xs text-slate-400">Total Pembayaran</p>
+                <p className="text-xs text-slate-300">Total Pembayaran</p>
                 <p className="break-all text-3xl font-bold text-white">{rupiah(total)}</p>
               </div>
 
               <div>
-                <Label>Dibayar — ketuk untuk mengisi angka</Label>
+                <Label>Dibayar, ketuk untuk mengisi angka</Label>
                 {/* Sengaja tombol, bukan input: menyentuhnya tidak memunculkan keyboard
                     HP/tablet, dan langsung membuka kalkulator angka besar. */}
                 <button
@@ -397,20 +397,20 @@ export default function Kasir() {
                   aria-haspopup="dialog"
                   className="min-h-[52px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-lg font-semibold text-slate-800 active:bg-slate-50"
                 >
-                  {dibayar ? rupiah(dibayarAngka) : <span className="text-slate-400">Ketuk angka…</span>}
+                  {dibayar ? rupiah(dibayarAngka) : <span className="text-slate-500">Ketuk angka…</span>}
                 </button>
               </div>
 
               <div className="flex items-center justify-between text-base">
                 <span>Kembalian</span>
-                <span className={kembalian < 0 ? 'font-bold text-red-600' : 'font-bold'}>
+                <span className={kembalian < 0 ? 'font-bold text-red-700' : 'font-bold'}>
                   {rupiah(keranjang.length ? kembalian : 0)}
                 </span>
               </div>
 
               {!online && (
                 <Alert tone="info">
-                  Offline — transaksi disimpan lokal{pending > 0 ? ` (${pending} menunggu sinkron)` : ''}.
+                  Offline, transaksi disimpan lokal{pending > 0 ? ` (${pending} menunggu sinkron)` : ''}.
                 </Alert>
               )}
 
@@ -429,7 +429,7 @@ export default function Kasir() {
           <span>
             Total <b className="text-base">{rupiah(total)}</b>
           </span>
-          <span className={kembalian < 0 ? 'text-red-600' : 'text-slate-600'}>
+          <span className={kembalian < 0 ? 'text-red-700' : 'text-slate-600'}>
             Kembalian <b className="text-base">{rupiah(keranjang.length ? kembalian : 0)}</b>
           </span>
         </div>
@@ -493,7 +493,7 @@ function EditorHarga({
           Simpan harga
         </Button>
       </div>
-      {!alasan.trim() && <p className="text-xs text-red-600">Alasan wajib diisi sebelum harga bisa disimpan.</p>}
+      {!alasan.trim() && <p className="text-xs text-red-700">Alasan wajib diisi sebelum harga bisa disimpan.</p>}
     </div>
   );
 }

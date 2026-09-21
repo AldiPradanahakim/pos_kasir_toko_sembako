@@ -104,7 +104,7 @@ export default function Struk() {
       {data.pending && (
         <div className="no-print">
           <Alert tone="info">
-            Belum tersinkron — nomor sementara {data.no_struk}. Nomor struk final akan diberikan server setelah
+            Belum tersinkron, nomor sementara {data.no_struk}. Nomor struk final akan diberikan server setelah
             terkirim.
           </Alert>
         </div>

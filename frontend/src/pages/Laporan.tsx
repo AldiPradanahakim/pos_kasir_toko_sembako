@@ -46,8 +46,8 @@ function KartuOmset() {
       {omzet.dariCache && omzet.data && (
         <p className="text-xs font-medium text-amber-700">
           {online
-            ? 'Omset belum bisa diperbarui — menampilkan angka tersimpan terakhir.'
-            : 'Offline — menampilkan angka omset terakhir yang tersimpan.'}
+            ? 'Omset belum bisa diperbarui, menampilkan angka tersimpan terakhir.'
+            : 'Offline, menampilkan angka omset terakhir yang tersimpan.'}
         </p>
       )}
     </div>
@@ -129,7 +129,7 @@ function DetailLaporan({ entri }: { entri: EntriLaporan }) {
   // Entri unduhan CSV bukan laporan bertabel: tidak ada isi untuk dicetak.
   const bisaCetak = superadmin && jenis !== 'unduh';
   // Objek ringkasan yang punya field daftar (walau kosong) berarti laporannya berbasis daftar,
-  // jadi baris kosong tetap perlu pesan "tidak ada data" — beda dengan laporan angka murni.
+  // jadi baris kosong tetap perlu pesan "tidak ada data", beda dengan laporan angka murni.
   const ringkasPunyaDaftar = !!hasil?.ringkas && Object.values(hasil.ringkas).some(Array.isArray);
   const tampilTabel = !error && (!hasil || hasil.ringkas === null || hasil.rows.length > 0 || ringkasPunyaDaftar);
 
@@ -165,7 +165,7 @@ function DetailLaporan({ entri }: { entri: EntriLaporan }) {
       await api.unduh(entri.path({ dari, sampai, tanggal }), entri.berkas);
       setPesan(`Berkas ${entri.berkas} berhasil diunduh.`);
     } catch (e) {
-      // api.unduh melempar isi respons mentah — ambil pesan error JSON-nya kalau ada.
+      // api.unduh melempar isi respons mentah, ambil pesan error JSON-nya kalau ada.
       const teks = e instanceof Error ? e.message : '';
       let teksPesan = teks || 'Gagal mengunduh berkas';
       try {

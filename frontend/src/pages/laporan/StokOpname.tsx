@@ -69,7 +69,7 @@ const BarisOpname = memo(function BarisOpname({
       </div>
       <div className="w-24 shrink-0 text-right">
         {selisih === null ? (
-          <span className="text-xs text-slate-400">belum diisi</span>
+          <span className="text-xs text-slate-500">belum diisi</span>
         ) : (
           <span
             className={`inline-block rounded-md px-2 py-1 text-xs font-semibold ${
@@ -175,7 +175,7 @@ export default function StokOpname() {
         // Stok sistem berubah setelah penyesuaian; tarik ulang supaya angka di layar ikut benar.
         await pullSync();
       } catch {
-        /* gagal sync bukan kegagalan simpan — salinan lokal menyusul */
+        /* gagal sync bukan kegagalan simpan, salinan lokal menyusul */
       }
       await muatRiwayat();
     } catch (e) {

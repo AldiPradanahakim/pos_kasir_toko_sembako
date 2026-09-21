@@ -4,7 +4,7 @@ import { displayStok, nomorOffline } from './lib/format';
 import { useSync } from './store';
 import type { MetodeBayar, Product, Sale, SyncPull } from './types';
 
-/** UUID v4 — crypto.randomUUID hanya ada di secure context, sedangkan toko sering akses via IP LAN. */
+/** UUID v4, crypto.randomUUID hanya ada di secure context, sedangkan toko sering akses via IP LAN. */
 function uuidV4(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
   const b = new Uint8Array(16);

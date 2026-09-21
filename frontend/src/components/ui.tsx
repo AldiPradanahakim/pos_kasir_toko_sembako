@@ -1,4 +1,13 @@
-import { forwardRef, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import {
+  forwardRef,
+  useEffect,
+  useId,
+  useRef,
+  type ButtonHTMLAttributes,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+} from 'react';
 
 export function Card({
   title,
@@ -38,7 +47,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const VARIAN = {
   primary: 'bg-teal-700 text-white hover:bg-teal-800 active:bg-teal-900 disabled:bg-slate-300',
-  secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200 active:bg-slate-300 disabled:text-slate-400',
+  secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200 active:bg-slate-300 disabled:text-slate-500',
   danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 disabled:bg-slate-300',
   ghost: 'text-slate-600 hover:bg-slate-100 active:bg-slate-200 disabled:text-slate-300',
 };
@@ -108,20 +117,79 @@ export function Modal({
   /** true = modal selalu memakai seluruh layar (untuk form panjang seperti OCR). */
   tinggiPenuh?: boolean;
 }) {
+  const panel = useRef<HTMLDivElement>(null);
+  const judulId = useId();
+
+  /**
+   * Tiga hal yang membuat modal bisa dipakai tanpa mouse (R-32):
+   * Escape menutup, Tab berputar di dalam modal, dan fokus kembali ke elemen
+   * yang membuka modal setelahnya. Tanpa jebakan fokus, Tab membawa pengguna
+   * ke menu sidebar di belakang modal yang tidak terlihat.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const sebelumnya = document.activeElement as HTMLElement | null;
+
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !panel.current) return;
+      const bisa = [...panel.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )].filter((el) => el.offsetParent !== null);
+      if (!bisa.length) return;
+      const pertama = bisa[0];
+      const terakhir = bisa[bisa.length - 1];
+      const aktif = document.activeElement as HTMLElement | null;
+      if (!aktif || !panel.current.contains(aktif)) {
+        e.preventDefault();
+        pertama.focus();
+        return;
+      }
+      if (e.shiftKey && aktif === pertama) {
+        e.preventDefault();
+        terakhir.focus();
+      } else if (!e.shiftKey && aktif === terakhir) {
+        e.preventDefault();
+        pertama.focus();
+      }
+    }
+
+    document.addEventListener('keydown', onKey);
+    // Isi modal yang sudah punya autoFocus dibiarkan; kalau tidak, fokus masuk ke kolom pertama.
+    if (!panel.current?.contains(document.activeElement)) {
+      const sasaran =
+        panel.current?.querySelector<HTMLElement>('[autofocus], input:not([disabled]), textarea:not([disabled]), select:not([disabled])') ??
+        panel.current?.querySelector<HTMLElement>('button, a[href]');
+      sasaran?.focus();
+    }
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      sebelumnya?.focus?.();
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-stretch justify-center bg-black/40 sm:items-start sm:overflow-y-auto sm:p-4">
       <div
+        ref={panel}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={judulId}
         className={`flex h-full w-full flex-col bg-white shadow-xl sm:mt-8 sm:rounded-lg ${
           tinggiPenuh ? 'sm:h-[calc(100vh-4rem)]' : 'sm:h-auto'
         } ${width}`}
       >
         <header className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-100 px-3 py-2 sm:px-4 sm:py-3">
-          <h3 className="min-w-0 truncate text-sm font-semibold text-slate-700">{title}</h3>
+          <h3 id={judulId} className="min-w-0 truncate text-sm font-semibold text-slate-700">{title}</h3>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700"
             aria-label="Tutup"
           >
             ✕
@@ -138,7 +206,9 @@ export function Modal({
 }
 
 export function Kosong({ children }: { children: ReactNode }) {
-  return <p className="py-6 text-center text-sm text-slate-400">{children}</p>;
+  // slate-600, bukan slate-500: pesan kosong juga muncul di atas latar slate-100
+  // (mis. kotak unggah di Scan Struk) tempat slate-500 hanya mencapai 4,34:1.
+  return <p className="py-6 text-center text-sm text-slate-600">{children}</p>;
 }
 
 /** Tab yang bisa digeser ke samping di HP, bukan menumpuk jadi dua baris. */
@@ -197,9 +267,11 @@ export function Stat({
   }[tone];
   return (
     <div className={`min-w-0 rounded-lg border px-3 py-2 ${warna} ${className}`}>
-      <p className="truncate text-xs text-slate-500">{label}</p>
+      {/* Label dan hint memakai slate-600, bukan slate-500: di atas latar berwarna
+          (red-50, amber-50, teal-50) slate-500 hanya mencapai 4,35:1 dan gagal WCAG AA. */}
+      <p className="truncate text-xs text-slate-600">{label}</p>
       <p className="truncate text-base font-bold text-slate-800 sm:text-lg">{nilai}</p>
-      {hint && <p className="truncate text-xs text-slate-500">{hint}</p>}
+      {hint && <p className="truncate text-xs text-slate-600">{hint}</p>}
     </div>
   );
 }

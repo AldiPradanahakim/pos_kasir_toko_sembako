@@ -187,7 +187,7 @@ export default function Produk() {
                 <span className="min-w-0 break-words font-medium">{p.name}</span>
                 <span
                   className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${
-                    p.is_active ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-500'
+                    p.is_active ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-600'
                   }`}
                 >
                   {p.is_active ? 'Aktif' : 'Nonaktif'}
@@ -204,13 +204,13 @@ export default function Produk() {
                     {u.barcode ? ` · ${u.barcode}` : ''}
                   </li>
                 ))}
-                {!p.units.length && <li className="text-xs text-red-600">Belum ada satuan</li>}
+                {!p.units.length && <li className="text-xs text-red-700">Belum ada satuan</li>}
               </ul>
               <div className="mt-2 flex flex-wrap justify-end gap-2">
                 <Button variant="ghost" onClick={() => bukaEdit(p)} disabled={!online}>
                   Ubah
                 </Button>
-                <Button variant="ghost" className="text-red-600" onClick={() => hapus(p)} disabled={!online}>
+                <Button variant="ghost" className="text-red-700" onClick={() => hapus(p)} disabled={!online}>
                   Nonaktifkan
                 </Button>
               </div>
@@ -246,13 +246,13 @@ export default function Produk() {
                           {u.barcode ? ` · ${u.barcode}` : ''}
                         </li>
                       ))}
-                      {!p.units.length && <li className="text-xs text-red-600">Belum ada satuan</li>}
+                      {!p.units.length && <li className="text-xs text-red-700">Belum ada satuan</li>}
                     </ul>
                   </td>
                   <td className="py-2">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs ${
-                        p.is_active ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-500'
+                        p.is_active ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-600'
                       }`}
                     >
                       {p.is_active ? 'Aktif' : 'Nonaktif'}
@@ -262,7 +262,7 @@ export default function Produk() {
                     <Button variant="ghost" onClick={() => bukaEdit(p)} disabled={!online}>
                       Ubah
                     </Button>
-                    <Button variant="ghost" className="text-red-600" onClick={() => hapus(p)} disabled={!online}>
+                    <Button variant="ghost" className="text-red-700" onClick={() => hapus(p)} disabled={!online}>
                       Nonaktifkan
                     </Button>
                   </td>
@@ -276,7 +276,7 @@ export default function Produk() {
 
       <Modal
         open={buka}
-        title={edit ? `Ubah Produk — ${edit.name}` : 'Tambah Produk'}
+        title={edit ? `Ubah Produk: ${edit.name}` : 'Tambah Produk'}
         onClose={() => setBuka(false)}
         width="max-w-3xl"
       >
@@ -385,7 +385,7 @@ export default function Produk() {
                     <Button
                       type="button"
                       variant="ghost"
-                      className="text-red-600"
+                      className="text-red-700"
                       onClick={() => setBaris((prev) => prev.filter((_, x) => x !== i))}
                       disabled={baris.length <= 1}
                     >

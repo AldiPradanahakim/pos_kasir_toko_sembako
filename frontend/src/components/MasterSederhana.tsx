@@ -30,7 +30,10 @@ export default function MasterSederhana({
   const [error, setError] = useState('');
   const [simpanLoading, setSimpanLoading] = useState(false);
 
-  const rows = useLiveQuery(() => tabel.toArray(), [tabel], [] as Baris[]);
+  // Tanpa nilai awal: `undefined` berarti data lokal belum terbaca, `[]` berarti benar-benar
+  // kosong. Dengan nilai awal `[]`, pesan "Belum ada data" sempat tampil padahal masih memuat.
+  const rows = useLiveQuery(() => tabel.toArray(), [tabel]);
+  const daftar = rows ?? [];
 
   function bukaTambah() {
     setEdit(null);
@@ -95,13 +98,13 @@ export default function MasterSederhana({
         {/* Di HP daftar dibaca sebagai kartu; tabel lebar hanya tampil dari md ke atas
             supaya kolomnya tidak melebarkan halaman. */}
         <ul className="space-y-2 md:hidden">
-          {rows.map((row) => (
+          {daftar.map((row) => (
             <li key={row.id} className="min-w-0 rounded-md border border-slate-200 p-3">
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0 break-words font-medium">{row.name}</span>
                 <span
                   className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${
-                    row.is_active ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-500'
+                    row.is_active ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-600'
                   }`}
                 >
                   {row.is_active ? 'Aktif' : 'Nonaktif'}
@@ -111,7 +114,7 @@ export default function MasterSederhana({
                 <Button variant="ghost" onClick={() => bukaEdit(row)}>
                   Ubah
                 </Button>
-                <Button variant="ghost" className="text-red-600" onClick={() => hapus(row)}>
+                <Button variant="ghost" className="text-red-700" onClick={() => hapus(row)}>
                   Hapus
                 </Button>
               </div>
@@ -129,13 +132,13 @@ export default function MasterSederhana({
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {daftar.map((row) => (
                 <tr key={row.id} className="border-b border-slate-50">
                   <td className="min-w-0 break-words py-2">{row.name}</td>
                   <td className="py-2">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs ${
-                        row.is_active ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-500'
+                        row.is_active ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-600'
                       }`}
                     >
                       {row.is_active ? 'Aktif' : 'Nonaktif'}
@@ -145,7 +148,7 @@ export default function MasterSederhana({
                     <Button variant="ghost" onClick={() => bukaEdit(row)}>
                       Ubah
                     </Button>
-                    <Button variant="ghost" className="text-red-600" onClick={() => hapus(row)}>
+                    <Button variant="ghost" className="text-red-700" onClick={() => hapus(row)}>
                       Hapus
                     </Button>
                   </td>
@@ -154,7 +157,8 @@ export default function MasterSederhana({
             </tbody>
           </table>
         </div>
-        {!rows.length && <Kosong>Belum ada data. Jalankan sinkronisasi bila baru memasang aplikasi.</Kosong>}
+        {rows === undefined && <Kosong>Memuat data…</Kosong>}
+        {rows?.length === 0 && <Kosong>Belum ada data. Jalankan sinkronisasi bila baru memasang aplikasi.</Kosong>}
       </Card>
 
       <Modal open={buka} title={edit ? `Ubah ${judul}` : `Tambah ${judul}`} onClose={() => setBuka(false)}>

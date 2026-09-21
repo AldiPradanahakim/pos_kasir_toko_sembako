@@ -36,7 +36,7 @@ export interface DbPendingSale {
     metode_bayar: MetodeBayar;
     dibayar: number;
     created_at: string;
-    /** Nama pelanggan (opsional) — dicatat supaya bisa ditagih/dicari nanti. */
+    /** Nama pelanggan (opsional), dicatat supaya bisa ditagih/dicari nanti. */
     nama_pelanggan?: string | null;
   };
 }

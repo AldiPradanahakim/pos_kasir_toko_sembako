@@ -64,7 +64,7 @@ export default function Layout() {
   const superadmin = user?.role === 'superadmin';
   /**
    * Sidebar hanya untuk superadmin, dan hanya muncul di layar `desktop`
-   * (>=1280px DAN penunjuk presisi — lihat catatan di tailwind.config.js).
+   * (>=1280px DAN penunjuk presisi, lihat catatan di tailwind.config.js).
    * Kasir tidak pernah dapat sidebar: layar mereka murni untuk melayani pembeli.
    */
   /** Di kasir, halaman harus muat satu layar penuh (tanpa scroll halaman) sejak tablet. */
@@ -85,7 +85,9 @@ export default function Layout() {
         if (!daftar.length) return null;
         return (
           <div key={g.judul}>
-            <p className="mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-slate-400">{g.judul}</p>
+            {/* Judul grup dibedakan oleh bobot huruf dan jarak, bukan oleh HURUF BESAR
+                berjarak lebar (R-06: label uppercase berjarak lebar dilarang sebagai default). */}
+            <p className="mb-1 px-2 text-xs font-semibold text-slate-500">{g.judul}</p>
             <div className="space-y-1">
               {daftar.map((m) => (
                 <NavLink
@@ -93,7 +95,7 @@ export default function Layout() {
                   to={m.to}
                   end={m.to === '/stok'}
                   // Menutup drawer saat menunya disentuh. Perpindahan halaman juga menutupnya,
-                  // tetapi mengetuk menu halaman yang sedang dibuka tidak mengubah rute —
+                  // tetapi mengetuk menu halaman yang sedang dibuka tidak mengubah rute ,
                   // drawer-nya akan tertinggal terbuka menutupi layar.
                   onClick={() => setDrawer(false)}
                   className={({ isActive }) =>
@@ -212,14 +214,14 @@ export default function Layout() {
               </span>
             )}
           </div>
-          <p className="hidden text-xs text-slate-400 sm:block">
+          <p className="hidden text-xs text-slate-500 sm:block">
             Sinkron terakhir: {lastSyncAt ? formatTanggalJam(new Date(lastSyncAt).toISOString()) : 'belum'}
           </p>
         </header>
 
         {!online && (
           <div className="no-print bg-amber-100 px-3 py-2 text-sm font-medium text-amber-900 sm:px-4">
-            Offline — transaksi disimpan lokal
+            Offline, transaksi disimpan lokal
           </div>
         )}
 

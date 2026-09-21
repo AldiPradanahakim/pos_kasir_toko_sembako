@@ -13,7 +13,7 @@ import type { Product, ProductAlias, StockInBulkResult, StockRow } from '../type
 
 type BarisScan = {
   kunci: number;
-  /** Teks barang apa adanya dari foto — dipakai untuk mengisi product_aliases. */
+  /** Teks barang apa adanya dari foto, dipakai untuk mengisi product_aliases. */
   nama: string;
   mentah: string;
   productId: string;
@@ -214,7 +214,7 @@ export default function StokScan() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
           <h1 className="text-lg font-semibold">Scan Struk</h1>
-          <p className="text-sm text-slate-500">Foto nota supplier, lalu periksa hasilnya sebelum masuk stok.</p>
+          <p className="text-sm text-slate-600">Foto nota supplier, lalu periksa hasilnya sebelum masuk stok.</p>
         </div>
         <Link
           to="/stok"
@@ -335,7 +335,7 @@ export default function StokScan() {
                       type="button"
                       aria-label={`Hapus baris ${i + 1}`}
                       onClick={() => setBaris((lama) => lama.filter((x) => x.kunci !== b.kunci))}
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-lg text-red-600 hover:bg-red-50"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-lg text-red-700 hover:bg-red-50"
                     >
                       ✕
                     </button>
@@ -344,7 +344,7 @@ export default function StokScan() {
                   {!b.productId && (
                     <div className="mb-2">
                       <Alert tone="info">
-                        Produk belum dikenali dari foto — pilih produk yang benar untuk baris ini.
+                        Produk belum dikenali dari foto, pilih produk yang benar untuk baris ini.
                       </Alert>
                     </div>
                   )}

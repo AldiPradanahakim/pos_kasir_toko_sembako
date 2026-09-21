@@ -21,7 +21,7 @@ const TOMBOL: { label: string; aksi: 'angka' | 'hapus' | 'c'; nilai?: string; ga
 /**
  * Satu-satunya kalkulator di aplikasi: keypad angka besar gaya minimarket.
  * Hasilnya langsung mengisi kolom yang sedang diisi kasir (kolom "Dibayar"),
- * bukan untuk menghitung kembalian — kembalian sudah otomatis dari kolom itu.
+ * bukan untuk menghitung kembalian, kembalian sudah otomatis dari kolom itu.
  */
 export default function Kalkulator({
   open,
@@ -71,7 +71,7 @@ export default function Kalkulator({
   /**
    * Papan ketik fisik (keyboard laptop): angka 0-9, Backspace menghapus, Escape menutup,
    * Enter mengisi kolom Dibayar. Pendengarnya di `window`, jadi langsung bekerja tanpa
-   * kasir mengklik apa pun lebih dulu — dan modal menutupi seluruh layar, sehingga tidak
+   * kasir mengklik apa pun lebih dulu, dan modal menutupi seluruh layar, sehingga tidak
    * ada kolom isian lain yang bisa ikut menerima ketikan ini.
    */
   useEffect(() => {
@@ -101,7 +101,7 @@ export default function Kalkulator({
   return (
     <Modal open={open} title="Masukkan Jumlah Dibayar" onClose={onClose} width="max-w-sm">
       <div className="mb-3 rounded-lg bg-slate-900 px-3 py-3 text-right">
-        <p className="text-xs text-slate-400">{total > 0 ? `Total belanja ${rupiah(total)}` : 'Belum ada barang'}</p>
+        <p className="text-xs text-slate-500">{total > 0 ? `Total belanja ${rupiah(total)}` : 'Belum ada barang'}</p>
         <p className="break-all text-3xl font-bold text-white">{rupiah(angka)}</p>
       </div>
 

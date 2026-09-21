@@ -227,7 +227,7 @@ export default function Pembelian() {
                 <Button
                   variant="ghost"
                   ukuran="sm"
-                  className="text-red-600"
+                  className="text-red-700"
                   onClick={() => void hapus(r)}
                   disabled={!online}
                 >
@@ -264,7 +264,7 @@ export default function Pembelian() {
                     <Button
                       variant="ghost"
                       ukuran="sm"
-                      className="text-red-600"
+                      className="text-red-700"
                       onClick={() => void hapus(r)}
                       disabled={!online}
                     >
@@ -294,7 +294,7 @@ export default function Pembelian() {
       <Modal open={buka} title="Pembelian Baru" onClose={() => setBuka(false)} width="max-w-4xl" tinggiPenuh>
         <form onSubmit={simpanBeli} className="space-y-3">
           <Alert tone="info">
-            Cukup isi barang dan jumlahnya — pembelian tidak memakai harga. Stok produk bertambah otomatis di server
+            Cukup isi barang dan jumlahnya, karena pembelian tidak memakai harga. Stok produk bertambah otomatis di server
             setelah pembelian disimpan.
           </Alert>
 
@@ -367,7 +367,7 @@ export default function Pembelian() {
                       <Button
                         type="button"
                         variant="ghost"
-                        className="w-full text-red-600"
+                        className="w-full text-red-700"
                         onClick={() => setBaris((prev) => prev.filter((_, x) => x !== i))}
                         disabled={baris.length <= 1}
                         aria-label={`Hapus baris ${i + 1}`}

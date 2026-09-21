@@ -253,7 +253,7 @@ export default function Stok() {
                   <td className="py-2 whitespace-nowrap">{formatTanggalJam(m.created_at)}</td>
                   <td className="py-2">{m.product_name}</td>
                   <td className="py-2">{LABEL_TIPE[m.type] ?? m.type}</td>
-                  <td className={`py-2 text-right ${m.qty_base < 0 ? 'text-red-600' : 'text-teal-700'}`}>
+                  <td className={`py-2 text-right ${m.qty_base < 0 ? 'text-red-700' : 'text-teal-700'}`}>
                     {m.qty_base > 0 ? '+' : ''}
                     {m.qty_base.toLocaleString('id-ID')}
                   </td>
@@ -274,7 +274,7 @@ export default function Stok() {
             onClick={() => setBukaTambah(false)}
             className="block rounded-md bg-teal-50 px-3 py-3 text-sm font-medium text-teal-800"
           >
-            Punya nota supplier? Pakai <b>Scan Struk</b> — stok masuk sekaligus banyak.
+            Punya nota supplier? Pakai <b>Scan Struk</b>, stok masuk sekaligus banyak.
           </Link>
           <div>
             <Label>Produk</Label>

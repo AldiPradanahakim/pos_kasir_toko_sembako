@@ -169,15 +169,15 @@
     "modalMasihTerbuka": false
   },
   "simpanStruk": {
-    "uuid": "2f17c83e-f1ad-4dc3-9e45-b5521d44fa30",
+    "uuid": "50adc1fb-7174-4634-a1f1-9d2183bc0e5a",
     "printSebelum": 0,
     "printSesudah": 0,
     "adaNamaPelanggan": true,
-    "struk": "TOKO HAKIM\n\nNo\nINV-20260921-0002\nTanggal\n21/09/2026, 18.34\nKasir\nAldi Pradana Hakim\nPelanggan\nPelanggan Uji Simpan\n\nSedaap Soto\n\n1 pcs x Rp 2.700\nRp 2.700\n\nIndomie Goreng\n\n1 pcs x Rp 3.500\nRp 3.500\nTOTAL\nRp 6.200\nMetode\nTunai\nDibayar\nRp 50.000\nKembalian\nRp 43.800\n\nTerima kasih telah berbelanja\n\nBarang yang sudah dibeli tidak dapat ditukar"
+    "struk": "TOKO HAKIM\n\nNo\nINV-20260921-0006\nTanggal\n21/09/2026, 19.49\nKasir\nAldi Pradana Hakim\nPelanggan\nPelanggan Uji Simpan\n\nSedaap Soto\n\n1 pcs x Rp 2.700\nRp 2.700\n\nIndomie Goreng\n\n1 pcs x Rp 3.500\nRp 3.500\nTOTAL\nRp 6.200\nMetode\nTunai\nDibayar\nRp 50.000\nKembalian\nRp 43.800\n\nTerima kasih telah berbelanja\n\nBarang yang sudah dibeli tidak dapat ditukar"
   },
   "penjualanTersimpan": {
     "status": 200,
-    "id": 39,
+    "id": 43,
     "metode_bayar": "tunai",
     "dibayar": 50000,
     "kembalian": 43800,
@@ -185,9 +185,9 @@
     "nama_pelanggan": "Pelanggan Uji Simpan"
   },
   "cetakStruk": {
-    "uuid": "7497a009-67a0-4d68-9895-6911aa16eea3",
+    "uuid": "b1b6ec56-4615-4b9e-81f0-5cf8cf462552",
     "printSesudah": 1,
-    "struk": "TOKO HAKIM\n\nNo\nINV-20260921-0003\nTanggal\n21/09/2026, 18.34\nKasir\nAldi Pradana Hakim\nPelanggan\nPelanggan Uji Cetak\n\nSedaap Soto\n\n1 pcs x Rp 2.700\nRp 2.700\nTOTAL\nRp 2.700\nMetode\nTunai\nDibayar\nRp 2.700\nKembalian\nRp 0\n\nTerima kasih telah berbelanja\n\nBarang yang sudah dibeli tidak dapat ditukar"
+    "struk": "TOKO HAKIM\n\nNo\nINV-20260921-0007\nTanggal\n21/09/2026, 19.49\nKasir\nAldi Pradana Hakim\nPelanggan\nPelanggan Uji Cetak\n\nSedaap Soto\n\n1 pcs x Rp 2.700\nRp 2.700\nTOTAL\nRp 2.700\nMetode\nTunai\nDibayar\nRp 2.700\nKembalian\nRp 0\n\nTerima kasih telah berbelanja\n\nBarang yang sudah dibeli tidak dapat ditukar"
   },
   "omzet": {
     "permintaanOmzet": [],
@@ -195,8 +195,8 @@
   },
   "pembersihan": [
     {
-      "uuid": "2f17c83e-f1ad-4dc3-9e45-b5521d44fa30",
-      "id": 39,
+      "uuid": "50adc1fb-7174-4634-a1f1-9d2183bc0e5a",
+      "id": 43,
       "statusHapus": 200,
       "hasil": {
         "ok": true,
@@ -206,8 +206,8 @@
       }
     },
     {
-      "uuid": "7497a009-67a0-4d68-9895-6911aa16eea3",
-      "id": 40,
+      "uuid": "b1b6ec56-4615-4b9e-81f0-5cf8cf462552",
+      "id": 44,
       "statusHapus": 200,
       "hasil": {
         "ok": true,

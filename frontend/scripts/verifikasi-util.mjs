@@ -1,7 +1,7 @@
 /**
  * Utilitas bersama untuk skrip verifikasi UI.
  *
- * Beberapa agen menulis berkas secara bersamaan, sehingga sesaat aplikasi bisa gagal
+ * Berkas bisa sedang tertulis saat pembangunan berjalan, sehingga sesaat aplikasi bisa gagal
  * dirender (modul setengah jadi). Semua penantian di sini mengulang sampai aplikasi
  * BENAR-BENAR merender, bukan sekadar "selesai memuat", supaya hasil verifikasi
  * tidak pernah hijau palsu.

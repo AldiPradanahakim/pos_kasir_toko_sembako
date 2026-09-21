@@ -120,11 +120,11 @@ export default function Users() {
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0 break-words font-medium">
                   {u.name}
-                  {u.id === saya?.id && <span className="ml-2 text-xs text-slate-400">(Anda)</span>}
+                  {u.id === saya?.id && <span className="ml-2 text-xs text-slate-500">(Anda)</span>}
                 </span>
                 <span
                   className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${
-                    u.is_active ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-500'
+                    u.is_active ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-600'
                   }`}
                 >
                   {u.is_active ? 'Aktif' : 'Nonaktif'}
@@ -139,7 +139,7 @@ export default function Users() {
                 </Button>
                 <Button
                   variant="ghost"
-                  className="text-red-600"
+                  className="text-red-700"
                   onClick={() => hapus(u)}
                   disabled={u.id === saya?.id}
                   title={u.id === saya?.id ? 'Tidak dapat menghapus akun sendiri' : ''}
@@ -167,14 +167,14 @@ export default function Users() {
                 <tr key={u.id} className="border-b border-slate-50">
                   <td className="min-w-0 break-words py-2 font-medium">
                     {u.name}
-                    {u.id === saya?.id && <span className="ml-2 text-xs text-slate-400">(Anda)</span>}
+                    {u.id === saya?.id && <span className="ml-2 text-xs text-slate-500">(Anda)</span>}
                   </td>
                   <td className="py-2">{u.username}</td>
                   <td className="py-2">{u.role === 'superadmin' ? 'Superadmin' : 'Kasir'}</td>
                   <td className="py-2">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs ${
-                        u.is_active ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-500'
+                        u.is_active ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-600'
                       }`}
                     >
                       {u.is_active ? 'Aktif' : 'Nonaktif'}
@@ -186,7 +186,7 @@ export default function Users() {
                     </Button>
                     <Button
                       variant="ghost"
-                      className="text-red-600"
+                      className="text-red-700"
                       onClick={() => hapus(u)}
                       disabled={u.id === saya?.id}
                       title={u.id === saya?.id ? 'Tidak dapat menghapus akun sendiri' : ''}
@@ -202,7 +202,7 @@ export default function Users() {
         {!rows.length && <Kosong>{online ? 'Belum ada pengguna.' : 'Menyambung ke server…'}</Kosong>}
       </Card>
 
-      <Modal open={buka} title={edit ? `Ubah Pengguna — ${edit.name}` : 'Tambah Pengguna'} onClose={() => setBuka(false)}>
+      <Modal open={buka} title={edit ? `Ubah Pengguna: ${edit.name}` : 'Tambah Pengguna'} onClose={() => setBuka(false)}>
         <form onSubmit={simpan} className="space-y-3">
           <div>
             <Label>Nama lengkap</Label>

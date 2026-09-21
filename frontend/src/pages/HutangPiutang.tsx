@@ -208,8 +208,8 @@ export default function HutangPiutang() {
       {error && <Alert>{error}</Alert>}
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <Stat label="Belum lunas — hutang" nilai={rupiah(belumLunasUtang)} tone="merah" hint="kita yang berhutang" />
-        <Stat label="Belum lunas — piutang" nilai={rupiah(belumLunasPiutang)} tone="kuning" hint="pelanggan berhutang" />
+        <Stat label="Belum lunas (hutang)" nilai={rupiah(belumLunasUtang)} tone="merah" hint="kita yang berhutang" />
+        <Stat label="Belum lunas (piutang)" nilai={rupiah(belumLunasPiutang)} tone="kuning" hint="pelanggan berhutang" />
         <Stat
           label="Total belum lunas"
           nilai={rupiah(belumLunasUtang + belumLunasPiutang)}
@@ -252,7 +252,7 @@ export default function HutangPiutang() {
                   {d.jatuh_tempo && (
                     <p
                       className={`text-xs ${
-                        !lunas(d) && d.jatuh_tempo < tanggalLokal() ? 'font-semibold text-red-600' : 'text-slate-500'
+                        !lunas(d) && d.jatuh_tempo < tanggalLokal() ? 'font-semibold text-red-700' : 'text-slate-500'
                       }`}
                     >
                       Jatuh tempo {formatTanggal(d.jatuh_tempo)}
@@ -262,7 +262,7 @@ export default function HutangPiutang() {
                   {d.keterangan && <p className="mt-0.5 text-xs text-slate-500">{d.keterangan}</p>}
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className={`text-sm font-semibold ${lunas(d) ? 'text-slate-400' : 'text-slate-800'}`}>
+                  <p className={`text-sm font-semibold ${lunas(d) ? 'text-slate-500' : 'text-slate-800'}`}>
                     {rupiah(sisaDari(d))}
                   </p>
                   <p className="text-xs text-slate-500">dari {rupiah(d.jumlah)}</p>
@@ -297,7 +297,7 @@ export default function HutangPiutang() {
                   <Button
                     variant="ghost"
                     ukuran="sm"
-                    className="text-red-600"
+                    className="text-red-700"
                     onClick={() => void hapus(d)}
                     disabled={!online}
                   >
@@ -345,7 +345,7 @@ export default function HutangPiutang() {
                   <td className="py-2 pr-3 text-right font-medium">{rupiah(sisaDari(d))}</td>
                   <td className="whitespace-nowrap py-2 pr-3">
                     {d.jatuh_tempo ? (
-                      <span className={!lunas(d) && d.jatuh_tempo < tanggalLokal() ? 'font-semibold text-red-600' : ''}>
+                      <span className={!lunas(d) && d.jatuh_tempo < tanggalLokal() ? 'font-semibold text-red-700' : ''}>
                         {formatTanggal(d.jatuh_tempo)}
                       </span>
                     ) : (
@@ -383,7 +383,7 @@ export default function HutangPiutang() {
                     <Button
                       variant="ghost"
                       ukuran="sm"
-                      className="text-red-600"
+                      className="text-red-700"
                       onClick={() => void hapus(d)}
                       disabled={!online}
                     >
@@ -409,8 +409,8 @@ export default function HutangPiutang() {
           <div>
             <Label>Tipe</Label>
             <Select value={formTipe} onChange={(e) => setFormTipe(e.target.value)}>
-              <option value="utang">Hutang — kita yang berhutang</option>
-              <option value="piutang">Piutang — pelanggan berhutang</option>
+              <option value="utang">Hutang (kita yang berhutang)</option>
+              <option value="piutang">Piutang (pelanggan berhutang)</option>
             </Select>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
