@@ -1,0 +1,4 @@
+# Rahasia lokal — JANGAN di-commit.
+.env
+
+node_modules/

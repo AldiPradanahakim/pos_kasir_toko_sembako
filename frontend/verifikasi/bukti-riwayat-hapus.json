@@ -1,0 +1,69 @@
+{
+  "superadmin": {
+    "adaBaris": true,
+    "teksHapusPerBaris": true,
+    "teksHapusRentang": true,
+    "teksBatalkan": true,
+    "tombolHapus": [
+      {
+        "teks": "Hapus Riwayat per Tanggal",
+        "warna": "rgb(220, 38, 38)",
+        "tinggi": 44,
+        "lebar": 221
+      },
+      {
+        "teks": "Hapus Permanen",
+        "warna": "rgb(220, 38, 38)",
+        "tinggi": 44,
+        "lebar": 314
+      },
+      {
+        "teks": "Hapus Permanen",
+        "warna": "rgb(220, 38, 38)",
+        "tinggi": 44,
+        "lebar": 314
+      },
+      {
+        "teks": "Hapus Permanen",
+        "warna": "rgb(220, 38, 38)",
+        "tinggi": 44,
+        "lebar": 314
+      }
+    ],
+    "tombolBatalkan": [
+      {
+        "teks": "Batalkan Transaksi",
+        "warna": "rgb(255, 251, 235)",
+        "tinggi": 46,
+        "lebar": 314
+      },
+      {
+        "teks": "Batalkan Transaksi",
+        "warna": "rgb(255, 251, 235)",
+        "tinggi": 46,
+        "lebar": 314
+      }
+    ]
+  },
+  "kasir": {
+    "adaBaris": true,
+    "teksHapusPerBaris": false,
+    "teksHapusRentang": false,
+    "teksBatalkan": true,
+    "tombolHapus": [],
+    "tombolBatalkan": [
+      {
+        "teks": "Batalkan Transaksi",
+        "warna": "rgb(255, 251, 235)",
+        "tinggi": 46,
+        "lebar": 314
+      },
+      {
+        "teks": "Batalkan Transaksi",
+        "warna": "rgb(255, 251, 235)",
+        "tinggi": 46,
+        "lebar": 314
+      }
+    ]
+  }
+}

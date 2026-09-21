@@ -1,0 +1,27 @@
+{
+  "name": "pos-hakim-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API POS Toko Hakim - Express 5 + PostgreSQL (raw SQL)",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "migrate": "node scripts/migrate.js",
+    "seed": "node scripts/seed.js",
+    "seed:produk": "node scripts/seed-produk.js",
+    "backfill:kas": "node scripts/backfill-kas.js",
+    "reset:data": "node scripts/reset-data.js",
+    "smoke": "node scripts/smoke.js",
+    "test": "node scripts/migrate.js --test --fresh && node --test --test-concurrency=1 \"tests/*.test.js\""
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^5.1.0",
+    "pg": "^8.13.1"
+  }
+}

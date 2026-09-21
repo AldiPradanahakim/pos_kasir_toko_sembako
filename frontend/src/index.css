@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  /* HP: jangan perbesar/perkecil teks otomatis saat orientasi berubah. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  @apply bg-slate-100 text-slate-800;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* iOS: input <16px memicu zoom otomatis saat difokuskan. Semua kontrol form
+   sudah memakai text-base/text-sm (=16px) dari skala Tailwind, ini jaring pengaman. */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+/* Area aman perangkat berponi. */
+.aman-atas {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Pembungkus tabel: menggeser ke samping DI DALAM kotak, tidak pernah
+   melebarkan halaman. Dipakai semua tabel lebar. */
+.tabel-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbar disembunyikan, isinya TETAP bisa digeser (roda mouse, sentuh, panah
+   papan ketik). Dipakai sidebar supaya tampil bersih tanpa batang abu-abu. */
+.tanpa-scrollbar {
+  scrollbar-width: none;
+}
+.tanpa-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Strip tab yang bisa digeser di HP. */
+.tab-strip {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scrollbar-width: thin;
+}
+.tab-strip > * {
+  flex: 0 0 auto;
+}
+
+/* Sembunyikan panah spinner input number: di HP tombolnya terlalu kecil dan
+   sering salah pencet; qty diubah lewat tombol − / + berukuran besar. */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+/* Baris aksi yang selalu terjangkau di HP/tablet. Menempel di dasar layar; satu-satunya
+   jarak yang disisakan adalah area aman perangkat berponi/gesture bar. */
+.bar-aksi-lengket {
+  position: sticky;
+  bottom: 0;
+  padding-bottom: calc(0.625rem + env(safe-area-inset-bottom, 0px));
+  z-index: 30;
+}
+
+/* ---- Struk 58mm ---- */
+.struk {
+  width: 58mm;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 10px;
+  line-height: 1.35;
+  color: #000;
+}
+
+.struk .garis {
+  border-top: 1px dashed #000;
+  margin: 3px 0;
+}
+
+/* ---- Cetak ---- */
+/* Dua jenis cetakan memakai ukuran kertas berbeda, jadi masing-masing diberi nama
+   halaman (`page:`) supaya ukuran 58mm struk tidak ikut terpakai saat mencetak laporan
+   A4 dan sebaliknya. */
+@page struk {
+  size: 58mm auto;
+  margin: 0;
+}
+
+@page laporan {
+  size: A4 portrait;
+  margin: 12mm;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff;
+    overflow: visible;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  /* Struk 58mm. */
+  .area-cetak {
+    page: struk;
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    padding: 0;
+    width: 58mm;
+  }
+
+  .area-cetak .struk {
+    box-shadow: none;
+    border: 0;
+    margin: 0;
+  }
+
+  /* Laporan A4: tabel ikut lebar kertas, tidak terpotong di kotak yang bisa digeser. */
+  .area-laporan {
+    page: laporan;
+  }
+
+  .area-laporan .tabel-scroll {
+    overflow: visible;
+  }
+
+  .area-laporan table {
+    width: 100%;
+  }
+
+  .area-laporan th,
+  .area-laporan td {
+    white-space: normal;
+  }
+
+  .area-laporan .rounded-lg,
+  .area-laporan .rounded-md {
+    border-radius: 0;
+  }
+}

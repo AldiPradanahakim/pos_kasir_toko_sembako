@@ -1,0 +1,3401 @@
+{
+  "kasir": [
+    {
+      "peran": "kasir",
+      "w": 768,
+      "h": 1024,
+      "sentuh": true,
+      "dokumenScrollHeight": 1024,
+      "bodyScrollHeight": 1024,
+      "tinggiJendela": 1024,
+      "halamanMenggulir": false,
+      "mainOverflowY": "hidden",
+      "mainScrollHeight": 963,
+      "mainClientHeight": 963,
+      "keranjang": {
+        "overflowY": "auto",
+        "scrollHeight": 1315,
+        "clientHeight": 624,
+        "bisaScroll": true
+      },
+      "produkLamaAda": false,
+      "tombolAksi": [
+        {
+          "teks": "Simpan Struk",
+          "atas": 365,
+          "bawah": 417,
+          "terlihat": true
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 425,
+          "bawah": 477,
+          "terlihat": true
+        },
+        {
+          "teks": "Simpan Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        }
+      ],
+      "sidebarTampil": false,
+      "sidebarKotak": null,
+      "sidebarPosisi": null,
+      "navBawahTampil": false,
+      "barAksiKotak": {
+        "w": 0,
+        "h": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "barAksiLengket": "sticky",
+      "barAksiTerjangkau": true,
+      "susunan": {
+        "namaPelanggan": {
+          "w": 390,
+          "h": 44,
+          "top": 118,
+          "bottom": 162
+        },
+        "kotakCari": {
+          "w": 390,
+          "h": 44,
+          "top": 208,
+          "bottom": 252
+        },
+        "keranjang": {
+          "w": 424,
+          "h": 931,
+          "top": 77,
+          "bottom": 1008
+        },
+        "kartuKeranjang": {
+          "w": 424,
+          "h": 695,
+          "top": 313,
+          "bottom": 1008
+        },
+        "pembayaran": {
+          "w": 300,
+          "h": 417,
+          "top": 77,
+          "bottom": 494
+        },
+        "namaDiAtasCari": true,
+        "cariDiAtasKeranjang": true,
+        "keranjangDiKiriPembayaran": true
+      },
+      "kolomKeranjang": [
+        {
+          "teks": "Barang",
+          "lebar": 111
+        },
+        {
+          "teks": "Qty",
+          "lebar": 53
+        },
+        {
+          "teks": "Harga",
+          "lebar": 68
+        },
+        {
+          "teks": "Subtotal",
+          "lebar": 80
+        },
+        {
+          "teks": "Hapus",
+          "lebar": 78
+        }
+      ],
+      "gulirDalam": {
+        "scrollTopSetelahDigeser": 100,
+        "halamanIkutBergeser": false
+      },
+      "barisTerlihat": {
+        "tinggiAreaIsi": 624,
+        "tinggiBaris": 85,
+        "barisMuatUtuh": 7
+      },
+      "tabelKeranjang": {
+        "judul": "Keranjang (14)",
+        "kolom": [
+          {
+            "teks": "Barang",
+            "terlihat": true
+          },
+          {
+            "teks": "Qty",
+            "terlihat": true
+          },
+          {
+            "teks": "Harga",
+            "terlihat": true
+          },
+          {
+            "teks": "Subtotal",
+            "terlihat": true
+          },
+          {
+            "teks": "Hapus",
+            "terlihat": true
+          }
+        ],
+        "jumlahBaris": 14,
+        "baris": [
+          [
+            "Ale-Ale 350ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Apache Filter 12 / pcs",
+            "1",
+            "Rp 21.500",
+            "Rp 21.500",
+            "✕"
+          ],
+          [
+            "Aqua 600ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Aqua Galon 19L / pcs",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Baterai ABC AA / pcs",
+            "1",
+            "Rp 10.500",
+            "Rp 10.500",
+            "✕"
+          ],
+          [
+            "Bawang Merah / pack",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Bawang Putih / pack",
+            "1",
+            "Rp 24.000",
+            "Rp 24.000",
+            "✕"
+          ],
+          [
+            "Bear Brand 189ml / pcs",
+            "1",
+            "Rp 11.500",
+            "Rp 11.500",
+            "✕"
+          ],
+          [
+            "Bedak My Baby 100g / pcs",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beng Beng / pcs",
+            "1",
+            "Rp 2.500",
+            "Rp 2.500",
+            "✕"
+          ],
+          [
+            "Bentoel Biru 12 / pcs",
+            "1",
+            "Rp 22.500",
+            "Rp 22.500",
+            "✕"
+          ],
+          [
+            "Beras Pandan Wangi / kg",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beras Rojo Lele / kg",
+            "1",
+            "Rp 16.000",
+            "Rp 16.000",
+            "✕"
+          ],
+          [
+            "Beras Setra Ramos / kg",
+            "1",
+            "Rp 14.000",
+            "Rp 14.000",
+            "✕"
+          ]
+        ],
+        "total": "TOTAL\tRp 205.500"
+      }
+    },
+    {
+      "peran": "kasir",
+      "w": 1024,
+      "h": 768,
+      "sentuh": true,
+      "dokumenScrollHeight": 768,
+      "bodyScrollHeight": 768,
+      "tinggiJendela": 768,
+      "halamanMenggulir": false,
+      "mainOverflowY": "hidden",
+      "mainScrollHeight": 707,
+      "mainClientHeight": 707,
+      "keranjang": {
+        "overflowY": "auto",
+        "scrollHeight": 993,
+        "clientHeight": 368,
+        "bisaScroll": true
+      },
+      "produkLamaAda": false,
+      "tombolAksi": [
+        {
+          "teks": "Simpan Struk",
+          "atas": 365,
+          "bawah": 417,
+          "terlihat": true
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 365,
+          "bawah": 417,
+          "terlihat": true
+        },
+        {
+          "teks": "Simpan Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        }
+      ],
+      "sidebarTampil": false,
+      "sidebarKotak": null,
+      "sidebarPosisi": null,
+      "navBawahTampil": false,
+      "barAksiKotak": {
+        "w": 0,
+        "h": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "barAksiLengket": "sticky",
+      "barAksiTerjangkau": true,
+      "susunan": {
+        "namaPelanggan": {
+          "w": 606,
+          "h": 44,
+          "top": 118,
+          "bottom": 162
+        },
+        "kotakCari": {
+          "w": 606,
+          "h": 44,
+          "top": 208,
+          "bottom": 252
+        },
+        "keranjang": {
+          "w": 640,
+          "h": 675,
+          "top": 77,
+          "bottom": 752
+        },
+        "kartuKeranjang": {
+          "w": 640,
+          "h": 439,
+          "top": 313,
+          "bottom": 752
+        },
+        "pembayaran": {
+          "w": 340,
+          "h": 357,
+          "top": 77,
+          "bottom": 434
+        },
+        "namaDiAtasCari": true,
+        "cariDiAtasKeranjang": true,
+        "keranjangDiKiriPembayaran": true
+      },
+      "kolomKeranjang": [
+        {
+          "teks": "Barang",
+          "lebar": 208
+        },
+        {
+          "teks": "Qty",
+          "lebar": 69
+        },
+        {
+          "teks": "Harga",
+          "lebar": 103
+        },
+        {
+          "teks": "Subtotal",
+          "lebar": 106
+        },
+        {
+          "teks": "Hapus",
+          "lebar": 120
+        }
+      ],
+      "gulirDalam": {
+        "scrollTopSetelahDigeser": 100,
+        "halamanIkutBergeser": false
+      },
+      "barisTerlihat": {
+        "tinggiAreaIsi": 368,
+        "tinggiBaris": 61,
+        "barisMuatUtuh": 5
+      },
+      "tabelKeranjang": {
+        "judul": "Keranjang (14)",
+        "kolom": [
+          {
+            "teks": "Barang",
+            "terlihat": true
+          },
+          {
+            "teks": "Qty",
+            "terlihat": true
+          },
+          {
+            "teks": "Harga",
+            "terlihat": true
+          },
+          {
+            "teks": "Subtotal",
+            "terlihat": true
+          },
+          {
+            "teks": "Hapus",
+            "terlihat": true
+          }
+        ],
+        "jumlahBaris": 14,
+        "baris": [
+          [
+            "Ale-Ale 350ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Apache Filter 12 / pcs",
+            "1",
+            "Rp 21.500",
+            "Rp 21.500",
+            "✕"
+          ],
+          [
+            "Aqua 600ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Aqua Galon 19L / pcs",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Baterai ABC AA / pcs",
+            "1",
+            "Rp 10.500",
+            "Rp 10.500",
+            "✕"
+          ],
+          [
+            "Bawang Merah / pack",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Bawang Putih / pack",
+            "1",
+            "Rp 24.000",
+            "Rp 24.000",
+            "✕"
+          ],
+          [
+            "Bear Brand 189ml / pcs",
+            "1",
+            "Rp 11.500",
+            "Rp 11.500",
+            "✕"
+          ],
+          [
+            "Bedak My Baby 100g / pcs",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beng Beng / pcs",
+            "1",
+            "Rp 2.500",
+            "Rp 2.500",
+            "✕"
+          ],
+          [
+            "Bentoel Biru 12 / pcs",
+            "1",
+            "Rp 22.500",
+            "Rp 22.500",
+            "✕"
+          ],
+          [
+            "Beras Pandan Wangi / kg",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beras Rojo Lele / kg",
+            "1",
+            "Rp 16.000",
+            "Rp 16.000",
+            "✕"
+          ],
+          [
+            "Beras Setra Ramos / kg",
+            "1",
+            "Rp 14.000",
+            "Rp 14.000",
+            "✕"
+          ]
+        ],
+        "total": "TOTAL\tRp 205.500"
+      }
+    },
+    {
+      "peran": "kasir",
+      "w": 1280,
+      "h": 800,
+      "sentuh": false,
+      "dokumenScrollHeight": 800,
+      "bodyScrollHeight": 800,
+      "tinggiJendela": 800,
+      "halamanMenggulir": false,
+      "mainOverflowY": "hidden",
+      "mainScrollHeight": 739,
+      "mainClientHeight": 739,
+      "keranjang": {
+        "overflowY": "auto",
+        "scrollHeight": 993,
+        "clientHeight": 400,
+        "bisaScroll": true
+      },
+      "produkLamaAda": false,
+      "tombolAksi": [
+        {
+          "teks": "Simpan Struk",
+          "atas": 365,
+          "bawah": 417,
+          "terlihat": true
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 365,
+          "bawah": 417,
+          "terlihat": true
+        },
+        {
+          "teks": "Simpan Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        }
+      ],
+      "sidebarTampil": false,
+      "sidebarKotak": null,
+      "sidebarPosisi": null,
+      "navBawahTampil": false,
+      "barAksiKotak": {
+        "w": 0,
+        "h": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "barAksiLengket": "sticky",
+      "barAksiTerjangkau": true,
+      "susunan": {
+        "namaPelanggan": {
+          "w": 842,
+          "h": 44,
+          "top": 118,
+          "bottom": 162
+        },
+        "kotakCari": {
+          "w": 842,
+          "h": 44,
+          "top": 208,
+          "bottom": 252
+        },
+        "keranjang": {
+          "w": 876,
+          "h": 707,
+          "top": 77,
+          "bottom": 784
+        },
+        "kartuKeranjang": {
+          "w": 876,
+          "h": 471,
+          "top": 313,
+          "bottom": 784
+        },
+        "pembayaran": {
+          "w": 360,
+          "h": 357,
+          "top": 77,
+          "bottom": 434
+        },
+        "namaDiAtasCari": true,
+        "cariDiAtasKeranjang": true,
+        "keranjangDiKiriPembayaran": true
+      },
+      "kolomKeranjang": [
+        {
+          "teks": "Barang",
+          "lebar": 289
+        },
+        {
+          "teks": "Qty",
+          "lebar": 96
+        },
+        {
+          "teks": "Harga",
+          "lebar": 143
+        },
+        {
+          "teks": "Subtotal",
+          "lebar": 148
+        },
+        {
+          "teks": "Hapus",
+          "lebar": 166
+        }
+      ],
+      "gulirDalam": {
+        "scrollTopSetelahDigeser": 100,
+        "halamanIkutBergeser": false
+      },
+      "barisTerlihat": {
+        "tinggiAreaIsi": 400,
+        "tinggiBaris": 61,
+        "barisMuatUtuh": 5
+      },
+      "tabelKeranjang": {
+        "judul": "Keranjang (14)",
+        "kolom": [
+          {
+            "teks": "Barang",
+            "terlihat": true
+          },
+          {
+            "teks": "Qty",
+            "terlihat": true
+          },
+          {
+            "teks": "Harga",
+            "terlihat": true
+          },
+          {
+            "teks": "Subtotal",
+            "terlihat": true
+          },
+          {
+            "teks": "Hapus",
+            "terlihat": true
+          }
+        ],
+        "jumlahBaris": 14,
+        "baris": [
+          [
+            "Ale-Ale 350ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Apache Filter 12 / pcs",
+            "1",
+            "Rp 21.500",
+            "Rp 21.500",
+            "✕"
+          ],
+          [
+            "Aqua 600ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Aqua Galon 19L / pcs",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Baterai ABC AA / pcs",
+            "1",
+            "Rp 10.500",
+            "Rp 10.500",
+            "✕"
+          ],
+          [
+            "Bawang Merah / pack",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Bawang Putih / pack",
+            "1",
+            "Rp 24.000",
+            "Rp 24.000",
+            "✕"
+          ],
+          [
+            "Bear Brand 189ml / pcs",
+            "1",
+            "Rp 11.500",
+            "Rp 11.500",
+            "✕"
+          ],
+          [
+            "Bedak My Baby 100g / pcs",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beng Beng / pcs",
+            "1",
+            "Rp 2.500",
+            "Rp 2.500",
+            "✕"
+          ],
+          [
+            "Bentoel Biru 12 / pcs",
+            "1",
+            "Rp 22.500",
+            "Rp 22.500",
+            "✕"
+          ],
+          [
+            "Beras Pandan Wangi / kg",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beras Rojo Lele / kg",
+            "1",
+            "Rp 16.000",
+            "Rp 16.000",
+            "✕"
+          ],
+          [
+            "Beras Setra Ramos / kg",
+            "1",
+            "Rp 14.000",
+            "Rp 14.000",
+            "✕"
+          ]
+        ],
+        "total": "TOTAL\tRp 205.500"
+      }
+    },
+    {
+      "peran": "kasir",
+      "w": 1440,
+      "h": 900,
+      "sentuh": false,
+      "dokumenScrollHeight": 900,
+      "bodyScrollHeight": 900,
+      "tinggiJendela": 900,
+      "halamanMenggulir": false,
+      "mainOverflowY": "hidden",
+      "mainScrollHeight": 839,
+      "mainClientHeight": 839,
+      "keranjang": {
+        "overflowY": "auto",
+        "scrollHeight": 993,
+        "clientHeight": 500,
+        "bisaScroll": true
+      },
+      "produkLamaAda": false,
+      "tombolAksi": [
+        {
+          "teks": "Simpan Struk",
+          "atas": 365,
+          "bawah": 417,
+          "terlihat": true
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 365,
+          "bawah": 417,
+          "terlihat": true
+        },
+        {
+          "teks": "Simpan Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        }
+      ],
+      "sidebarTampil": false,
+      "sidebarKotak": null,
+      "sidebarPosisi": null,
+      "navBawahTampil": false,
+      "barAksiKotak": {
+        "w": 0,
+        "h": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "barAksiLengket": "sticky",
+      "barAksiTerjangkau": true,
+      "susunan": {
+        "namaPelanggan": {
+          "w": 1002,
+          "h": 44,
+          "top": 118,
+          "bottom": 162
+        },
+        "kotakCari": {
+          "w": 1002,
+          "h": 44,
+          "top": 208,
+          "bottom": 252
+        },
+        "keranjang": {
+          "w": 1036,
+          "h": 807,
+          "top": 77,
+          "bottom": 884
+        },
+        "kartuKeranjang": {
+          "w": 1036,
+          "h": 571,
+          "top": 313,
+          "bottom": 884
+        },
+        "pembayaran": {
+          "w": 360,
+          "h": 357,
+          "top": 77,
+          "bottom": 434
+        },
+        "namaDiAtasCari": true,
+        "cariDiAtasKeranjang": true,
+        "keranjangDiKiriPembayaran": true
+      },
+      "kolomKeranjang": [
+        {
+          "teks": "Barang",
+          "lebar": 344
+        },
+        {
+          "teks": "Qty",
+          "lebar": 114
+        },
+        {
+          "teks": "Harga",
+          "lebar": 170
+        },
+        {
+          "teks": "Subtotal",
+          "lebar": 176
+        },
+        {
+          "teks": "Hapus",
+          "lebar": 198
+        }
+      ],
+      "gulirDalam": {
+        "scrollTopSetelahDigeser": 100,
+        "halamanIkutBergeser": false
+      },
+      "barisTerlihat": {
+        "tinggiAreaIsi": 500,
+        "tinggiBaris": 61,
+        "barisMuatUtuh": 7
+      },
+      "tabelKeranjang": {
+        "judul": "Keranjang (14)",
+        "kolom": [
+          {
+            "teks": "Barang",
+            "terlihat": true
+          },
+          {
+            "teks": "Qty",
+            "terlihat": true
+          },
+          {
+            "teks": "Harga",
+            "terlihat": true
+          },
+          {
+            "teks": "Subtotal",
+            "terlihat": true
+          },
+          {
+            "teks": "Hapus",
+            "terlihat": true
+          }
+        ],
+        "jumlahBaris": 14,
+        "baris": [
+          [
+            "Ale-Ale 350ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Apache Filter 12 / pcs",
+            "1",
+            "Rp 21.500",
+            "Rp 21.500",
+            "✕"
+          ],
+          [
+            "Aqua 600ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Aqua Galon 19L / pcs",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Baterai ABC AA / pcs",
+            "1",
+            "Rp 10.500",
+            "Rp 10.500",
+            "✕"
+          ],
+          [
+            "Bawang Merah / pack",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Bawang Putih / pack",
+            "1",
+            "Rp 24.000",
+            "Rp 24.000",
+            "✕"
+          ],
+          [
+            "Bear Brand 189ml / pcs",
+            "1",
+            "Rp 11.500",
+            "Rp 11.500",
+            "✕"
+          ],
+          [
+            "Bedak My Baby 100g / pcs",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beng Beng / pcs",
+            "1",
+            "Rp 2.500",
+            "Rp 2.500",
+            "✕"
+          ],
+          [
+            "Bentoel Biru 12 / pcs",
+            "1",
+            "Rp 22.500",
+            "Rp 22.500",
+            "✕"
+          ],
+          [
+            "Beras Pandan Wangi / kg",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beras Rojo Lele / kg",
+            "1",
+            "Rp 16.000",
+            "Rp 16.000",
+            "✕"
+          ],
+          [
+            "Beras Setra Ramos / kg",
+            "1",
+            "Rp 14.000",
+            "Rp 14.000",
+            "✕"
+          ]
+        ],
+        "total": "TOTAL\tRp 205.500"
+      }
+    },
+    {
+      "peran": "kasir",
+      "w": 1920,
+      "h": 1080,
+      "sentuh": false,
+      "dokumenScrollHeight": 1080,
+      "bodyScrollHeight": 1080,
+      "tinggiJendela": 1080,
+      "halamanMenggulir": false,
+      "mainOverflowY": "hidden",
+      "mainScrollHeight": 1019,
+      "mainClientHeight": 1019,
+      "keranjang": {
+        "overflowY": "auto",
+        "scrollHeight": 993,
+        "clientHeight": 680,
+        "bisaScroll": true
+      },
+      "produkLamaAda": false,
+      "tombolAksi": [
+        {
+          "teks": "Simpan Struk",
+          "atas": 365,
+          "bawah": 417,
+          "terlihat": true
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 365,
+          "bawah": 417,
+          "terlihat": true
+        },
+        {
+          "teks": "Simpan Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        }
+      ],
+      "sidebarTampil": false,
+      "sidebarKotak": null,
+      "sidebarPosisi": null,
+      "navBawahTampil": false,
+      "barAksiKotak": {
+        "w": 0,
+        "h": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "barAksiLengket": "sticky",
+      "barAksiTerjangkau": true,
+      "susunan": {
+        "namaPelanggan": {
+          "w": 1482,
+          "h": 44,
+          "top": 118,
+          "bottom": 162
+        },
+        "kotakCari": {
+          "w": 1482,
+          "h": 44,
+          "top": 208,
+          "bottom": 252
+        },
+        "keranjang": {
+          "w": 1516,
+          "h": 987,
+          "top": 77,
+          "bottom": 1064
+        },
+        "kartuKeranjang": {
+          "w": 1516,
+          "h": 751,
+          "top": 313,
+          "bottom": 1064
+        },
+        "pembayaran": {
+          "w": 360,
+          "h": 357,
+          "top": 77,
+          "bottom": 434
+        },
+        "namaDiAtasCari": true,
+        "cariDiAtasKeranjang": true,
+        "keranjangDiKiriPembayaran": true
+      },
+      "kolomKeranjang": [
+        {
+          "teks": "Barang",
+          "lebar": 508
+        },
+        {
+          "teks": "Qty",
+          "lebar": 169
+        },
+        {
+          "teks": "Harga",
+          "lebar": 252
+        },
+        {
+          "teks": "Subtotal",
+          "lebar": 260
+        },
+        {
+          "teks": "Hapus",
+          "lebar": 292
+        }
+      ],
+      "gulirDalam": {
+        "scrollTopSetelahDigeser": 100,
+        "halamanIkutBergeser": false
+      },
+      "barisTerlihat": {
+        "tinggiAreaIsi": 680,
+        "tinggiBaris": 61,
+        "barisMuatUtuh": 10
+      },
+      "tabelKeranjang": {
+        "judul": "Keranjang (14)",
+        "kolom": [
+          {
+            "teks": "Barang",
+            "terlihat": true
+          },
+          {
+            "teks": "Qty",
+            "terlihat": true
+          },
+          {
+            "teks": "Harga",
+            "terlihat": true
+          },
+          {
+            "teks": "Subtotal",
+            "terlihat": true
+          },
+          {
+            "teks": "Hapus",
+            "terlihat": true
+          }
+        ],
+        "jumlahBaris": 14,
+        "baris": [
+          [
+            "Ale-Ale 350ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Apache Filter 12 / pcs",
+            "1",
+            "Rp 21.500",
+            "Rp 21.500",
+            "✕"
+          ],
+          [
+            "Aqua 600ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Aqua Galon 19L / pcs",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Baterai ABC AA / pcs",
+            "1",
+            "Rp 10.500",
+            "Rp 10.500",
+            "✕"
+          ],
+          [
+            "Bawang Merah / pack",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Bawang Putih / pack",
+            "1",
+            "Rp 24.000",
+            "Rp 24.000",
+            "✕"
+          ],
+          [
+            "Bear Brand 189ml / pcs",
+            "1",
+            "Rp 11.500",
+            "Rp 11.500",
+            "✕"
+          ],
+          [
+            "Bedak My Baby 100g / pcs",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beng Beng / pcs",
+            "1",
+            "Rp 2.500",
+            "Rp 2.500",
+            "✕"
+          ],
+          [
+            "Bentoel Biru 12 / pcs",
+            "1",
+            "Rp 22.500",
+            "Rp 22.500",
+            "✕"
+          ],
+          [
+            "Beras Pandan Wangi / kg",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beras Rojo Lele / kg",
+            "1",
+            "Rp 16.000",
+            "Rp 16.000",
+            "✕"
+          ],
+          [
+            "Beras Setra Ramos / kg",
+            "1",
+            "Rp 14.000",
+            "Rp 14.000",
+            "✕"
+          ]
+        ],
+        "total": "TOTAL\tRp 205.500"
+      }
+    },
+    {
+      "peran": "superadmin",
+      "w": 768,
+      "h": 1024,
+      "sentuh": true,
+      "dokumenScrollHeight": 1024,
+      "bodyScrollHeight": 1024,
+      "tinggiJendela": 1024,
+      "halamanMenggulir": false,
+      "mainOverflowY": "hidden",
+      "mainScrollHeight": 963,
+      "mainClientHeight": 963,
+      "keranjang": {
+        "overflowY": "auto",
+        "scrollHeight": 1315,
+        "clientHeight": 624,
+        "bisaScroll": true
+      },
+      "produkLamaAda": false,
+      "tombolAksi": [
+        {
+          "teks": "Simpan Struk",
+          "atas": 365,
+          "bawah": 417,
+          "terlihat": true
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 425,
+          "bawah": 477,
+          "terlihat": true
+        },
+        {
+          "teks": "Simpan Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        }
+      ],
+      "sidebarTampil": false,
+      "sidebarKotak": null,
+      "sidebarPosisi": null,
+      "navBawahTampil": false,
+      "barAksiKotak": {
+        "w": 0,
+        "h": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "barAksiLengket": "sticky",
+      "barAksiTerjangkau": true,
+      "susunan": {
+        "namaPelanggan": {
+          "w": 390,
+          "h": 44,
+          "top": 118,
+          "bottom": 162
+        },
+        "kotakCari": {
+          "w": 390,
+          "h": 44,
+          "top": 208,
+          "bottom": 252
+        },
+        "keranjang": {
+          "w": 424,
+          "h": 931,
+          "top": 77,
+          "bottom": 1008
+        },
+        "kartuKeranjang": {
+          "w": 424,
+          "h": 695,
+          "top": 313,
+          "bottom": 1008
+        },
+        "pembayaran": {
+          "w": 300,
+          "h": 417,
+          "top": 77,
+          "bottom": 494
+        },
+        "namaDiAtasCari": true,
+        "cariDiAtasKeranjang": true,
+        "keranjangDiKiriPembayaran": true
+      },
+      "kolomKeranjang": [
+        {
+          "teks": "Barang",
+          "lebar": 111
+        },
+        {
+          "teks": "Qty",
+          "lebar": 53
+        },
+        {
+          "teks": "Harga",
+          "lebar": 68
+        },
+        {
+          "teks": "Subtotal",
+          "lebar": 80
+        },
+        {
+          "teks": "Hapus",
+          "lebar": 78
+        }
+      ],
+      "gulirDalam": {
+        "scrollTopSetelahDigeser": 100,
+        "halamanIkutBergeser": false
+      },
+      "barisTerlihat": {
+        "tinggiAreaIsi": 624,
+        "tinggiBaris": 85,
+        "barisMuatUtuh": 7
+      },
+      "tabelKeranjang": {
+        "judul": "Keranjang (14)",
+        "kolom": [
+          {
+            "teks": "Barang",
+            "terlihat": true
+          },
+          {
+            "teks": "Qty",
+            "terlihat": true
+          },
+          {
+            "teks": "Harga",
+            "terlihat": true
+          },
+          {
+            "teks": "Subtotal",
+            "terlihat": true
+          },
+          {
+            "teks": "Hapus",
+            "terlihat": true
+          }
+        ],
+        "jumlahBaris": 14,
+        "baris": [
+          [
+            "Ale-Ale 350ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Apache Filter 12 / pcs",
+            "1",
+            "Rp 21.500",
+            "Rp 21.500",
+            "✕"
+          ],
+          [
+            "Aqua 600ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Aqua Galon 19L / pcs",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Baterai ABC AA / pcs",
+            "1",
+            "Rp 10.500",
+            "Rp 10.500",
+            "✕"
+          ],
+          [
+            "Bawang Merah / pack",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Bawang Putih / pack",
+            "1",
+            "Rp 24.000",
+            "Rp 24.000",
+            "✕"
+          ],
+          [
+            "Bear Brand 189ml / pcs",
+            "1",
+            "Rp 11.500",
+            "Rp 11.500",
+            "✕"
+          ],
+          [
+            "Bedak My Baby 100g / pcs",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beng Beng / pcs",
+            "1",
+            "Rp 2.500",
+            "Rp 2.500",
+            "✕"
+          ],
+          [
+            "Bentoel Biru 12 / pcs",
+            "1",
+            "Rp 22.500",
+            "Rp 22.500",
+            "✕"
+          ],
+          [
+            "Beras Pandan Wangi / kg",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beras Rojo Lele / kg",
+            "1",
+            "Rp 16.000",
+            "Rp 16.000",
+            "✕"
+          ],
+          [
+            "Beras Setra Ramos / kg",
+            "1",
+            "Rp 14.000",
+            "Rp 14.000",
+            "✕"
+          ]
+        ],
+        "total": "TOTAL\tRp 205.500"
+      }
+    },
+    {
+      "peran": "superadmin",
+      "w": 1024,
+      "h": 768,
+      "sentuh": true,
+      "dokumenScrollHeight": 768,
+      "bodyScrollHeight": 768,
+      "tinggiJendela": 768,
+      "halamanMenggulir": false,
+      "mainOverflowY": "hidden",
+      "mainScrollHeight": 707,
+      "mainClientHeight": 707,
+      "keranjang": {
+        "overflowY": "auto",
+        "scrollHeight": 993,
+        "clientHeight": 368,
+        "bisaScroll": true
+      },
+      "produkLamaAda": false,
+      "tombolAksi": [
+        {
+          "teks": "Simpan Struk",
+          "atas": 365,
+          "bawah": 417,
+          "terlihat": true
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 365,
+          "bawah": 417,
+          "terlihat": true
+        },
+        {
+          "teks": "Simpan Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        }
+      ],
+      "sidebarTampil": false,
+      "sidebarKotak": null,
+      "sidebarPosisi": null,
+      "navBawahTampil": false,
+      "barAksiKotak": {
+        "w": 0,
+        "h": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "barAksiLengket": "sticky",
+      "barAksiTerjangkau": true,
+      "susunan": {
+        "namaPelanggan": {
+          "w": 606,
+          "h": 44,
+          "top": 118,
+          "bottom": 162
+        },
+        "kotakCari": {
+          "w": 606,
+          "h": 44,
+          "top": 208,
+          "bottom": 252
+        },
+        "keranjang": {
+          "w": 640,
+          "h": 675,
+          "top": 77,
+          "bottom": 752
+        },
+        "kartuKeranjang": {
+          "w": 640,
+          "h": 439,
+          "top": 313,
+          "bottom": 752
+        },
+        "pembayaran": {
+          "w": 340,
+          "h": 357,
+          "top": 77,
+          "bottom": 434
+        },
+        "namaDiAtasCari": true,
+        "cariDiAtasKeranjang": true,
+        "keranjangDiKiriPembayaran": true
+      },
+      "kolomKeranjang": [
+        {
+          "teks": "Barang",
+          "lebar": 208
+        },
+        {
+          "teks": "Qty",
+          "lebar": 69
+        },
+        {
+          "teks": "Harga",
+          "lebar": 103
+        },
+        {
+          "teks": "Subtotal",
+          "lebar": 106
+        },
+        {
+          "teks": "Hapus",
+          "lebar": 120
+        }
+      ],
+      "gulirDalam": {
+        "scrollTopSetelahDigeser": 100,
+        "halamanIkutBergeser": false
+      },
+      "barisTerlihat": {
+        "tinggiAreaIsi": 368,
+        "tinggiBaris": 61,
+        "barisMuatUtuh": 5
+      },
+      "tabelKeranjang": {
+        "judul": "Keranjang (14)",
+        "kolom": [
+          {
+            "teks": "Barang",
+            "terlihat": true
+          },
+          {
+            "teks": "Qty",
+            "terlihat": true
+          },
+          {
+            "teks": "Harga",
+            "terlihat": true
+          },
+          {
+            "teks": "Subtotal",
+            "terlihat": true
+          },
+          {
+            "teks": "Hapus",
+            "terlihat": true
+          }
+        ],
+        "jumlahBaris": 14,
+        "baris": [
+          [
+            "Ale-Ale 350ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Apache Filter 12 / pcs",
+            "1",
+            "Rp 21.500",
+            "Rp 21.500",
+            "✕"
+          ],
+          [
+            "Aqua 600ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Aqua Galon 19L / pcs",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Baterai ABC AA / pcs",
+            "1",
+            "Rp 10.500",
+            "Rp 10.500",
+            "✕"
+          ],
+          [
+            "Bawang Merah / pack",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Bawang Putih / pack",
+            "1",
+            "Rp 24.000",
+            "Rp 24.000",
+            "✕"
+          ],
+          [
+            "Bear Brand 189ml / pcs",
+            "1",
+            "Rp 11.500",
+            "Rp 11.500",
+            "✕"
+          ],
+          [
+            "Bedak My Baby 100g / pcs",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beng Beng / pcs",
+            "1",
+            "Rp 2.500",
+            "Rp 2.500",
+            "✕"
+          ],
+          [
+            "Bentoel Biru 12 / pcs",
+            "1",
+            "Rp 22.500",
+            "Rp 22.500",
+            "✕"
+          ],
+          [
+            "Beras Pandan Wangi / kg",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beras Rojo Lele / kg",
+            "1",
+            "Rp 16.000",
+            "Rp 16.000",
+            "✕"
+          ],
+          [
+            "Beras Setra Ramos / kg",
+            "1",
+            "Rp 14.000",
+            "Rp 14.000",
+            "✕"
+          ]
+        ],
+        "total": "TOTAL\tRp 205.500"
+      }
+    },
+    {
+      "peran": "superadmin",
+      "w": 1280,
+      "h": 800,
+      "sentuh": false,
+      "dokumenScrollHeight": 800,
+      "bodyScrollHeight": 800,
+      "tinggiJendela": 800,
+      "halamanMenggulir": false,
+      "mainOverflowY": "hidden",
+      "mainScrollHeight": 755,
+      "mainClientHeight": 755,
+      "keranjang": {
+        "overflowY": "auto",
+        "scrollHeight": 993,
+        "clientHeight": 416,
+        "bisaScroll": true
+      },
+      "produkLamaAda": false,
+      "tombolAksi": [
+        {
+          "teks": "Simpan Struk",
+          "atas": 349,
+          "bawah": 401,
+          "terlihat": true
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 349,
+          "bawah": 401,
+          "terlihat": true
+        },
+        {
+          "teks": "Simpan Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        }
+      ],
+      "sidebarTampil": true,
+      "sidebarKotak": {
+        "w": 240,
+        "h": 800,
+        "top": 0,
+        "bottom": 800
+      },
+      "sidebarPosisi": "fixed",
+      "navBawahTampil": false,
+      "barAksiKotak": {
+        "w": 0,
+        "h": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "barAksiLengket": "sticky",
+      "barAksiTerjangkau": true,
+      "susunan": {
+        "namaPelanggan": {
+          "w": 602,
+          "h": 44,
+          "top": 102,
+          "bottom": 146
+        },
+        "kotakCari": {
+          "w": 602,
+          "h": 44,
+          "top": 192,
+          "bottom": 236
+        },
+        "keranjang": {
+          "w": 636,
+          "h": 723,
+          "top": 61,
+          "bottom": 784
+        },
+        "kartuKeranjang": {
+          "w": 636,
+          "h": 487,
+          "top": 297,
+          "bottom": 784
+        },
+        "pembayaran": {
+          "w": 360,
+          "h": 357,
+          "top": 61,
+          "bottom": 418
+        },
+        "namaDiAtasCari": true,
+        "cariDiAtasKeranjang": true,
+        "keranjangDiKiriPembayaran": true
+      },
+      "kolomKeranjang": [
+        {
+          "teks": "Barang",
+          "lebar": 206
+        },
+        {
+          "teks": "Qty",
+          "lebar": 69
+        },
+        {
+          "teks": "Harga",
+          "lebar": 102
+        },
+        {
+          "teks": "Subtotal",
+          "lebar": 106
+        },
+        {
+          "teks": "Hapus",
+          "lebar": 119
+        }
+      ],
+      "gulirDalam": {
+        "scrollTopSetelahDigeser": 100,
+        "halamanIkutBergeser": false
+      },
+      "barisTerlihat": {
+        "tinggiAreaIsi": 416,
+        "tinggiBaris": 61,
+        "barisMuatUtuh": 5
+      },
+      "tabelKeranjang": {
+        "judul": "Keranjang (14)",
+        "kolom": [
+          {
+            "teks": "Barang",
+            "terlihat": true
+          },
+          {
+            "teks": "Qty",
+            "terlihat": true
+          },
+          {
+            "teks": "Harga",
+            "terlihat": true
+          },
+          {
+            "teks": "Subtotal",
+            "terlihat": true
+          },
+          {
+            "teks": "Hapus",
+            "terlihat": true
+          }
+        ],
+        "jumlahBaris": 14,
+        "baris": [
+          [
+            "Ale-Ale 350ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Apache Filter 12 / pcs",
+            "1",
+            "Rp 21.500",
+            "Rp 21.500",
+            "✕"
+          ],
+          [
+            "Aqua 600ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Aqua Galon 19L / pcs",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Baterai ABC AA / pcs",
+            "1",
+            "Rp 10.500",
+            "Rp 10.500",
+            "✕"
+          ],
+          [
+            "Bawang Merah / pack",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Bawang Putih / pack",
+            "1",
+            "Rp 24.000",
+            "Rp 24.000",
+            "✕"
+          ],
+          [
+            "Bear Brand 189ml / pcs",
+            "1",
+            "Rp 11.500",
+            "Rp 11.500",
+            "✕"
+          ],
+          [
+            "Bedak My Baby 100g / pcs",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beng Beng / pcs",
+            "1",
+            "Rp 2.500",
+            "Rp 2.500",
+            "✕"
+          ],
+          [
+            "Bentoel Biru 12 / pcs",
+            "1",
+            "Rp 22.500",
+            "Rp 22.500",
+            "✕"
+          ],
+          [
+            "Beras Pandan Wangi / kg",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beras Rojo Lele / kg",
+            "1",
+            "Rp 16.000",
+            "Rp 16.000",
+            "✕"
+          ],
+          [
+            "Beras Setra Ramos / kg",
+            "1",
+            "Rp 14.000",
+            "Rp 14.000",
+            "✕"
+          ]
+        ],
+        "total": "TOTAL\tRp 205.500"
+      }
+    },
+    {
+      "peran": "superadmin",
+      "w": 1440,
+      "h": 900,
+      "sentuh": false,
+      "dokumenScrollHeight": 900,
+      "bodyScrollHeight": 900,
+      "tinggiJendela": 900,
+      "halamanMenggulir": false,
+      "mainOverflowY": "hidden",
+      "mainScrollHeight": 855,
+      "mainClientHeight": 855,
+      "keranjang": {
+        "overflowY": "auto",
+        "scrollHeight": 993,
+        "clientHeight": 516,
+        "bisaScroll": true
+      },
+      "produkLamaAda": false,
+      "tombolAksi": [
+        {
+          "teks": "Simpan Struk",
+          "atas": 349,
+          "bawah": 401,
+          "terlihat": true
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 349,
+          "bawah": 401,
+          "terlihat": true
+        },
+        {
+          "teks": "Simpan Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        }
+      ],
+      "sidebarTampil": true,
+      "sidebarKotak": {
+        "w": 240,
+        "h": 900,
+        "top": 0,
+        "bottom": 900
+      },
+      "sidebarPosisi": "fixed",
+      "navBawahTampil": false,
+      "barAksiKotak": {
+        "w": 0,
+        "h": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "barAksiLengket": "sticky",
+      "barAksiTerjangkau": true,
+      "susunan": {
+        "namaPelanggan": {
+          "w": 762,
+          "h": 44,
+          "top": 102,
+          "bottom": 146
+        },
+        "kotakCari": {
+          "w": 762,
+          "h": 44,
+          "top": 192,
+          "bottom": 236
+        },
+        "keranjang": {
+          "w": 796,
+          "h": 823,
+          "top": 61,
+          "bottom": 884
+        },
+        "kartuKeranjang": {
+          "w": 796,
+          "h": 587,
+          "top": 297,
+          "bottom": 884
+        },
+        "pembayaran": {
+          "w": 360,
+          "h": 357,
+          "top": 61,
+          "bottom": 418
+        },
+        "namaDiAtasCari": true,
+        "cariDiAtasKeranjang": true,
+        "keranjangDiKiriPembayaran": true
+      },
+      "kolomKeranjang": [
+        {
+          "teks": "Barang",
+          "lebar": 261
+        },
+        {
+          "teks": "Qty",
+          "lebar": 87
+        },
+        {
+          "teks": "Harga",
+          "lebar": 130
+        },
+        {
+          "teks": "Subtotal",
+          "lebar": 134
+        },
+        {
+          "teks": "Hapus",
+          "lebar": 150
+        }
+      ],
+      "gulirDalam": {
+        "scrollTopSetelahDigeser": 100,
+        "halamanIkutBergeser": false
+      },
+      "barisTerlihat": {
+        "tinggiAreaIsi": 516,
+        "tinggiBaris": 61,
+        "barisMuatUtuh": 7
+      },
+      "tabelKeranjang": {
+        "judul": "Keranjang (14)",
+        "kolom": [
+          {
+            "teks": "Barang",
+            "terlihat": true
+          },
+          {
+            "teks": "Qty",
+            "terlihat": true
+          },
+          {
+            "teks": "Harga",
+            "terlihat": true
+          },
+          {
+            "teks": "Subtotal",
+            "terlihat": true
+          },
+          {
+            "teks": "Hapus",
+            "terlihat": true
+          }
+        ],
+        "jumlahBaris": 14,
+        "baris": [
+          [
+            "Ale-Ale 350ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Apache Filter 12 / pcs",
+            "1",
+            "Rp 21.500",
+            "Rp 21.500",
+            "✕"
+          ],
+          [
+            "Aqua 600ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Aqua Galon 19L / pcs",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Baterai ABC AA / pcs",
+            "1",
+            "Rp 10.500",
+            "Rp 10.500",
+            "✕"
+          ],
+          [
+            "Bawang Merah / pack",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Bawang Putih / pack",
+            "1",
+            "Rp 24.000",
+            "Rp 24.000",
+            "✕"
+          ],
+          [
+            "Bear Brand 189ml / pcs",
+            "1",
+            "Rp 11.500",
+            "Rp 11.500",
+            "✕"
+          ],
+          [
+            "Bedak My Baby 100g / pcs",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beng Beng / pcs",
+            "1",
+            "Rp 2.500",
+            "Rp 2.500",
+            "✕"
+          ],
+          [
+            "Bentoel Biru 12 / pcs",
+            "1",
+            "Rp 22.500",
+            "Rp 22.500",
+            "✕"
+          ],
+          [
+            "Beras Pandan Wangi / kg",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beras Rojo Lele / kg",
+            "1",
+            "Rp 16.000",
+            "Rp 16.000",
+            "✕"
+          ],
+          [
+            "Beras Setra Ramos / kg",
+            "1",
+            "Rp 14.000",
+            "Rp 14.000",
+            "✕"
+          ]
+        ],
+        "total": "TOTAL\tRp 205.500"
+      }
+    },
+    {
+      "peran": "superadmin",
+      "w": 1920,
+      "h": 1080,
+      "sentuh": false,
+      "dokumenScrollHeight": 1080,
+      "bodyScrollHeight": 1080,
+      "tinggiJendela": 1080,
+      "halamanMenggulir": false,
+      "mainOverflowY": "hidden",
+      "mainScrollHeight": 1035,
+      "mainClientHeight": 1035,
+      "keranjang": {
+        "overflowY": "auto",
+        "scrollHeight": 993,
+        "clientHeight": 696,
+        "bisaScroll": true
+      },
+      "produkLamaAda": false,
+      "tombolAksi": [
+        {
+          "teks": "Simpan Struk",
+          "atas": 349,
+          "bawah": 401,
+          "terlihat": true
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 349,
+          "bawah": 401,
+          "terlihat": true
+        },
+        {
+          "teks": "Simpan Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        }
+      ],
+      "sidebarTampil": true,
+      "sidebarKotak": {
+        "w": 240,
+        "h": 1080,
+        "top": 0,
+        "bottom": 1080
+      },
+      "sidebarPosisi": "fixed",
+      "navBawahTampil": false,
+      "barAksiKotak": {
+        "w": 0,
+        "h": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "barAksiLengket": "sticky",
+      "barAksiTerjangkau": true,
+      "susunan": {
+        "namaPelanggan": {
+          "w": 1242,
+          "h": 44,
+          "top": 102,
+          "bottom": 146
+        },
+        "kotakCari": {
+          "w": 1242,
+          "h": 44,
+          "top": 192,
+          "bottom": 236
+        },
+        "keranjang": {
+          "w": 1276,
+          "h": 1003,
+          "top": 61,
+          "bottom": 1064
+        },
+        "kartuKeranjang": {
+          "w": 1276,
+          "h": 767,
+          "top": 297,
+          "bottom": 1064
+        },
+        "pembayaran": {
+          "w": 360,
+          "h": 357,
+          "top": 61,
+          "bottom": 418
+        },
+        "namaDiAtasCari": true,
+        "cariDiAtasKeranjang": true,
+        "keranjangDiKiriPembayaran": true
+      },
+      "kolomKeranjang": [
+        {
+          "teks": "Barang",
+          "lebar": 426
+        },
+        {
+          "teks": "Qty",
+          "lebar": 142
+        },
+        {
+          "teks": "Harga",
+          "lebar": 211
+        },
+        {
+          "teks": "Subtotal",
+          "lebar": 218
+        },
+        {
+          "teks": "Hapus",
+          "lebar": 245
+        }
+      ],
+      "gulirDalam": {
+        "scrollTopSetelahDigeser": 100,
+        "halamanIkutBergeser": false
+      },
+      "barisTerlihat": {
+        "tinggiAreaIsi": 696,
+        "tinggiBaris": 61,
+        "barisMuatUtuh": 10
+      },
+      "tabelKeranjang": {
+        "judul": "Keranjang (14)",
+        "kolom": [
+          {
+            "teks": "Barang",
+            "terlihat": true
+          },
+          {
+            "teks": "Qty",
+            "terlihat": true
+          },
+          {
+            "teks": "Harga",
+            "terlihat": true
+          },
+          {
+            "teks": "Subtotal",
+            "terlihat": true
+          },
+          {
+            "teks": "Hapus",
+            "terlihat": true
+          }
+        ],
+        "jumlahBaris": 14,
+        "baris": [
+          [
+            "Ale-Ale 350ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Apache Filter 12 / pcs",
+            "1",
+            "Rp 21.500",
+            "Rp 21.500",
+            "✕"
+          ],
+          [
+            "Aqua 600ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Aqua Galon 19L / pcs",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Baterai ABC AA / pcs",
+            "1",
+            "Rp 10.500",
+            "Rp 10.500",
+            "✕"
+          ],
+          [
+            "Bawang Merah / pack",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Bawang Putih / pack",
+            "1",
+            "Rp 24.000",
+            "Rp 24.000",
+            "✕"
+          ],
+          [
+            "Bear Brand 189ml / pcs",
+            "1",
+            "Rp 11.500",
+            "Rp 11.500",
+            "✕"
+          ],
+          [
+            "Bedak My Baby 100g / pcs",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beng Beng / pcs",
+            "1",
+            "Rp 2.500",
+            "Rp 2.500",
+            "✕"
+          ],
+          [
+            "Bentoel Biru 12 / pcs",
+            "1",
+            "Rp 22.500",
+            "Rp 22.500",
+            "✕"
+          ],
+          [
+            "Beras Pandan Wangi / kg",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beras Rojo Lele / kg",
+            "1",
+            "Rp 16.000",
+            "Rp 16.000",
+            "✕"
+          ],
+          [
+            "Beras Setra Ramos / kg",
+            "1",
+            "Rp 14.000",
+            "Rp 14.000",
+            "✕"
+          ]
+        ],
+        "total": "TOTAL\tRp 205.500"
+      }
+    },
+    {
+      "peran": "kasir",
+      "w": 360,
+      "h": 740,
+      "sentuh": true,
+      "dokumenScrollHeight": 1121,
+      "bodyScrollHeight": 1121,
+      "tinggiJendela": 740,
+      "halamanMenggulir": true,
+      "mainOverflowY": "visible",
+      "mainScrollHeight": 1060,
+      "mainClientHeight": 1060,
+      "keranjang": {
+        "overflowY": "auto",
+        "scrollHeight": 1535,
+        "clientHeight": 333,
+        "bisaScroll": true
+      },
+      "produkLamaAda": false,
+      "tombolAksi": [
+        {
+          "teks": "Simpan Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        },
+        {
+          "teks": "Simpan Struk",
+          "atas": 678,
+          "bawah": 730,
+          "terlihat": true
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 678,
+          "bawah": 730,
+          "terlihat": true
+        }
+      ],
+      "sidebarTampil": false,
+      "sidebarKotak": null,
+      "sidebarPosisi": null,
+      "navBawahTampil": false,
+      "barAksiKotak": {
+        "w": 360,
+        "h": 107,
+        "top": 633,
+        "bottom": 740
+      },
+      "barAksiLengket": "sticky",
+      "barAksiTerjangkau": true,
+      "susunan": {
+        "namaPelanggan": {
+          "w": 310,
+          "h": 44,
+          "top": 110,
+          "bottom": 154
+        },
+        "kotakCari": {
+          "w": 310,
+          "h": 44,
+          "top": 192,
+          "bottom": 236
+        },
+        "keranjang": {
+          "w": 336,
+          "h": 620,
+          "top": 73,
+          "bottom": 693
+        },
+        "kartuKeranjang": {
+          "w": 336,
+          "h": 400,
+          "top": 293,
+          "bottom": 693
+        },
+        "pembayaran": {
+          "w": 336,
+          "h": 281,
+          "top": 705,
+          "bottom": 986
+        },
+        "namaDiAtasCari": true,
+        "cariDiAtasKeranjang": true,
+        "keranjangDiKiriPembayaran": false
+      },
+      "kolomKeranjang": [
+        {
+          "teks": "Barang",
+          "lebar": 68
+        },
+        {
+          "teks": "Qty",
+          "lebar": 53
+        },
+        {
+          "teks": "Harga",
+          "lebar": 0
+        },
+        {
+          "teks": "Subtotal",
+          "lebar": 78
+        },
+        {
+          "teks": "Hapus",
+          "lebar": 49
+        }
+      ],
+      "gulirDalam": {
+        "scrollTopSetelahDigeser": 100,
+        "halamanIkutBergeser": false
+      },
+      "barisTerlihat": {
+        "tinggiAreaIsi": 333,
+        "tinggiBaris": 85,
+        "barisMuatUtuh": 3
+      },
+      "tabelKeranjang": {
+        "judul": "Keranjang (14)",
+        "kolom": [
+          {
+            "teks": "Barang",
+            "terlihat": true
+          },
+          {
+            "teks": "Qty",
+            "terlihat": true
+          },
+          {
+            "teks": "Harga",
+            "terlihat": false
+          },
+          {
+            "teks": "Subtotal",
+            "terlihat": true
+          },
+          {
+            "teks": "Hapus",
+            "terlihat": true
+          }
+        ],
+        "jumlahBaris": 14,
+        "baris": [
+          [
+            "Ale-Ale 350ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Apache Filter 12 / pcs",
+            "1",
+            "Rp 21.500",
+            "Rp 21.500",
+            "✕"
+          ],
+          [
+            "Aqua 600ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Aqua Galon 19L / pcs",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Baterai ABC AA / pcs",
+            "1",
+            "Rp 10.500",
+            "Rp 10.500",
+            "✕"
+          ],
+          [
+            "Bawang Merah / pack",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Bawang Putih / pack",
+            "1",
+            "Rp 24.000",
+            "Rp 24.000",
+            "✕"
+          ],
+          [
+            "Bear Brand 189ml / pcs",
+            "1",
+            "Rp 11.500",
+            "Rp 11.500",
+            "✕"
+          ],
+          [
+            "Bedak My Baby 100g / pcs",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beng Beng / pcs",
+            "1",
+            "Rp 2.500",
+            "Rp 2.500",
+            "✕"
+          ],
+          [
+            "Bentoel Biru 12 / pcs",
+            "1",
+            "Rp 22.500",
+            "Rp 22.500",
+            "✕"
+          ],
+          [
+            "Beras Pandan Wangi / kg",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beras Rojo Lele / kg",
+            "1",
+            "Rp 16.000",
+            "Rp 16.000",
+            "✕"
+          ],
+          [
+            "Beras Setra Ramos / kg",
+            "1",
+            "Rp 14.000",
+            "Rp 14.000",
+            "✕"
+          ]
+        ],
+        "total": "TOTAL\tRp 205.500"
+      }
+    },
+    {
+      "peran": "kasir",
+      "w": 390,
+      "h": 844,
+      "sentuh": true,
+      "dokumenScrollHeight": 1168,
+      "bodyScrollHeight": 1168,
+      "tinggiJendela": 844,
+      "halamanMenggulir": true,
+      "mainOverflowY": "visible",
+      "mainScrollHeight": 1107,
+      "mainClientHeight": 1107,
+      "keranjang": {
+        "overflowY": "auto",
+        "scrollHeight": 1415,
+        "clientHeight": 380,
+        "bisaScroll": true
+      },
+      "produkLamaAda": false,
+      "tombolAksi": [
+        {
+          "teks": "Simpan Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 0,
+          "bawah": 0,
+          "terlihat": false
+        },
+        {
+          "teks": "Simpan Struk",
+          "atas": 782,
+          "bawah": 834,
+          "terlihat": true
+        },
+        {
+          "teks": "Cetak Struk",
+          "atas": 782,
+          "bawah": 834,
+          "terlihat": true
+        }
+      ],
+      "sidebarTampil": false,
+      "sidebarKotak": null,
+      "sidebarPosisi": null,
+      "navBawahTampil": false,
+      "barAksiKotak": {
+        "w": 390,
+        "h": 107,
+        "top": 737,
+        "bottom": 844
+      },
+      "barAksiLengket": "sticky",
+      "barAksiTerjangkau": true,
+      "susunan": {
+        "namaPelanggan": {
+          "w": 340,
+          "h": 44,
+          "top": 110,
+          "bottom": 154
+        },
+        "kotakCari": {
+          "w": 340,
+          "h": 44,
+          "top": 192,
+          "bottom": 236
+        },
+        "keranjang": {
+          "w": 366,
+          "h": 667,
+          "top": 73,
+          "bottom": 740
+        },
+        "kartuKeranjang": {
+          "w": 366,
+          "h": 447,
+          "top": 293,
+          "bottom": 740
+        },
+        "pembayaran": {
+          "w": 366,
+          "h": 281,
+          "top": 752,
+          "bottom": 1033
+        },
+        "namaDiAtasCari": true,
+        "cariDiAtasKeranjang": true,
+        "keranjangDiKiriPembayaran": false
+      },
+      "kolomKeranjang": [
+        {
+          "teks": "Barang",
+          "lebar": 88
+        },
+        {
+          "teks": "Qty",
+          "lebar": 53
+        },
+        {
+          "teks": "Harga",
+          "lebar": 0
+        },
+        {
+          "teks": "Subtotal",
+          "lebar": 78
+        },
+        {
+          "teks": "Hapus",
+          "lebar": 49
+        }
+      ],
+      "gulirDalam": {
+        "scrollTopSetelahDigeser": 100,
+        "halamanIkutBergeser": false
+      },
+      "barisTerlihat": {
+        "tinggiAreaIsi": 380,
+        "tinggiBaris": 85,
+        "barisMuatUtuh": 3
+      },
+      "tabelKeranjang": {
+        "judul": "Keranjang (14)",
+        "kolom": [
+          {
+            "teks": "Barang",
+            "terlihat": true
+          },
+          {
+            "teks": "Qty",
+            "terlihat": true
+          },
+          {
+            "teks": "Harga",
+            "terlihat": false
+          },
+          {
+            "teks": "Subtotal",
+            "terlihat": true
+          },
+          {
+            "teks": "Hapus",
+            "terlihat": true
+          }
+        ],
+        "jumlahBaris": 14,
+        "baris": [
+          [
+            "Ale-Ale 350ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Apache Filter 12 / pcs",
+            "1",
+            "Rp 21.500",
+            "Rp 21.500",
+            "✕"
+          ],
+          [
+            "Aqua 600ml / pcs",
+            "1",
+            "Rp 4.000",
+            "Rp 4.000",
+            "✕"
+          ],
+          [
+            "Aqua Galon 19L / pcs",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Baterai ABC AA / pcs",
+            "1",
+            "Rp 10.500",
+            "Rp 10.500",
+            "✕"
+          ],
+          [
+            "Bawang Merah / pack",
+            "1",
+            "Rp 22.000",
+            "Rp 22.000",
+            "✕"
+          ],
+          [
+            "Bawang Putih / pack",
+            "1",
+            "Rp 24.000",
+            "Rp 24.000",
+            "✕"
+          ],
+          [
+            "Bear Brand 189ml / pcs",
+            "1",
+            "Rp 11.500",
+            "Rp 11.500",
+            "✕"
+          ],
+          [
+            "Bedak My Baby 100g / pcs",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beng Beng / pcs",
+            "1",
+            "Rp 2.500",
+            "Rp 2.500",
+            "✕"
+          ],
+          [
+            "Bentoel Biru 12 / pcs",
+            "1",
+            "Rp 22.500",
+            "Rp 22.500",
+            "✕"
+          ],
+          [
+            "Beras Pandan Wangi / kg",
+            "1",
+            "Rp 15.500",
+            "Rp 15.500",
+            "✕"
+          ],
+          [
+            "Beras Rojo Lele / kg",
+            "1",
+            "Rp 16.000",
+            "Rp 16.000",
+            "✕"
+          ],
+          [
+            "Beras Setra Ramos / kg",
+            "1",
+            "Rp 14.000",
+            "Rp 14.000",
+            "✕"
+          ]
+        ],
+        "total": "TOTAL\tRp 205.500"
+      }
+    }
+  ],
+  "drawer": [
+    {
+      "peran": "kasir",
+      "w": 390,
+      "h": 844,
+      "sentuh": true,
+      "sebelum": {
+        "tombolMenuAda": true,
+        "terlihat": true,
+        "kotak": {
+          "atas": 8,
+          "kiri": 12,
+          "w": 94
+        },
+        "navBawahTampil": false
+      },
+      "isi": {
+        "drawerTerbuka": true,
+        "lebar": 320,
+        "tautan": [
+          "🧾Kasir",
+          "🕘Riwayat",
+          "📦Stok",
+          "📷Stok Scan"
+        ],
+        "adaTombolKeluar": true
+      },
+      "setelahKlik": {
+        "path": "/kasir",
+        "drawerTertutup": true
+      }
+    },
+    {
+      "peran": "kasir",
+      "w": 768,
+      "h": 1024,
+      "sentuh": true,
+      "sebelum": {
+        "tombolMenuAda": true,
+        "terlihat": true,
+        "kotak": {
+          "atas": 8,
+          "kiri": 16,
+          "w": 94
+        },
+        "navBawahTampil": false
+      },
+      "isi": {
+        "drawerTerbuka": true,
+        "lebar": 320,
+        "tautan": [
+          "🧾Kasir",
+          "🕘Riwayat",
+          "📦Stok",
+          "📷Stok Scan"
+        ],
+        "adaTombolKeluar": true
+      },
+      "setelahKlik": {
+        "path": "/kasir",
+        "drawerTertutup": true
+      }
+    },
+    {
+      "peran": "superadmin",
+      "w": 390,
+      "h": 844,
+      "sentuh": true,
+      "sebelum": {
+        "tombolMenuAda": true,
+        "terlihat": true,
+        "kotak": {
+          "atas": 8,
+          "kiri": 12,
+          "w": 94
+        },
+        "navBawahTampil": false
+      },
+      "isi": {
+        "drawerTerbuka": true,
+        "lebar": 320,
+        "tautan": [
+          "🧾Kasir",
+          "🕘Riwayat",
+          "↩️Retur",
+          "🤝Hutang & Piutang",
+          "📦Stok",
+          "📷Stok Scan",
+          "🚚Pembelian",
+          "🏷️Produk",
+          "🗂️Kategori",
+          "⚖️Satuan",
+          "💰Arus Keuangan",
+          "📊Laporan",
+          "⚙️Pengaturan",
+          "👤Pengguna"
+        ],
+        "adaTombolKeluar": true
+      },
+      "setelahKlik": {
+        "path": "/kasir",
+        "drawerTertutup": true
+      }
+    }
+  ],
+  "sidebar": [
+    {
+      "label": "superadmin-1024-kasar",
+      "peran": "superadmin",
+      "w": 1024,
+      "h": 1366,
+      "sentuh": true,
+      "pointerFine": false,
+      "pointerCoarse": true,
+      "sidebarTampil": false,
+      "sidebarPosisi": null,
+      "sidebarAtas": null,
+      "sidebarKiri": null,
+      "sidebarTinggi": null,
+      "tinggiJendela": 1366,
+      "navMenuOverflowY": null,
+      "navMenuScrollHeight": null,
+      "navMenuClientHeight": null,
+      "kontenPaddingKiri": "16px",
+      "kontenKiri": 0,
+      "navBawahTampil": false,
+      "bisaGulirHalaman": true,
+      "setelahKontenDigulir": {
+        "windowY": 500,
+        "sidebarAtas": null
+      },
+      "gulirSidebar": null
+    },
+    {
+      "label": "superadmin-1366-kasar",
+      "peran": "superadmin",
+      "w": 1366,
+      "h": 1024,
+      "sentuh": true,
+      "pointerFine": false,
+      "pointerCoarse": true,
+      "sidebarTampil": false,
+      "sidebarPosisi": null,
+      "sidebarAtas": null,
+      "sidebarKiri": null,
+      "sidebarTinggi": null,
+      "tinggiJendela": 1024,
+      "navMenuOverflowY": null,
+      "navMenuScrollHeight": null,
+      "navMenuClientHeight": null,
+      "kontenPaddingKiri": "16px",
+      "kontenKiri": 0,
+      "navBawahTampil": false,
+      "bisaGulirHalaman": true,
+      "setelahKontenDigulir": {
+        "windowY": 500,
+        "sidebarAtas": null
+      },
+      "gulirSidebar": null
+    },
+    {
+      "label": "superadmin-1366-presisi",
+      "peran": "superadmin",
+      "w": 1366,
+      "h": 768,
+      "sentuh": false,
+      "pointerFine": true,
+      "pointerCoarse": false,
+      "sidebarTampil": true,
+      "sidebarPosisi": "fixed",
+      "sidebarAtas": 0,
+      "sidebarKiri": 0,
+      "sidebarTinggi": 768,
+      "tinggiJendela": 768,
+      "navMenuOverflowY": "auto",
+      "navMenuScrollHeight": 824,
+      "navMenuClientHeight": 568,
+      "kontenPaddingKiri": "16px",
+      "kontenKiri": 240,
+      "navBawahTampil": false,
+      "bisaGulirHalaman": true,
+      "setelahKontenDigulir": {
+        "windowY": 500,
+        "sidebarAtas": 0
+      },
+      "gulirSidebar": {
+        "navScrollTop": 120,
+        "navScrollHeight": 824,
+        "navClientHeight": 100,
+        "halamanIkutBergeser": false
+      }
+    },
+    {
+      "label": "superadmin-1280-presisi",
+      "peran": "superadmin",
+      "w": 1280,
+      "h": 800,
+      "sentuh": false,
+      "pointerFine": true,
+      "pointerCoarse": false,
+      "sidebarTampil": true,
+      "sidebarPosisi": "fixed",
+      "sidebarAtas": 0,
+      "sidebarKiri": 0,
+      "sidebarTinggi": 800,
+      "tinggiJendela": 800,
+      "navMenuOverflowY": "auto",
+      "navMenuScrollHeight": 824,
+      "navMenuClientHeight": 600,
+      "kontenPaddingKiri": "16px",
+      "kontenKiri": 240,
+      "navBawahTampil": false,
+      "bisaGulirHalaman": true,
+      "setelahKontenDigulir": {
+        "windowY": 500,
+        "sidebarAtas": 0
+      },
+      "gulirSidebar": {
+        "navScrollTop": 120,
+        "navScrollHeight": 824,
+        "navClientHeight": 100,
+        "halamanIkutBergeser": false
+      }
+    },
+    {
+      "label": "superadmin-1440-presisi",
+      "peran": "superadmin",
+      "w": 1440,
+      "h": 900,
+      "sentuh": false,
+      "pointerFine": true,
+      "pointerCoarse": false,
+      "sidebarTampil": true,
+      "sidebarPosisi": "fixed",
+      "sidebarAtas": 0,
+      "sidebarKiri": 0,
+      "sidebarTinggi": 900,
+      "tinggiJendela": 900,
+      "navMenuOverflowY": "auto",
+      "navMenuScrollHeight": 824,
+      "navMenuClientHeight": 700,
+      "kontenPaddingKiri": "16px",
+      "kontenKiri": 240,
+      "navBawahTampil": false,
+      "bisaGulirHalaman": true,
+      "setelahKontenDigulir": {
+        "windowY": 500,
+        "sidebarAtas": 0
+      },
+      "gulirSidebar": {
+        "navScrollTop": 120,
+        "navScrollHeight": 824,
+        "navClientHeight": 100,
+        "halamanIkutBergeser": false
+      }
+    },
+    {
+      "label": "superadmin-1920-presisi",
+      "peran": "superadmin",
+      "w": 1920,
+      "h": 1080,
+      "sentuh": false,
+      "pointerFine": true,
+      "pointerCoarse": false,
+      "sidebarTampil": true,
+      "sidebarPosisi": "fixed",
+      "sidebarAtas": 0,
+      "sidebarKiri": 0,
+      "sidebarTinggi": 1080,
+      "tinggiJendela": 1080,
+      "navMenuOverflowY": "auto",
+      "navMenuScrollHeight": 880,
+      "navMenuClientHeight": 880,
+      "kontenPaddingKiri": "16px",
+      "kontenKiri": 240,
+      "navBawahTampil": false,
+      "bisaGulirHalaman": true,
+      "setelahKontenDigulir": {
+        "windowY": 500,
+        "sidebarAtas": 0
+      },
+      "gulirSidebar": {
+        "navScrollTop": 120,
+        "navScrollHeight": 824,
+        "navClientHeight": 100,
+        "halamanIkutBergeser": false
+      }
+    },
+    {
+      "label": "kasir-1024-kasar",
+      "peran": "kasir",
+      "w": 1024,
+      "h": 1366,
+      "sentuh": true,
+      "pointerFine": false,
+      "pointerCoarse": true,
+      "sidebarTampil": false,
+      "sidebarPosisi": null,
+      "sidebarAtas": null,
+      "sidebarKiri": null,
+      "sidebarTinggi": null,
+      "tinggiJendela": 1366,
+      "navMenuOverflowY": null,
+      "navMenuScrollHeight": null,
+      "navMenuClientHeight": null,
+      "kontenPaddingKiri": "16px",
+      "kontenKiri": 0,
+      "navBawahTampil": false,
+      "bisaGulirHalaman": true,
+      "setelahKontenDigulir": {
+        "windowY": 500,
+        "sidebarAtas": null
+      },
+      "gulirSidebar": null
+    },
+    {
+      "label": "kasir-1366-presisi",
+      "peran": "kasir",
+      "w": 1366,
+      "h": 768,
+      "sentuh": false,
+      "pointerFine": true,
+      "pointerCoarse": false,
+      "sidebarTampil": false,
+      "sidebarPosisi": null,
+      "sidebarAtas": null,
+      "sidebarKiri": null,
+      "sidebarTinggi": null,
+      "tinggiJendela": 768,
+      "navMenuOverflowY": null,
+      "navMenuScrollHeight": null,
+      "navMenuClientHeight": null,
+      "kontenPaddingKiri": "16px",
+      "kontenKiri": 0,
+      "navBawahTampil": false,
+      "bisaGulirHalaman": true,
+      "setelahKontenDigulir": {
+        "windowY": 500,
+        "sidebarAtas": null
+      },
+      "gulirSidebar": null
+    },
+    {
+      "label": "kasir-1920-presisi",
+      "peran": "kasir",
+      "w": 1920,
+      "h": 1080,
+      "sentuh": false,
+      "pointerFine": true,
+      "pointerCoarse": false,
+      "sidebarTampil": false,
+      "sidebarPosisi": null,
+      "sidebarAtas": null,
+      "sidebarKiri": null,
+      "sidebarTinggi": null,
+      "tinggiJendela": 1080,
+      "navMenuOverflowY": null,
+      "navMenuScrollHeight": null,
+      "navMenuClientHeight": null,
+      "kontenPaddingKiri": "16px",
+      "kontenKiri": 0,
+      "navBawahTampil": false,
+      "bisaGulirHalaman": true,
+      "setelahKontenDigulir": {
+        "windowY": 500,
+        "sidebarAtas": null
+      },
+      "gulirSidebar": null
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+    "Servers": {
+        "1": {
+            "Name": "POS Hakim",
+            "Group": "Servers",
+            "Host": "127.0.0.1",
+            "Port": 5433,
+            "MaintenanceDB": "pos_hakim",
+            "Username": "pos_hakim",
+            "Password": "pos_hakim_dev",
+            "Comment": "Database POS Toko Hakim (PostgreSQL 14, port 5433).",
+            "ConnectionParameters": {
+                "sslmode": "prefer",
+                "connect_timeout": 10
+            }
+        }
+    }
+}

@@ -1,0 +1,162 @@
+{
+  "base": "http://127.0.0.1:3100",
+  "laporan": [
+    {
+      "slug": "umum",
+      "panjangTeks": 835,
+      "adaGalat": false,
+      "cuplikanGalat": null,
+      "barisTotal": [
+        "TOTAL\t\t3\tRp 439.000\tRp 41.000"
+      ],
+      "jumlahBarisTabel": 3,
+      "adaKosong": false
+    },
+    {
+      "slug": "transaksi",
+      "panjangTeks": 1240,
+      "adaGalat": false,
+      "cuplikanGalat": null,
+      "barisTotal": [
+        "TOTAL\t\t\t\t\tRp 1.317.000\tRp 1.317.000\tRp 0\t\t\t\t\t\t3\t\t\t\tRp 439.000\tRp 41.000"
+      ],
+      "jumlahBarisTabel": 3,
+      "adaKosong": false
+    },
+    {
+      "slug": "arus-keuangan",
+      "panjangTeks": 728,
+      "adaGalat": false,
+      "cuplikanGalat": null,
+      "barisTotal": [
+        "TOTAL\t\tRp 439.000\t1",
+        "TOTAL\tRp 439.000\tRp 0\tRp 1.209.000"
+      ],
+      "jumlahBarisTabel": 2,
+      "adaKosong": false
+    },
+    {
+      "slug": "penjualan",
+      "panjangTeks": 519,
+      "adaGalat": false,
+      "cuplikanGalat": null,
+      "barisTotal": [
+        "TOTAL\t1\tRp 439.000"
+      ],
+      "jumlahBarisTabel": 1,
+      "adaKosong": false
+    },
+    {
+      "slug": "kategori",
+      "panjangTeks": 694,
+      "adaGalat": false,
+      "cuplikanGalat": null,
+      "barisTotal": [
+        "TOTAL\t3\tRp 439.000\tRp 398.000\tRp 41.000"
+      ],
+      "jumlahBarisTabel": 3,
+      "adaKosong": false
+    },
+    {
+      "slug": "pembelian",
+      "panjangTeks": 510,
+      "adaGalat": false,
+      "cuplikanGalat": null,
+      "barisTotal": [],
+      "jumlahBarisTabel": 0,
+      "adaKosong": true
+    },
+    {
+      "slug": "modal",
+      "panjangTeks": 513,
+      "adaGalat": false,
+      "cuplikanGalat": null,
+      "barisTotal": [],
+      "jumlahBarisTabel": 0,
+      "adaKosong": false
+    },
+    {
+      "slug": "laba-rugi",
+      "panjangTeks": 585,
+      "adaGalat": false,
+      "cuplikanGalat": null,
+      "barisTotal": [],
+      "jumlahBarisTabel": 0,
+      "adaKosong": false
+    },
+    {
+      "slug": "retur",
+      "panjangTeks": 530,
+      "adaGalat": false,
+      "cuplikanGalat": null,
+      "barisTotal": [
+        "TOTAL · 0\t0\tRp 0",
+        "TOTAL · 0\t0\tRp 0"
+      ],
+      "jumlahBarisTabel": 2,
+      "adaKosong": false
+    },
+    {
+      "slug": "stok-opname",
+      "panjangTeks": 6094,
+      "adaGalat": false,
+      "cuplikanGalat": null,
+      "barisTotal": [
+        "TOTAL\t\t160\t\t\t394\t389"
+      ],
+      "jumlahBarisTabel": 1,
+      "adaKosong": false
+    },
+    {
+      "slug": "harian",
+      "panjangTeks": 461,
+      "adaGalat": false,
+      "cuplikanGalat": null,
+      "barisTotal": [],
+      "jumlahBarisTabel": 0,
+      "adaKosong": false
+    },
+    {
+      "slug": "laba",
+      "panjangTeks": 598,
+      "adaGalat": false,
+      "cuplikanGalat": null,
+      "barisTotal": [
+        "TOTAL\tRp 439.000\tRp 398.000\tRp 41.000"
+      ],
+      "jumlahBarisTabel": 1,
+      "adaKosong": false
+    },
+    {
+      "slug": "harga",
+      "panjangTeks": 452,
+      "adaGalat": false,
+      "cuplikanGalat": null,
+      "barisTotal": [],
+      "jumlahBarisTabel": 0,
+      "adaKosong": true
+    }
+  ],
+  "ekspor": [
+    {
+      "slug": "export-arus-stok",
+      "namaBerkas": "laporan-arus-stok.csv",
+      "ukuranByte": 4513,
+      "tigaBarisPertama": [
+        "﻿Produk,Kategori,Satuan Dasar,Masuk,Keluar,Penyesuaian,Pembatalan,Saldo Akhir\r",
+        "Ale-Ale 350ml,Minuman,pcs,0,0,0,0,0\r",
+        "Apache Filter 12,Rokok,pcs,0,0,0,0,0\r"
+      ]
+    },
+    {
+      "slug": "export-arus-keuangan",
+      "namaBerkas": "laporan-arus-keuangan.csv",
+      "ukuranByte": 172,
+      "tigaBarisPertama": [
+        "﻿Bagian,Tanggal,Kategori,Masuk,Keluar,Saldo,Baris\r",
+        "Saldo Awal,,,,,770000,\r",
+        "Harian,2026-09-21,,439000,0,1209000,\r"
+      ]
+    }
+  ]
+}

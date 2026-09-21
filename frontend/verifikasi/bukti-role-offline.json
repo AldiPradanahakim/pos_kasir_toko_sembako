@@ -1,0 +1,78 @@
+{
+  "menuKasir": {
+    "menu": [
+      "🧾Kasir",
+      "🕘Riwayat",
+      "📦Stok",
+      "📷Stok Scan"
+    ],
+    "navBawahTampil": false
+  },
+  "kasirBukaLaporan": "/kasir",
+  "kasirBukaPengaturan": "/kasir",
+  "kasirBukaKeuangan": "/kasir",
+  "kasirAdaTombolHapusRiwayat": false,
+  "kasirLihatBatalkan": false,
+  "kasirDeleteDitolakStatus": 403,
+  "menuSuperadmin": {
+    "menu": [
+      "🧾Kasir",
+      "🕘Riwayat",
+      "↩️Retur",
+      "🤝Hutang & Piutang",
+      "📦Stok",
+      "📷Stok Scan",
+      "🚚Pembelian",
+      "🏷️Produk",
+      "🗂️Kategori",
+      "⚖️Satuan",
+      "💰Arus Keuangan",
+      "📊Laporan",
+      "⚙️Pengaturan",
+      "👤Pengguna",
+      "🧾Kasir",
+      "🕘Riwayat",
+      "↩️Retur",
+      "🤝Hutang & Piutang",
+      "📦Stok",
+      "📷Stok Scan",
+      "🚚Pembelian",
+      "🏷️Produk",
+      "🗂️Kategori",
+      "⚖️Satuan",
+      "💰Arus Keuangan",
+      "📊Laporan",
+      "⚙️Pengaturan",
+      "👤Pengguna"
+    ],
+    "navBawahTampil": false
+  },
+  "superadminAdaTombolHapusRiwayat": true,
+  "superadminLihatHapus": true,
+  "offline": {
+    "uuid": "54861e4b-9566-49f2-b0b4-873b0fce6e92",
+    "nomorSementara": true,
+    "struk": "TOKO HAKIM\n\nNo\nOFF-20260919152000\nTanggal\n19/09/2026, 15.20\nKasir\nSuper Admin\nPelanggan\nPelanggan Uji Offline\n\nSedaap Soto\n\n1 pcs x Rp 2.700\nRp 2.700\nTOTAL\nRp 2.700\nMetode\nTunai\nDibayar\nRp 10.000\nKembalian\nRp 7.300\n\nTerima kasih telah berbelanja\n\nBarang yang sudah dibeli tidak dapat ditukar"
+  },
+  "sinkron": {
+    "status": 200,
+    "sale": {
+      "id": 31,
+      "no_struk": "INV-20260919-0027",
+      "total": 2700,
+      "nama_pelanggan": "Pelanggan Uji Offline"
+    },
+    "jumlahDenganUuidSama": 1,
+    "jumlahTotalTransaksi": 1
+  },
+  "pembersihan": {
+    "id": 31,
+    "statusHapus": 200,
+    "hasil": {
+      "ok": true,
+      "deleted": 1,
+      "restored_movements": 1,
+      "restore_stock": true
+    }
+  }
+}

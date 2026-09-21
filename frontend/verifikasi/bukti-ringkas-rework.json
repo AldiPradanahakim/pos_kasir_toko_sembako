@@ -1,0 +1,41 @@
+{
+  "ocr": {
+    "inputBerkas": 1,
+    "tombolBaca": [
+      "Baca Teks dari Foto"
+    ],
+    "judul": [
+      "1. Ambil Foto Struk"
+    ],
+    "teks": [
+      "Scan Struk",
+      "Foto nota supplier, lalu periksa hasilnya sebelum masuk stok.",
+      "← Kembali ke Stok",
+      "1. Ambil Foto Struk",
+      "Jatuhkan foto struk di sini (komputer)",
+      "atau"
+    ]
+  },
+  "data": {
+    "produk": 101,
+    "sedaapSoto": 400,
+    "penjualan": 0,
+    "pembelian": 0,
+    "sisaUjiJual": [],
+    "sisaUjiBeli": [],
+    "sisaUjiMovement": [
+      112,
+      88,
+      78,
+      63,
+      110,
+      86,
+      76,
+      62,
+      20,
+      22,
+      21
+    ],
+    "jumlahMovement": 103
+  }
+}

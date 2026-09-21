@@ -1,0 +1,217 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "catatan": [],
+  "buildProduksi": {
+    "adaBundleProduksi": true,
+    "skrip": [
+      "index-CsRfAXGB.js",
+      "registerSW.js"
+    ]
+  },
+  "teksOcr": "WINGSFODD INDONESIA\nJL RAYA WARU NO 12 SURABAYA\nTelp 031-88889999\nNOTA PEMBELIAN\nNo. INV-2026-0912 19/09/2026\nOty x Harga Nama Barang Jumlah\n2 x 40.000 MIE SEDAAP SOTO 80.000\n1 x 12.500 TEH GELAS 200ML 12.500\n3 x 8.000 KOPI KAPAL API 24.000\n5x 6.500 SARDEN ABC 155G 32.500\n4 x 9.000 MINYAK GORENG 1L 36.000\nTotal 185.000\nTunai 200.000\nKembali 15.000\nTerima kasih atas pembelian Anda\nBarang yang sudah dibeli tidak dapat ditukar\n",
+  "barisSetelahOcr": [
+    {
+      "label": "Hapus baris 1",
+      "namaOcr": "MIE SEDAAP SOTO",
+      "produkTerpilih": "41",
+      "namaProdukTerpilih": "Mie Sedaap Soto",
+      "satuanTerpilih": "1",
+      "qty": "2",
+      "harga": "40000"
+    },
+    {
+      "label": "Hapus baris 2",
+      "namaOcr": "TEH GELAS ML",
+      "produkTerpilih": "36",
+      "namaProdukTerpilih": "Teh Gelas 350ml",
+      "satuanTerpilih": "1",
+      "qty": "1",
+      "harga": "12500"
+    },
+    {
+      "label": "Hapus baris 3",
+      "namaOcr": "KOPI KAPAL API",
+      "produkTerpilih": "31",
+      "namaProdukTerpilih": "Kapal Api Kopi Bubuk 165g",
+      "satuanTerpilih": "1",
+      "qty": "3",
+      "harga": "8000"
+    },
+    {
+      "label": "Hapus baris 4",
+      "namaOcr": "SARDEN ABC G",
+      "produkTerpilih": "",
+      "namaProdukTerpilih": "Pilih produk…",
+      "satuanTerpilih": "",
+      "qty": "5",
+      "harga": "6500"
+    },
+    {
+      "label": "Hapus baris 5",
+      "namaOcr": "MINYAK GORENG L",
+      "produkTerpilih": "67",
+      "namaProdukTerpilih": "Minyak Goreng Sania 2L",
+      "satuanTerpilih": "1",
+      "qty": "4",
+      "harga": "9000"
+    }
+  ],
+  "terpetakanOtomatis": [
+    "MIE SEDAAP SOTO -> Mie Sedaap Soto (id 41)",
+    "TEH GELAS ML -> Teh Gelas 350ml (id 36)",
+    "KOPI KAPAL API -> Kapal Api Kopi Bubuk 165g (id 31)",
+    "MINYAK GORENG L -> Minyak Goreng Sania 2L (id 67)"
+  ],
+  "barisSiapTerapkan": [
+    {
+      "label": "Hapus baris 1",
+      "namaOcr": "MIE SEDAAP SOTO",
+      "produkTerpilih": "41",
+      "namaProdukTerpilih": "Mie Sedaap Soto",
+      "satuanTerpilih": "1",
+      "qty": "2",
+      "harga": "40000"
+    },
+    {
+      "label": "Hapus baris 2",
+      "namaOcr": "TEH GELAS ML",
+      "produkTerpilih": "36",
+      "namaProdukTerpilih": "Teh Gelas 350ml",
+      "satuanTerpilih": "1",
+      "qty": "1",
+      "harga": "12500"
+    },
+    {
+      "label": "Hapus baris 3",
+      "namaOcr": "KOPI KAPAL API",
+      "produkTerpilih": "31",
+      "namaProdukTerpilih": "Kapal Api Kopi Bubuk 165g",
+      "satuanTerpilih": "1",
+      "qty": "3",
+      "harga": "8000"
+    },
+    {
+      "label": "Hapus baris 4",
+      "namaOcr": "MINYAK GORENG L",
+      "produkTerpilih": "67",
+      "namaProdukTerpilih": "Minyak Goreng Sania 2L",
+      "satuanTerpilih": "1",
+      "qty": "4",
+      "harga": "9000"
+    }
+  ],
+  "produkYangDikirim": [
+    41,
+    36,
+    31,
+    67
+  ],
+  "stokSebelum": {
+    "31": 0,
+    "36": 0,
+    "41": 0,
+    "67": 0
+  },
+  "permintaanBulk": [
+    "{\"items\":[{\"product_id\":41,\"unit_id\":1,\"qty\":2},{\"product_id\":36,\"unit_id\":1,\"qty\":1},{\"product_id\":31,\"unit_id\":1,\"qty\":3},{\"product_id\":67,\"unit_id\":1,\"qty\":4}],\"note\":null,\"aliases\":[{\"alias\":\"TEH GELAS ML\",\"product_id\":36},{\"alias\":\"KOPI KAPAL API\",\"product_id\":31},{\"alias\":\"MINYAK GORENG L\",\"product_id\":67}]}"
+  ],
+  "responsBulk": [
+    {
+      "status": 201,
+      "body": "{\"ok\":true,\"applied\":4,\"movements\":[{\"id\":40,\"product_id\":41,\"product_name\":\"Mie Sedaap Soto\",\"type\":\"masuk\",\"qty_base\":2,\"note\":null,\"user_name\":\"Super Admin\",\"created_at\":\"2026-09-18T20:37:06.333Z\",\"reference_type\":\"stok_masuk\",\"reference_id\":null},{\"id\":41,\"product_id\":36,\"product_name\":\"Teh Gelas 350ml\",\"type\":\"masuk\",\"qty_base\":1,\"note\":null,\"user_name\":\"Super Admin\",\"created_at\":\"2026-09-18T20:37:06.333Z\",\"reference_type\":\"stok_masuk\",\"reference_id\":null},{\"id\":42,\"product_id\":31,\"product_name\":\"Kapal Api Kopi Bubuk 165g\",\"type\":\"masuk\",\"qty_base\":3,\"note\":null,\"user_name\":\"Super Admin\",\"created_at\":\"2026-09-18T20:37:06.333Z\",\"reference_type\":\"stok_masuk\",\"reference_id\":null},{\"id\":43,\"product_id\":67,\"product_name\":\"Minyak Goreng Sania 2L\",\"type\":\"masuk\",\"qty_base\":4,\"note\":null,\"user_name\":\"Super Admin\",\"created_at\":\"2026-09-18T20:37:06.333Z\",\"reference_type\":\"stok_masuk\",\"reference_id\":null}]}"
+    }
+  ],
+  "teksSetelahTerapkan": "Scan Struk\n\nFoto nota supplier, lalu periksa hasilnya sebelum masuk stok.\n\n← Kembali ke Stok\n1. Ambil Foto Struk\n\nJatuhkan foto struk di sini (komputer)\n\natau\n\nBuka Kamera / Pilih Foto\n\nstruk-uji.png\n\nBaca Teks dari Foto\n2. Teks Hasil Pembacaan\nLihat teks mentah (untuk memeriksa hasil baca)\nWINGSFODD INDONESIA\nJL RAYA WARU NO 12 SURABAYA\nTelp 031-88889999\nNOTA PEMBELIAN\nNo. INV-2026-0912 19/09/2026\nOty x Harga Nama Barang Jumlah\n2 x 40.000 MIE SEDAAP SOTO 80.000\n1 x 12.500 TEH GELAS 200ML 12.500\n3 x 8.000 KOPI KAPAL API 24.000\n5x 6.500 SARDEN ABC 155G 32.500\n4 x 9.000 MINYAK GORENG 1L 36.000\nTotal 185.000\nTunai 200.000\nKembali 15.000\nTerima kasih atas pembelian Anda\nBarang yang sudah dibeli ",
+  "qtyDikirim": {
+    "31": 3,
+    "36": 1,
+    "41": 2,
+    "67": 4
+  },
+  "stokSesudah": {
+    "31": 3,
+    "36": 1,
+    "41": 2,
+    "67": 4
+  },
+  "delta": {
+    "31": 3,
+    "36": 1,
+    "41": 2,
+    "67": 4
+  },
+  "deltaCocokDenganQty": true,
+  "undo": {
+    "body": [
+      {
+        "product_id": 41,
+        "stok_fisik": 0,
+        "catatan": "Koreksi uji verifikasi frontend"
+      },
+      {
+        "product_id": 36,
+        "stok_fisik": 0,
+        "catatan": "Koreksi uji verifikasi frontend"
+      },
+      {
+        "product_id": 31,
+        "stok_fisik": 0,
+        "catatan": "Koreksi uji verifikasi frontend"
+      },
+      {
+        "product_id": 67,
+        "stok_fisik": 0,
+        "catatan": "Koreksi uji verifikasi frontend"
+      }
+    ],
+    "status": 201,
+    "opnameIds": [
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  "stokSetelahUndo": {
+    "31": 0,
+    "36": 0,
+    "41": 0,
+    "67": 0
+  },
+  "semuaKembaliKeAwal": true,
+  "pembersihan": {
+    "movementMasuk": [
+      "40",
+      "41",
+      "42",
+      "43"
+    ],
+    "movementPenyesuaian": [
+      "44",
+      "45",
+      "46",
+      "47"
+    ],
+    "opname": [
+      "8",
+      "9",
+      "10",
+      "11"
+    ],
+    "alias": [
+      "TEH GELAS ML",
+      "KOPI KAPAL API",
+      "MINYAK GORENG L"
+    ]
+  },
+  "stokAkhirBersih": {
+    "31": 0,
+    "36": 0,
+    "41": 0,
+    "67": 0
+  },
+  "sisaJejak": {
+    "movements": [],
+    "aliases": []
+  }
+}
