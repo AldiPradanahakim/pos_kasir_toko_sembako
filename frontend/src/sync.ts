@@ -1,8 +1,9 @@
 import { api, ApiError, TOKEN_KEY } from './api';
 import { db, LAST_SYNC_KEY, type DbProductUnit, type DbReceipt } from './db';
 import { displayStok, nomorOffline } from './lib/format';
+import { pastikanShiftTerdaftar } from './lib/shift';
 import { useSync } from './store';
-import type { MetodeBayar, Product, Sale, SyncPull } from './types';
+import type { MetodeBayar, Product, Sale, StockRow, SyncPull } from './types';
 
 /** UUID v4, crypto.randomUUID hanya ada di secure context, sedangkan toko sering akses via IP LAN. */
 function uuidV4(): string {
@@ -111,16 +112,49 @@ async function terapkanPendingKeStok(): Promise<void> {
     const row = await db.cachedStock.get(product_id);
     if (!row) continue;
     const stok_base = row.stok_base - delta;
+    const satuanProduk = unitRows.filter((u) => u.product_id === product_id);
     await db.cachedStock.put({
       ...row,
       stok_base,
       minus: stok_base < 0,
-      display: displayStok(
-        stok_base,
-        unitRows.filter((u) => u.product_id === product_id),
-      ),
+      display: displayStok(stok_base, satuanProduk),
+      // Satuan hitung ikut dihitung ulang: tanpa ini angka yang dilihat kasir (dus) tetap
+      // angka lama padahal stoknya sudah terpotong transaksi yang belum tersinkron.
+      ...hitungStok(stok_base, row, satuanProduk),
     });
   }
+}
+
+/**
+ * Satuan hitung + angka tampilannya. Rumusnya HARUS sejalan dengan `stockList()` di
+ * `backend/src/lib.js`: satuan pilihan superadmin, kalau kosong satuan isi terbesar
+ * (isi 1 hanya mengulang base_unit), kalau tidak ada sama sekali base_unit produk.
+ * Baris lama di Dexie bisa belum punya `base_unit_id` — jangan sampai melempar galat,
+ * jatuh ke aturan otomatis.
+ *
+ * Dipakai juga oleh layar kasir untuk menampilkan SISA stok dalam satuan hitung, supaya
+ * angka sisa itu tidak dihitung dengan rumus yang berbeda dari angka stok di halaman stok.
+ */
+export function hitungStok(
+  stokBase: number,
+  row: StockRow,
+  satuanProduk: { unit_id: number; unit_name: string; isi: number }[],
+): Pick<StockRow, 'satuan_hitung' | 'stok_hitung' | 'display_hitung'> {
+  const terpilih = row.base_unit_id ? satuanProduk.find((u) => u.unit_id === row.base_unit_id) : undefined;
+  const hitung = terpilih ?? [...satuanProduk].filter((u) => u.isi > 1).sort((a, b) => b.isi - a.isi)[0];
+  const isi = hitung && hitung.isi > 1 ? hitung.isi : 1;
+  return {
+    satuan_hitung: hitung ? hitung.unit_name : row.base_unit,
+    stok_hitung: Math.round((stokBase / isi) * 100) / 100,
+    display_hitung:
+      isi <= 1 ? `${stokBase} ${row.base_unit}` : `${angkaKoma(stokBase / isi)} ${hitung.unit_name}`,
+  };
+}
+
+/** Angka gaya Indonesia seperti `angkaIndonesia` di backend: maksimal 2 desimal, koma, nol ekor dibuang. */
+function angkaKoma(n: number): string {
+  const s = n.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+  return s === '-0' || s === '' ? '0' : s.replace('.', ',');
 }
 
 let sedangKuras = false;
@@ -135,6 +169,14 @@ export async function drainQueue(): Promise<void> {
   if (sedangKuras || !navigator.onLine || !localStorage.getItem(TOKEN_KEY)) return;
   sedangKuras = true;
   try {
+    // Shift lokal (dibuka offline) harus ada di server SEBELUM transaksi pertama masuk,
+    // kalau tidak penjualannya tercatat tanpa shift dan selisih tutup kas jadi salah.
+    try {
+      await pastikanShiftTerdaftar();
+    } catch {
+      // Gagal mendaftarkan shift = jangan kirim transaksi apa pun sekarang; coba lagi nanti.
+      return;
+    }
     for (;;) {
       const antre = await db.pendingSales.where('status').equals('pending').sortBy('created_at');
       const item = antre[0];
@@ -169,15 +211,18 @@ export async function simpanPenjualan(args: {
   dibayar: number;
   kasir: string;
   nama_pelanggan?: string;
+  /** Bon: pelanggan berutang sisa (dibayar < total). */
+  bon?: boolean;
 }): Promise<{ uuid: string; no_struk: string }> {
   const { items, metode_bayar, dibayar, kasir } = args;
+  const bon = args.bon === true;
   const namaPelanggan = args.nama_pelanggan?.trim() ? args.nama_pelanggan.trim() : null;
   const now = new Date();
   const uuid = uuidV4();
   const no_struk = nomorOffline(now);
   const created_at = now.toISOString();
   const total = items.reduce((s, it) => s + it.harga * it.qty, 0);
-  const kembalian = dibayar - total;
+  const kembalian = bon ? 0 : dibayar - total;
 
   const payload = {
     uuid,
@@ -194,6 +239,7 @@ export async function simpanPenjualan(args: {
     dibayar,
     created_at,
     nama_pelanggan: namaPelanggan,
+    ...(bon ? { bon: true } : {}),
   };
 
   const struk: DbReceipt = {
@@ -208,6 +254,7 @@ export async function simpanPenjualan(args: {
     total,
     pending: true,
     nama_pelanggan: namaPelanggan,
+    bon,
     items: items.map((it) => ({
       product_id: it.product_id,
       name: it.name,
@@ -231,6 +278,9 @@ export async function simpanPenjualan(args: {
         stok_base,
         minus: stok_base < 0,
         display: displayStok(stok_base, units),
+        // Satuan hitung ikut dihitung ulang, sama seperti di `terapkanPendingKeStok`.
+        // Tanpa ini halaman /stok menampilkan angka dus yang basi sampai pullSync berikutnya.
+        ...hitungStok(stok_base, row, units),
       });
     }
   });

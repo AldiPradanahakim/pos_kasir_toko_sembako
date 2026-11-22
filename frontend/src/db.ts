@@ -38,6 +38,8 @@ export interface DbPendingSale {
     created_at: string;
     /** Nama pelanggan (opsional), dicatat supaya bisa ditagih/dicari nanti. */
     nama_pelanggan?: string | null;
+    /** Bon: pelanggan berutang sisa. */
+    bon?: boolean;
   };
 }
 
@@ -54,6 +56,8 @@ export interface DbReceipt {
   total: number;
   pending: boolean;
   nama_pelanggan?: string | null;
+  /** Bon: sisa tagihan pelanggan, bukan transaksi tunai lunas. */
+  bon?: boolean;
   items: {
     product_id: number;
     name: string;

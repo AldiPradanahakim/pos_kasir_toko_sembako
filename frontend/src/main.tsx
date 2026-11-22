@@ -6,8 +6,9 @@ import './index.css';
 import { useAuth } from './store';
 import { mulaiSync } from './sync';
 
-void useAuth.getState().muatUlangUser();
-mulaiSync();
+// Sinkronisasi dimulai setelah pemeriksaan sesi selesai, supaya token yang ternyata ditolak
+// tidak sempat dipakai memanggil /sync/pull dan /sales (401 sia-sia di konsol).
+void useAuth.getState().muatUlangUser().then(mulaiSync);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

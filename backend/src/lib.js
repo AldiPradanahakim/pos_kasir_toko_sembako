@@ -74,6 +74,37 @@ export function displayStock(stokBase, baseUnit, units = []) {
   return (stokBase < 0 ? '-' : '') + parts.join(' ');
 }
 
+/** Angka gaya Indonesia: maksimal 2 desimal, koma sebagai pemisah, nol di belakang dibuang. */
+function angkaIndonesia(n) {
+  const s = n.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+  return s === '-0' || s === '' ? '0' : s.replace('.', ',');
+}
+
+/**
+ * Stok dalam satuan hitung (satuan pilihan superadmin), mis. dus isi 40:
+ * 132 base -> "3,3 dus", 120 base -> "3 dus".
+ * Satuan hitung null atau isi <= 1 tidak mengubah apa pun: base ditampilkan apa adanya
+ * ("132 pcs") — lebih baik angka mentah daripada pembagian yang menyesatkan.
+ */
+export function displayHitung(stokBase, satuanHitung, baseUnit = 'pcs') {
+  const isi = toInt(satuanHitung?.isi);
+  if (!satuanHitung || isi === null || isi <= 1) return `${stokBase} ${baseUnit}`;
+  return `${angkaIndonesia(Math.round((stokBase / isi) * 100) / 100)} ${satuanHitung.unit_name}`;
+}
+
+/**
+ * Satuan hitung yang berlaku untuk satu produk: pilihan superadmin (`base_unit_id`) bila
+ * ada, kalau tidak satuan dengan `isi > 1` TERBESAR. `units` wajib terurut `isi` DESC
+ * (keluaran unitsByProduct / json_agg laporan). Satu-satunya tempat aturan ini ditulis,
+ * supaya GET /stock, GET /sync/pull, dan saran pembelian tidak pernah menghitung
+ * satuan yang berbeda untuk produk yang sama.
+ * `isi` = 1 berarti satuan hitungnya base_unit sendiri (tidak ada pembagian).
+ */
+export function satuanHitungOf(units = [], baseUnitId = null) {
+  const hitung = units.find((u) => u.unit_id === baseUnitId) ?? units.find((u) => u.isi > 1) ?? null;
+  return { hitung, isi: hitung && hitung.isi > 1 ? hitung.isi : 1 };
+}
+
 /** Satuan (isi + nama) per produk, terbesar dulu. */
 export async function unitsByProduct(productIds = null) {
   const { rows } = await q(
@@ -113,17 +144,26 @@ export async function stockByProduct(productIds = null) {
  */
 export async function stockList() {
   const [stock, units] = await Promise.all([stockByProduct(), unitsByProduct()]);
-  const { rows } = await q('SELECT id, name, base_unit FROM products ORDER BY name');
+  const { rows } = await q('SELECT id, name, base_unit, base_unit_id, izin_minus FROM products ORDER BY name');
 
   return rows.map((p) => {
     const stok = stock.get(p.id) ?? 0;
+    const satuan = units.get(p.id) || [];
+    // Satuan hitung: pilihan superadmin, else satuan terbesar yang benar-benar mengubah
+    // angka (isi > 1) — satuan isi 1 hanya mengulang base_unit.
+    const { hitung, isi } = satuanHitungOf(satuan, p.base_unit_id);
     return {
       product_id: p.id,
       name: p.name,
       base_unit: p.base_unit,
       stok_base: stok,
-      display: displayStock(stok, p.base_unit, units.get(p.id) || []),
+      display: displayStock(stok, p.base_unit, satuan),
       minus: stok < 0,
+      base_unit_id: p.base_unit_id,
+      satuan_hitung: hitung ? hitung.unit_name : p.base_unit,
+      stok_hitung: Math.round((stok / isi) * 100) / 100,
+      display_hitung: displayHitung(stok, hitung, p.base_unit),
+      izin_minus: p.izin_minus,
     };
   });
 }
@@ -132,7 +172,7 @@ export async function stockList() {
 export async function listProducts({ id = null, q: search = null, barcode = null, categoryId = null } = {}) {
   const { rows } = await q(
     `SELECT p.id, p.name, p.category_id, c.name AS category_name, p.base_unit,
-            p.barcode, p.is_active,
+            p.barcode, p.is_active, p.base_unit_id, p.izin_minus,
             COALESCE(
               (SELECT json_agg(json_build_object(
                         'id', pu.id, 'unit_id', pu.unit_id, 'unit_name', u.name,
@@ -162,18 +202,33 @@ export async function getProductOr404(id) {
 }
 
 /**
+ * Id shift (kas) yang sedang terbuka milik user, atau null. Dipakai agar uang yang keluar
+ * dari laci SELAMA shift — retur ke pembeli, pelunasan hutang — menempel ke shift itu dan
+ * ikut mengurangi "seharusnya di laci" saat tutup kas. Tanpa `shift_id`, uangnya hilang
+ * dari rekap dan selisih kas terlihat kurang padahal laci sudah benar.
+ */
+export async function shiftTerbukaId(c, userId) {
+  const { rows } = await c.query(
+    'SELECT id FROM shifts WHERE user_id = $1 AND ditutup_pada IS NULL',
+    [userId],
+  );
+  return rows[0]?.id ?? null;
+}
+
+/**
  * Catat satu baris buku kas. `c` boleh pool maupun client transaksi — selalu dipanggil
  * di dalam transaksi penjualan/pembelian supaya kas tidak pernah beda dengan transaksinya.
  * Jumlah 0 tidak menghasilkan baris (CHECK jumlah > 0); kembaliannya null.
  */
 export async function insertCashFlow(c, {
   tanggal, tipe, kategori, jumlah, keterangan = null, refType = null, refId = null, userId = null,
+  shiftId = null,
 }) {
   if (!Number.isInteger(jumlah) || jumlah <= 0) return null;
   const { rows } = await c.query(
-    `INSERT INTO cash_flows (tanggal, tipe, kategori, jumlah, keterangan, ref_type, ref_id, user_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
-    [tanggal, tipe, kategori, jumlah, keterangan, refType, refId, userId],
+    `INSERT INTO cash_flows (tanggal, tipe, kategori, jumlah, keterangan, ref_type, ref_id, user_id, shift_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+    [tanggal, tipe, kategori, jumlah, keterangan, refType, refId, userId, shiftId],
   );
   return rows[0].id;
 }
@@ -204,6 +259,7 @@ export function pgError(err) {
     const detail = err.detail || '';
     if (detail.includes('(username)')) return new ApiError(422, 'Username sudah dipakai');
     if (detail.includes('(name)')) return new ApiError(422, 'Nama sudah dipakai');
+    if (detail.includes('lower(inisial)')) return new ApiError(422, 'Inisial sudah dipakai satuan lain');
     if (detail.includes('(barcode)')) return new ApiError(422, 'Barcode sudah dipakai produk/satuan lain');
     if (detail.includes('(uuid)')) return new ApiError(422, 'Transaksi dengan uuid itu sudah ada');
     return new ApiError(422, 'Data sudah ada (duplikat)');

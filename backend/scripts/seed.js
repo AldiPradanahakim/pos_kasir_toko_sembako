@@ -7,8 +7,24 @@ import pg from 'pg';
 const here = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(here, '../.env'), quiet: true });
 
-/** Satuan dasar yang di-seed. Satu-satunya sumber daftar ini. */
-export const SEED_UNITS = ['pcs', 'renceng', 'pack', 'dus', 'slop', 'bal', 'karung', 'kg', '1/2 kg', '1/4 kg'];
+/**
+ * Satuan dasar yang di-seed. Satu-satunya sumber daftar ini.
+ * `inisial` = singkatan yang boleh ditulis kasir/pelanggan di nota ("2 (r) Beng Beng").
+ */
+export const SEED_UNITS = [
+  { name: 'pcs', inisial: 'pc' },
+  { name: 'renceng', inisial: 'r' },
+  { name: 'pack', inisial: 'p' },
+  { name: 'dus', inisial: 'd' },
+  { name: 'slop', inisial: 'sl' },
+  { name: 'bal', inisial: 'b' },
+  { name: 'karung', inisial: 'kr' },
+  { name: 'kg', inisial: 'kg' },
+  // Satuan pecahan sengaja tanpa inisial: pengurai membuang angka dari nama barang, jadi
+  // singkatan "1/2" tidak bisa dicocokkan. Nama lengkapnya tetap dikenali.
+  { name: '1/2 kg', inisial: null },
+  { name: '1/4 kg', inisial: null },
+];
 
 /** Nilai pengaturan awal toko. */
 export const SEED_SETTINGS = {
@@ -38,8 +54,12 @@ export async function runSeed(url, { log = console.log } = {}) {
     );
     log(`user     : ${sa[0].username} (id ${sa[0].id})`);
 
-    for (const name of SEED_UNITS) {
-      await client.query('INSERT INTO units (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [name]);
+    for (const u of SEED_UNITS) {
+      await client.query(
+        `INSERT INTO units (name, inisial) VALUES ($1, $2)
+         ON CONFLICT (name) DO UPDATE SET inisial = COALESCE(units.inisial, EXCLUDED.inisial)`,
+        [u.name, u.inisial],
+      );
     }
     const { rows: u } = await client.query('SELECT count(*)::int AS n FROM units');
     log(`units    : ${u[0].n} baris (target ${SEED_UNITS.length})`);

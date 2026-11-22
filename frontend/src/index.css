@@ -31,6 +31,54 @@ textarea {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
+/*
+ * Kotak centang dengan area sentuh 44×44px TETAPI kotak yang terlihat tetap ~20px.
+ *
+ * Membungkus <input> 20px dengan <label> setinggi 44px memang membuat labelnya mudah
+ * dipencet, tetapi area sentuh milik KONTROL-nya sendiri tetap 20×20 — dan itu yang
+ * diukur audit sentuh (verify-tap.mjs). Jadi kotaknya sendiri yang diperbesar, lalu
+ * tampilan visualnya dikembalikan ke 20px lewat `background-clip: content-box` +
+ * `padding`: latar (dan tanda centang) hanya mengisi kotak isi, sedangkan bingkai
+ * tetap di tepi luar sehingga area sentuhnya utuh 44px.
+ *
+ * `outline` dipakai sebagai bingkai (bukan `border`) karena border ikut terhitung ke
+ * dalam content box, sehingga bingkainya akan menyusut mengikuti padding.
+ */
+.centang {
+  appearance: none;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 12px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border-radius: 6px;
+  background-color: #fff;
+  background-clip: content-box;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 16px;
+  outline: 2px solid #94a3b8;
+  outline-offset: -12px;
+}
+
+.centang:checked {
+  background-color: #0f766e;
+  outline-color: #0f766e;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5l3.5 3.5L13 4.5'/%3E%3C/svg%3E");
+}
+
+/* Tanpa ini pengguna papan ketik tidak tahu centang mana yang sedang disorot. */
+.centang:focus-visible {
+  outline: 3px solid #0f766e;
+  outline-offset: -12px;
+}
+
+.centang:disabled {
+  cursor: not-allowed;
+  outline-color: #cbd5e1;
+}
+
 /* Pembungkus tabel: menggeser ke samping DI DALAM kotak, tidak pernah
    melebarkan halaman. Dipakai semua tabel lebar. */
 .tabel-scroll {
@@ -85,13 +133,14 @@ input[type='number'] {
   width: 58mm;
   font-family: 'Courier New', Courier, monospace;
   font-size: 10px;
-  line-height: 1.35;
+  /* 1.5 (bukan 1.35): barisnya terbaca kasir & pembeli tanpa saling menempel. */
+  line-height: 1.5;
   color: #000;
 }
 
 .struk .garis {
   border-top: 1px dashed #000;
-  margin: 3px 0;
+  margin: 5px 0;
 }
 
 /* ---- Cetak ---- */

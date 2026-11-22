@@ -1,0 +1,207 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "catatan": [],
+  "notaUji": [
+    "1 (sl) GUDANG GARAM SURYA 12",
+    "2 (d) SEDAAP SOTO",
+    "2 (d) ALE-ALE 350ML",
+    "SABUN WANGI"
+  ],
+  "tombolScanNota": 1,
+  "modalTerbuka": true,
+  "masihDiKasir": "/kasir",
+  "barisHasilPindai": [
+    {
+      "namaNota": "GUDANG GARAM SURYA",
+      "dicentang": true,
+      "produkNama": "Gudang Garam Surya 12",
+      "satuanNama": "slop (Rp 305.000)",
+      "qty": "1"
+    },
+    {
+      "namaNota": "SEDAAP SOTO",
+      "dicentang": true,
+      "produkNama": "Sedaap Soto",
+      "satuanNama": "dus (Rp 105.000)",
+      "qty": "2"
+    },
+    {
+      "namaNota": "ALE ALE ML",
+      "dicentang": true,
+      "produkNama": "Ale-Ale 350ml",
+      "satuanNama": "dus (Rp 88.000)",
+      "qty": "2"
+    },
+    {
+      "namaNota": "SABUN WANGI",
+      "dicentang": false,
+      "produkNama": "",
+      "satuanNama": "Pilih satuan…",
+      "qty": "1"
+    }
+  ],
+  "totalTampil": "Total 3 barang · 5 qty",
+  "teksOcr": "DAFTAR BELANJA\n1 (sl) GUDANG GARAM SURYA 12\n2 (4d) SEDAAP SOTO\n2 (4d) ALE-ALE 350ML\nSABUN WANGI",
+  "pesanPenolakan": [
+    "Stok \"Ale-Ale 350ml\" tidak cukup (sisa 0 dus, butuh 2 dus). Minta superadmin memberi izin jual stok kosong."
+  ],
+  "barisSetelahMasukkan": [
+    {
+      "namaNota": "GUDANG GARAM SURYA",
+      "dicentang": false,
+      "produkNama": "Gudang Garam Surya 12",
+      "satuanNama": "slop (Rp 305.000)",
+      "qty": "1"
+    },
+    {
+      "namaNota": "SEDAAP SOTO",
+      "dicentang": false,
+      "produkNama": "Sedaap Soto",
+      "satuanNama": "dus (Rp 105.000)",
+      "qty": "2"
+    },
+    {
+      "namaNota": "ALE ALE ML",
+      "dicentang": true,
+      "produkNama": "Ale-Ale 350ml",
+      "satuanNama": "dus (Rp 88.000)",
+      "qty": "2"
+    },
+    {
+      "namaNota": "SABUN WANGI",
+      "dicentang": false,
+      "produkNama": "",
+      "satuanNama": "Pilih satuan…",
+      "qty": "1"
+    }
+  ],
+  "modalTertutup": true,
+  "keranjang": {
+    "judul": "Keranjang (2)",
+    "baris": [
+      "1 Gudang Garam Surya 12 slop Rp 305.000 − 1 + ✕",
+      "2 Sedaap Soto dus Rp 210.000 − 2 + ✕"
+    ],
+    "total": "Rp 515.000"
+  },
+  "hargaMaster": [
+    {
+      "nama": "Gudang Garam Surya 12",
+      "satuan": "slop",
+      "harga_jual": 305000
+    },
+    {
+      "nama": "Sedaap Soto",
+      "satuan": "dus",
+      "harga_jual": 105000
+    }
+  ],
+  "tataLetak": {
+    "360": {
+      "satuBaris": false,
+      "lebarCari": 318,
+      "tinggiKartuAlat": 166,
+      "halamanMeluber": false,
+      "halamanMenggulir": true
+    },
+    "390": {
+      "satuBaris": false,
+      "lebarCari": 348,
+      "tinggiKartuAlat": 166,
+      "halamanMeluber": false,
+      "halamanMenggulir": true
+    },
+    "768": {
+      "satuBaris": false,
+      "lebarCari": 406,
+      "tinggiKartuAlat": 114,
+      "halamanMeluber": false,
+      "halamanMenggulir": false
+    },
+    "1024": {
+      "satuBaris": false,
+      "lebarCari": 622,
+      "tinggiKartuAlat": 114,
+      "halamanMeluber": false,
+      "halamanMenggulir": false
+    },
+    "1280": {
+      "satuBaris": true,
+      "lebarCari": 310,
+      "tinggiKartuAlat": 62,
+      "halamanMeluber": false,
+      "halamanMenggulir": false
+    }
+  },
+  "satuan": {
+    "kepala": [
+      "Nama",
+      "Inisial",
+      "Status",
+      "Aksi"
+    ],
+    "baris": [
+      [
+        "pcs",
+        "pc",
+        "Aktif",
+        "UbahHapus"
+      ],
+      [
+        "renceng",
+        "r",
+        "Aktif",
+        "UbahHapus"
+      ],
+      [
+        "pack",
+        "p",
+        "Aktif",
+        "UbahHapus"
+      ],
+      [
+        "dus",
+        "d",
+        "Aktif",
+        "UbahHapus"
+      ],
+      [
+        "slop",
+        "sl",
+        "Aktif",
+        "UbahHapus"
+      ],
+      [
+        "bal",
+        "b",
+        "Aktif",
+        "UbahHapus"
+      ],
+      [
+        "kg",
+        "kg",
+        "Aktif",
+        "UbahHapus"
+      ],
+      [
+        "1/2 kg",
+        "—",
+        "Aktif",
+        "UbahHapus"
+      ],
+      [
+        "1/4 kg",
+        "—",
+        "Aktif",
+        "UbahHapus"
+      ],
+      [
+        "karung",
+        "kr",
+        "Aktif",
+        "UbahHapus"
+      ]
+    ]
+  },
+  "kolomInisialAdaDiForm": true
+}

@@ -16,15 +16,16 @@ if (!process.env.DATABASE_URL) throw new Error('TEST_DATABASE_URL belum diset di
 const { createApp } = await import('../src/app.js');
 const { q, pool } = await import('../src/db.js');
 
-export { q };
+export { q, pool };
 
 export const UNITS = ['pcs', 'renceng', 'pack', 'dus', 'slop', 'bal', 'karung', 'kg', '1/2 kg', '1/4 kg'];
 
 export async function resetDb() {
   await q(`TRUNCATE users, tokens, categories, units, products, product_units, sales,
-                    sale_items, stock_movements, settings, struk_counters,
+                    sale_items, stock_movements, settings, struk_counters_tahun,
                     product_aliases, cash_flows, purchases, purchase_items,
-                    debts, returns, stock_opnames RESTART IDENTITY CASCADE`);
+                    debts, returns, stock_opnames, customers, debt_payments, shifts
+                    RESTART IDENTITY CASCADE`);
 }
 
 export async function seedMaster() {
@@ -81,7 +82,12 @@ export async function login(req, username, password = 'password') {
   return r.body.token;
 }
 
-/** Kategori + produk dasar (base pcs) dengan satuan pcs & dus isi 40. */
+/**
+ * Kategori + produk dasar (base pcs) dengan satuan pcs & dus isi 40.
+ * `izin_minus: true` supaya tes lama tetap menguji subjeknya masing-masing (idempotensi,
+ * snapshot, no_struk): sebelum aturan izin minus ada, semua penjualan diterima apa pun
+ * stoknya. Aturan "tanpa izin ditolak" diuji tersendiri, tidak lewat fixture ini.
+ */
 export async function productFixture(req, token, { dus = 40 } = {}) {
   const units = (await req('GET', '/api/units', { token })).body;
   const unitId = (name) => units.find((u) => u.name === name).id;
@@ -94,6 +100,7 @@ export async function productFixture(req, token, { dus = 40 } = {}) {
       category_id: cat.body.id,
       base_unit: 'pcs',
       barcode: '8991234567890',
+      izin_minus: true,
       units: [
         { unit_id: unitId('pcs'), isi: 1, harga_jual: 3000, harga_modal: 2000 },
         { unit_id: unitId('dus'), isi: dus, harga_jual: 100000, harga_modal: 80000, barcode: '8991234567891' },
@@ -115,5 +122,42 @@ export const stokOf = async (req, token, productId) => {
   const rows = (await req('GET', '/api/stock', { token })).body;
   return rows.find((r) => r.product_id === productId);
 };
+
+/**
+ * Menandai transaksi sebagai "dibatalkan" langsung di database.
+ *
+ * Aplikasi TIDAK lagi punya jalan membatalkan transaksi (hanya hapus permanen superadmin),
+ * tetapi baris lama berstatus 'dibatalkan' tetap ada di data pemilik dan tetap dibaca
+ * laporan, riwayat, dan proses hapus. Helper ini menyiapkan keadaan itu apa adanya —
+ * persis efek yang dulu ditulis endpoint pembatalan: status, movement `pembatalan`,
+ * dan baris kas keluar penyeimbang.
+ */
+export async function tandaiDibatalkan(saleId, alasan, oleh = 'superadmin') {
+  const { rows } = await q(
+    `SELECT s.total, s.no_struk, u.id AS user_id
+       FROM sales s JOIN users u ON u.username = $2
+      WHERE s.id = $1`,
+    [saleId, oleh],
+  );
+  if (!rows.length) throw new Error(`transaksi ${saleId} atau user ${oleh} tidak ada`);
+  const userId = rows[0].user_id;
+  await q(`UPDATE sales SET status = 'dibatalkan', alasan_batal = $1, dibatalkan_oleh = $2 WHERE id = $3`, [
+    alasan,
+    userId,
+    saleId,
+  ]);
+  await q(
+    `INSERT INTO stock_movements (product_id, type, qty_base, reference_type, reference_id, note, user_id)
+     SELECT product_id, 'pembatalan', isi_snapshot * qty, 'sale', sale_id, $2, $3
+       FROM sale_items WHERE sale_id = $1`,
+    [saleId, `Batal: ${alasan}`, userId],
+  );
+  await q(
+    `INSERT INTO cash_flows (tanggal, tipe, kategori, jumlah, keterangan, ref_type, ref_id, user_id)
+     VALUES ((now() AT TIME ZONE 'Asia/Jakarta')::date, 'keluar', 'pembatalan', $1, $2, 'sale', $3, $4)`,
+    [rows[0].total, `Pembatalan ${rows[0].no_struk ?? saleId}`, saleId, userId],
+  );
+  return rows[0];
+}
 
 export const closePool = () => pool.end();

@@ -276,7 +276,7 @@ function DetailLaporan({ entri }: { entri: EntriLaporan }) {
               {memuat ? (
                 <Kosong>Memuat…</Kosong>
               ) : hasil ? (
-                <TabelLaporan rows={hasil.rows} sembunyi={sembunyi} />
+                <TabelLaporan rows={hasil.rows} sembunyi={sembunyi} cari="Cari di laporan…" />
               ) : (
                 <Kosong>Tekan Tampilkan untuk memuat laporan.</Kosong>
               )}

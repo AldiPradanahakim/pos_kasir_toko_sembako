@@ -1,5 +1,4 @@
 import crypto from 'node:crypto';
-import bcrypt from 'bcryptjs';
 import { q } from './db.js';
 
 export const newToken = () => crypto.randomBytes(32).toString('hex');
@@ -41,15 +40,3 @@ export function requireSuperadmin(req, res, next) {
   next();
 }
 
-/** Verifikasi kredensial superadmin (kasir memakai ini untuk membatalkan transaksi). */
-export async function findSuperadmin(username, password) {
-  if (!username || !password) return null;
-  const { rows } = await q(
-    `SELECT id, name, username, password FROM users
-      WHERE username = $1 AND role = 'superadmin' AND is_active`,
-    [String(username)],
-  );
-  if (!rows.length) return null;
-  const ok = await bcrypt.compare(String(password), rows[0].password);
-  return ok ? { id: rows[0].id, name: rows[0].name, username: rows[0].username } : null;
-}

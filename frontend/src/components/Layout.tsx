@@ -18,8 +18,10 @@ const GRUP: { judul: string; menu: Menu[] }[] = [
     menu: [
       { to: '/kasir', label: 'Kasir', superadminSaja: false },
       { to: '/riwayat', label: 'Riwayat', superadminSaja: false },
-      { to: '/retur', label: 'Retur', superadminSaja: true },
-      { to: '/hutang-piutang', label: 'Hutang & Piutang', superadminSaja: true },
+      { to: '/kas', label: 'Riwayat Kas', superadminSaja: true },
+      { to: '/retur', label: 'Retur', superadminSaja: false },
+      { to: '/hutang-piutang', label: 'Hutang & Piutang', superadminSaja: false },
+      { to: '/pelanggan', label: 'Pelanggan', superadminSaja: true },
     ],
   },
   {
@@ -27,7 +29,7 @@ const GRUP: { judul: string; menu: Menu[] }[] = [
     menu: [
       { to: '/stok', label: 'Stok', superadminSaja: false },
       { to: '/stok/scan', label: 'Stok Scan', superadminSaja: false },
-      { to: '/pembelian', label: 'Pembelian', superadminSaja: true },
+      { to: '/pembelian', label: 'Pembelian', superadminSaja: false },
       { to: '/produk', label: 'Produk', superadminSaja: true },
       { to: '/kategori', label: 'Kategori', superadminSaja: true },
       { to: '/satuan', label: 'Satuan', superadminSaja: true },
@@ -36,6 +38,7 @@ const GRUP: { judul: string; menu: Menu[] }[] = [
   {
     judul: 'Uang & Laporan',
     menu: [
+      { to: '/dashboard', label: 'Dashboard', superadminSaja: true },
       { to: '/keuangan', label: 'Arus Keuangan', superadminSaja: true },
       { to: '/laporan', label: 'Laporan', superadminSaja: true },
     ],

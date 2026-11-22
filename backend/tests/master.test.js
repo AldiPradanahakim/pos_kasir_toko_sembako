@@ -272,3 +272,43 @@ test('stok masuk: konversi lewat isi, tolak satuan asing dan qty tidak sah', asy
   assert.equal(movements[0].user_name, 'Super Admin');
   assert.equal(movements[0].reference_type, 'stok_masuk');
 });
+
+test('satuan: inisial tersimpan, unik tanpa beda huruf besar/kecil, dan bentuknya dijaga', async () => {
+  const dibuat = await api.req('POST', '/api/units', {
+    token,
+    body: { name: 'renteng', inisial: 'R', is_active: true },
+  });
+  assert.equal(dibuat.status, 201);
+  // Disimpan huruf kecil supaya "P" dan "p" satu hal yang sama bagi pembaca nota.
+  assert.equal(dibuat.body.inisial, 'r');
+
+  const daftar = (await api.req('GET', '/api/units', { token })).body;
+  const baris = daftar.find((u) => u.name === 'renteng');
+  assert.equal(baris.inisial, 'r', 'GET /units harus membawa inisial');
+  assert.ok(daftar.every((u) => 'inisial' in u), 'setiap baris punya field inisial');
+
+  // Inisial harus unik: tanpa ini "p" bisa berarti pack sekaligus pcs saat membaca nota.
+  const bentrok = await api.req('POST', '/api/units', { token, body: { name: 'pack besar', inisial: 'r' } });
+  assert.equal(bentrok.status, 422);
+  assert.match(bentrok.body.error, /Inisial/);
+
+  // Bentuk yang tidak masuk akal ditolak, bukan disimpan sebagai sampah.
+  for (const salah of ['terlalupanjang', 'r r', '##']) {
+    const res = await api.req('POST', '/api/units', { token, body: { name: `satuan ${salah}`, inisial: salah } });
+    assert.equal(res.status, 422, `inisial "${salah}" harus ditolak`);
+  }
+
+  // Mengosongkan inisial boleh (satuan lama tidak wajib punya singkatan).
+  const dikosongkan = await api.req('PUT', `/api/units/${dibuat.body.id}`, {
+    token,
+    body: { name: 'renteng', inisial: '', is_active: true },
+  });
+  assert.equal(dikosongkan.status, 200);
+  assert.equal(dikosongkan.body.inisial, null);
+});
+
+test('sync pull membawa inisial satuan untuk dibaca layar kasir', async () => {
+  await api.req('POST', '/api/units', { token, body: { name: 'renteng', inisial: 'r' } });
+  const pull = (await api.req('GET', '/api/sync/pull', { token })).body;
+  assert.equal(pull.units.find((u) => u.name === 'renteng').inisial, 'r');
+});

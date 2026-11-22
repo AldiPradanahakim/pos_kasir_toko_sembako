@@ -2,7 +2,7 @@ import express from 'express';
 import { q, tx } from '../db.js';
 import { requireSuperadmin } from '../auth.js';
 import {
-  ApiError, toInt, toStr, dateOrNull, limitOf, insertCashFlow, todayJakarta,
+  ApiError, toInt, toStr, dateOrNull, limitOf, insertCashFlow, shiftTerbukaId, todayJakarta,
 } from '../lib.js';
 
 const router = express.Router();
@@ -36,12 +36,15 @@ router.get('/returns', async (req, res) => {
 });
 
 /**
- * Catat retur (superadmin, sesuai aturan "endpoint tulis butuh superadmin").
+ * Catat retur. Boleh kasir: ini pekerjaan meja kasir (pembeli membawa barang kembali,
+ * uangnya keluar dari laci saat itu juga). Menghapus retur tetap milik superadmin —
+ * pembatalan membalik stok dan kas, jadi itu koreksi, bukan pelayanan.
+ *
  * Retur penjualan = barang kembali ke toko (stok masuk) dan uang keluar ke pembeli.
  * Retur pembelian = barang dikirim balik ke supplier (stok keluar) dan uang masuk
  * kembali dari supplier.
  */
-router.post('/returns', requireSuperadmin, async (req, res) => {
+router.post('/returns', async (req, res) => {
   const tipe = toStr(req.body?.tipe);
   if (!TIPE.includes(tipe)) throw new ApiError(422, "tipe harus 'penjualan' atau 'pembelian'");
 
@@ -83,6 +86,8 @@ router.post('/returns', requireSuperadmin, async (req, res) => {
       [productId, tipe === 'penjualan' ? 'masuk' : 'keluar', qtyBase, returnId, `Retur ${tipe}: ${alasan}`, req.user.id],
     );
 
+    // Uang retur penjualan keluar dari laci kasir yang melayani, jadi barisnya menempel
+    // ke shift yang sedang terbuka: rinciannya ikut terbaca saat tutup kas.
     await insertCashFlow(c, {
       tanggal: todayJakarta(),
       tipe: tipe === 'penjualan' ? 'keluar' : 'masuk',
@@ -92,6 +97,7 @@ router.post('/returns', requireSuperadmin, async (req, res) => {
       refType: 'return',
       refId: returnId,
       userId: req.user.id,
+      shiftId: await shiftTerbukaId(c, req.user.id),
     });
 
     return returnId;

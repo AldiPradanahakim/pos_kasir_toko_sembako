@@ -1,16 +1,21 @@
 import express from 'express';
-import { q, tx } from '../db.js';
+import { q, tx, jakartaDate } from '../db.js';
 import { requireSuperadmin } from '../auth.js';
-import { ApiError, toInt, toStr, dateOrNull, limitOf } from '../lib.js';
+import { ApiError, toInt, toStr, dateOrNull, limitOf, insertCashFlow, shiftTerbukaId } from '../lib.js';
 
 const router = express.Router();
 const TIPE = ['utang', 'piutang'];
 
 const COLS = `d.id, d.tipe, d.pihak, d.jumlah, d.dibayar, d.jumlah - d.dibayar AS sisa,
               to_char(d.jatuh_tempo, 'YYYY-MM-DD') AS jatuh_tempo, d.keterangan, d.status,
-              d.created_at, u.name AS user_name`;
+              d.created_at, d.customer_id, d.sale_id, s.no_struk,
+              u.name AS user_name`;
 
-router.get('/debts', requireSuperadmin, async (req, res) => {
+const FROM = `FROM debts d
+              LEFT JOIN users u ON u.id = d.user_id
+              LEFT JOIN sales s ON s.id = d.sale_id`;
+
+router.get('/debts', async (req, res) => {
   const tipe = toStr(req.query.tipe);
   const status = toStr(req.query.status);
   if (tipe && !TIPE.includes(tipe)) throw new ApiError(422, "tipe harus 'utang' atau 'piutang'");
@@ -20,8 +25,7 @@ router.get('/debts', requireSuperadmin, async (req, res) => {
 
   const { rows } = await q(
     `SELECT ${COLS}
-       FROM debts d
-       LEFT JOIN users u ON u.id = d.user_id
+       ${FROM}
       WHERE ($1::text IS NULL OR d.tipe = $1)
         AND ($2::text IS NULL OR d.status = $2)
       ORDER BY d.status, d.created_at DESC, d.id DESC
@@ -31,7 +35,103 @@ router.get('/debts', requireSuperadmin, async (req, res) => {
   res.json(rows);
 });
 
-router.post('/debts', requireSuperadmin, async (req, res) => {
+/**
+ * Saldo piutang/utang per pelanggan: yang dicari pemilik toko saat menagih bukan daftar
+ * bon, tapi "siapa saja yang masih berutang dan berapa". Baris `pihak` tanpa pelanggan
+ * (utang ke supplier yang diketik bebas) tetap muncul, dikelompokkan per nama.
+ */
+router.get('/debts/pelanggan', async (req, res) => {
+  const tipe = toStr(req.query.tipe) ?? 'piutang';
+  if (!TIPE.includes(tipe)) throw new ApiError(422, "tipe harus 'utang' atau 'piutang'");
+
+  const { rows } = await q(
+    `SELECT d.customer_id, COALESCE(c.nama, d.pihak) AS nama,
+            COALESCE(c.telepon, '') AS telepon,
+            COUNT(*) AS jumlah_bon,
+            COALESCE(SUM(d.jumlah - d.dibayar), 0) AS sisa,
+            MIN(d.created_at) AS bon_tertua,
+            MIN(d.jatuh_tempo) AS jatuh_tempo_terdekat
+       FROM debts d
+       LEFT JOIN customers c ON c.id = d.customer_id
+      WHERE d.tipe = $1 AND d.status = 'belum'
+      -- Nama diambil dari tabel pelanggan, bukan dari tiap bon: "Bu Ani" dan "BU ANI"
+      -- adalah orang yang sama dan harus jadi satu baris tagihan.
+      GROUP BY d.customer_id, COALESCE(c.nama, d.pihak), c.telepon
+      ORDER BY sisa DESC, nama`,
+    [tipe],
+  );
+  res.json({ tipe, rows });
+});
+
+/** Riwayat pelunasan satu bon. */
+router.get('/debts/:id/bayar', async (req, res) => {
+  const id = toInt(req.params.id);
+  if (id === null) throw new ApiError(404, 'Hutang/piutang tidak ditemukan');
+  const { rows } = await q(
+    `SELECT dp.id, dp.jumlah, dp.catatan, dp.created_at, u.name AS user_name
+       FROM debt_payments dp LEFT JOIN users u ON u.id = dp.user_id
+      WHERE dp.debt_id = $1 ORDER BY dp.created_at, dp.id`,
+    [id],
+  );
+  res.json(rows);
+});
+
+/**
+ * Catat pelunasan (cicilan) sebuah bon. `dibayar` di debts adalah akumulasi, jadi jumlah
+ * yang dikirim di sini adalah TAMBAHAN — bukan total. Uangnya ikut masuk buku kas karena
+ * pelunasan piutang benar-benar uang yang diterima toko.
+ */
+router.post('/debts/:id/bayar', async (req, res) => {
+  const id = toInt(req.params.id);
+  if (id === null) throw new ApiError(404, 'Hutang/piutang tidak ditemukan');
+  const jumlah = toInt(req.body?.jumlah);
+  if (jumlah === null || jumlah <= 0) throw new ApiError(422, 'jumlah harus bilangan bulat lebih dari 0');
+
+  const out = await tx(async (c) => {
+    const { rows: found } = await c.query(
+      'SELECT id, tipe, pihak, jumlah, dibayar, status FROM debts WHERE id = $1 FOR UPDATE',
+      [id],
+    );
+    if (!found.length) throw new ApiError(404, 'Hutang/piutang tidak ditemukan');
+    const d = found[0];
+    if (d.status === 'lunas') throw new ApiError(422, 'Bon ini sudah lunas');
+    if (d.dibayar + jumlah > d.jumlah) {
+      throw new ApiError(422, `Pelunasan melebihi sisa (sisa ${d.jumlah - d.dibayar})`);
+    }
+
+    const dibayar = d.dibayar + jumlah;
+    const lunas = dibayar >= d.jumlah;
+    await c.query('UPDATE debts SET dibayar = $1, status = $2 WHERE id = $3', [
+      dibayar,
+      lunas ? 'lunas' : 'belum',
+      id,
+    ]);
+    await c.query(
+      'INSERT INTO debt_payments (debt_id, jumlah, catatan, user_id) VALUES ($1, $2, $3, $4)',
+      [id, jumlah, toStr(req.body?.catatan), req.user.id],
+    );
+    await insertCashFlow(c, {
+      tanggal: jakartaDate(),
+      tipe: d.tipe === 'piutang' ? 'masuk' : 'keluar',
+      kategori: 'pelunasan',
+      jumlah,
+      keterangan: `Pelunasan ${d.tipe} ${d.pihak}`,
+      refType: 'debt',
+      refId: id,
+      userId: req.user.id,
+      // Pelunasan diterima (piutang) atau dibayar (utang) di meja kasir: ikut shift yang
+      // sedang terbuka supaya laci tetap bisa dicocokkan saat tutup kas.
+      shiftId: await shiftTerbukaId(c, req.user.id),
+    });
+
+    const { rows: row } = await c.query(`SELECT ${COLS} ${FROM} WHERE d.id = $1`, [id]);
+    return row[0];
+  });
+
+  res.json(out);
+});
+
+router.post('/debts', async (req, res) => {
   const tipe = toStr(req.body?.tipe);
   const pihak = toStr(req.body?.pihak);
   const jumlah = toInt(req.body?.jumlah);
@@ -57,7 +157,7 @@ router.post('/debts', requireSuperadmin, async (req, res) => {
     [tipe, pihak, jumlah, dibayar, jatuhTempo, toStr(req.body?.keterangan),
       dibayar >= jumlah ? 'lunas' : 'belum', req.user.id],
   );
-  res.status(201).json((await q(`SELECT ${COLS} FROM debts d LEFT JOIN users u ON u.id = d.user_id WHERE d.id = $1`, [rows[0].id])).rows[0]);
+  res.status(201).json((await q(`SELECT ${COLS} ${FROM} WHERE d.id = $1`, [rows[0].id])).rows[0]);
 });
 
 /**
@@ -125,7 +225,7 @@ router.put('/debts/:id', requireSuperadmin, async (req, res) => {
       ],
     );
     const { rows: out } = await c.query(
-      `SELECT ${COLS} FROM debts d LEFT JOIN users u ON u.id = d.user_id WHERE d.id = $1`,
+      `SELECT ${COLS} ${FROM} WHERE d.id = $1`,
       [rows[0].id],
     );
     return out[0];

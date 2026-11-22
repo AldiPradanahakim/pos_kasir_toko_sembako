@@ -1,0 +1,709 @@
+{
+  "base": "http://localhost:3000",
+  "produkUji": {
+    "P1": 122,
+    "P2": 123,
+    "P3": 124
+  },
+  "dashboard": {
+    "menuDashboard": 1,
+    "judulDashboard": "Dashboard Analitik",
+    "galatDashboard": 0,
+    "statOmzet": "Rp 5.100.000",
+    "statTransaksi": "9",
+    "batang": {
+      "jumlahKolom": 24,
+      "jumlahBatang": 4,
+      "labelContoh": "19/09/2026: omzet Rp 770.000 dari 1 transaksi"
+    },
+    "tabel": {
+      "Terlaris": {
+        "judul": "Terlaris (10)",
+        "baris": 10,
+        "contoh": "Sedaap Soto 12 Rp 1.260.000"
+      },
+      "Stok Menipis": {
+        "judul": "Stok Menipis (20)",
+        "baris": 20,
+        "contoh": "Nescafe Classic Sachet 2g -6 renceng 1 pcs Tidak"
+      },
+      "Per Kategori": {
+        "judul": "Per Kategori (5)",
+        "baris": 5,
+        "contoh": "Rokok Rp 2.448.500 Rp 72.800"
+      },
+      "Per Kasir": {
+        "judul": "Per Kasir (2)",
+        "baris": 2,
+        "contoh": "Aldi Pradana Hakim 5 Rp 4.524.500"
+      }
+    }
+  },
+  "dashboardKasir": {
+    "menuKasirDashboard": 0,
+    "urlKasirDashboard": "/kasir",
+    "isiKasirDashboard": ""
+  },
+  "saran": {
+    "baris30": 20,
+    "baris90": 20,
+    "contoh30": "Nescafe Classic Sachet 2g -6 renceng 1 pcs renceng 61 2,03 -30 8 renceng Terjual 61 pcs dalam 30 hari, sisa -61 pcs (-30 hari lagi).",
+    "contoh90": "Nescafe Classic Sachet 2g -6 renceng 1 pcs renceng 61 0,68 -90 7 renceng Terjual 61 pcs dalam 90 hari, sisa -61 pcs (-90 hari lagi).",
+    "permintaanSaran": [
+      "/api/reports/purchase-suggestions?hari=90&ambang=7"
+    ],
+    "isiCetakMemuatBaris": true
+  },
+  "cetakSaran": {
+    "printDipanggil": true,
+    "panjangTeksCetak": 1370,
+    "cuplikan": "Toko HakimDaftar Saran PembelianDicetak 24/09/2026, 03.09 · Analisis penjualan 90 hari terakhir · target stok 7 hariNama BarangJumlahSatuanSudah dibeliNescafe Classic Sachet 2g7rencengSarimi Isi 2 Ayam Bawang2dusMie Sedaap Soto2dusSampoerna Hijau 124slopTelur ",
+    "barisPertamaTabel": "Nescafe Classic Sachet 2g -6 renceng 1 pcs renceng 61 0,68 -90 7 renceng Terjual"
+  },
+  "unduhCsv": {
+    "namaBerkas": "saran-pembelian.csv",
+    "panjangIsi": 3687,
+    "tajuk": "﻿Nama Barang,Saran,Satuan,Stok Sekarang,Terjual (90 hari)\r",
+    "barisData": 99,
+    "pesan": "Berkas saran-pembelian.csv berhasil diunduh."
+  },
+  "izinDitolak": {
+    "stokBase": 11,
+    "stokDisplay": "0,92 dus",
+    "teksDilarang": "UJI Baru Hitung 4108607 | Tanpa kategori | Sisa 0,92 dus | pcs · Rp 5.000 | dus · Rp 54.000",
+    "baris": 0,
+    "galat": "Stok \"UJI Baru Hitung 4108607\" tidak cukup (sisa 11, butuh 12). Minta superadmin memberi izin jual stok kosong."
+  },
+  "izinDinyalakan": {
+    "panggilan": [
+      "PATCH /api/products/122/pengaturan"
+    ],
+    "izin_minus": true
+  },
+  "izinDiizinkan": {
+    "teks": "UJI Baru Hitung 4108607 | Tanpa kategori | Sisa 0,92 dus | pcs · Rp 5.000 | dus · Rp 54.000",
+    "baris": 1
+  },
+  "putProduk": {
+    "sebelum": {
+      "izin_minus": true,
+      "base_unit_id": 4,
+      "harga": {
+        "dus": 54000,
+        "pcs": 5000
+      }
+    },
+    "payload": {
+      "izin_minus": true,
+      "base_unit_id": 4,
+      "harga": {
+        "pcs": 5555,
+        "dus": 54000
+      }
+    },
+    "sesudah": {
+      "izin_minus": true,
+      "base_unit_id": 4,
+      "harga": {
+        "dus": 54000,
+        "pcs": 5555
+      }
+    }
+  },
+  "satuanHitung": {
+    "kolom": [
+      "Produk",
+      "Satuan hitung",
+      "Stok",
+      "Base",
+      "Status"
+    ],
+    "baris": "UJI Baru Hitung 4108607 dus 0,92 dus 11 pcs normal Boleh minus Larang minus"
+  },
+  "pagination": {
+    "produk": {
+      "total": 104,
+      "baris20": 20,
+      "halaman20": "Menampilkan 1–20 dari 104",
+      "baris10": 10,
+      "halaman10": "Menampilkan 1–10 dari 104",
+      "halamanBerikut": "Menampilkan 11–20 dari 104",
+      "barisBerikut": 10
+    },
+    "stok": {
+      "total": 104,
+      "baris20": 20,
+      "halaman20": "Menampilkan 1–20 dari 104",
+      "baris10": 10,
+      "halaman10": "Menampilkan 1–10 dari 104",
+      "halamanBerikut": "Menampilkan 11–20 dari 104",
+      "barisBerikut": 10
+    }
+  },
+  "ketikModal": {
+    "diharapkan": "UJI Ketik 1234567890",
+    "nilaiNama": "UJI Ketik 1234567890"
+  },
+  "tambahStok": {
+    "adaLabelCatatan": 0,
+    "adaInputCatatan": 0,
+    "body": {
+      "product_id": 123,
+      "unit_id": 4,
+      "qty": 2,
+      "note": null
+    }
+  },
+  "riwayatStok": {
+    "kolom": [
+      "waktu",
+      "produk",
+      "tipe",
+      "qty (base)",
+      "catatan",
+      "oleh"
+    ],
+    "sel": [
+      "24/09/2026, 03.10",
+      "UJI Baru Catatan 4108607",
+      "Masuk",
+      "+24",
+      "-",
+      "Super Admin"
+    ]
+  },
+  "offline": {
+    "sebelum": {
+      "stok_base": 100,
+      "stok_hitung": 8.33,
+      "display_hitung": "8,33 dus",
+      "display": "8 dus 4 pcs",
+      "minus": false
+    },
+    "sesudah": {
+      "stok_base": 88,
+      "stok_hitung": 7.33,
+      "display_hitung": "7,33 dus",
+      "display": "7 dus 4 pcs",
+      "minus": false
+    },
+    "saleUjiDiAntre": 1
+  },
+  "pembersihan": {
+    "ids": [
+      "123",
+      "124",
+      "122"
+    ],
+    "sebelum": {
+      "produk_uji": "3",
+      "satuan_uji": "6",
+      "movement_uji": "3",
+      "item_uji": "0",
+      "movement_yatim": "0",
+      "cashflow_yatim": "0",
+      "total_sale": "9",
+      "total_arus": "9",
+      "total_produk": "104"
+    },
+    "sesudah": {
+      "produk_uji": "0",
+      "satuan_uji": "0",
+      "movement_uji": "0",
+      "item_uji": "0",
+      "movement_yatim": "0",
+      "cashflow_yatim": "0",
+      "total_sale": "9",
+      "total_arus": "9",
+      "total_produk": "101"
+    }
+  },
+  "lulus": true,
+  "cek": [
+    {
+      "nama": "Dashboard: superadmin melihat menunya",
+      "lulus": true,
+      "detail": {
+        "menuDashboard": 1
+      }
+    },
+    {
+      "nama": "Dashboard: halaman memuat tanpa galat",
+      "lulus": true,
+      "detail": {
+        "judulDashboard": "Dashboard Analitik",
+        "galatDashboard": 0
+      }
+    },
+    {
+      "nama": "Dashboard: kartu ringkasan berisi angka nyata (bukan 0 semua)",
+      "lulus": true,
+      "detail": {
+        "statOmzet": "Rp 5.100.000",
+        "statTransaksi": "9"
+      }
+    },
+    {
+      "nama": "Dashboard: grafik harian punya batang bernilai",
+      "lulus": true,
+      "detail": {
+        "jumlahKolom": 24,
+        "jumlahBatang": 4,
+        "labelContoh": "19/09/2026: omzet Rp 770.000 dari 1 transaksi"
+      }
+    },
+    {
+      "nama": "Dashboard: Terlaris / Stok Menipis / Per Kategori / Per Kasir terisi",
+      "lulus": true,
+      "detail": {
+        "Terlaris": {
+          "judul": "Terlaris (10)",
+          "baris": 10,
+          "contoh": "Sedaap Soto 12 Rp 1.260.000"
+        },
+        "Stok Menipis": {
+          "judul": "Stok Menipis (20)",
+          "baris": 20,
+          "contoh": "Nescafe Classic Sachet 2g -6 renceng 1 pcs Tidak"
+        },
+        "Per Kategori": {
+          "judul": "Per Kategori (5)",
+          "baris": 5,
+          "contoh": "Rokok Rp 2.448.500 Rp 72.800"
+        },
+        "Per Kasir": {
+          "judul": "Per Kasir (2)",
+          "baris": 2,
+          "contoh": "Aldi Pradana Hakim 5 Rp 4.524.500"
+        }
+      }
+    },
+    {
+      "nama": "Dashboard: kasir tidak melihat menu Dashboard",
+      "lulus": true,
+      "detail": {
+        "menuKasirDashboard": 0
+      }
+    },
+    {
+      "nama": "Dashboard: kasir yang membuka /dashboard dialihkan, isinya tidak terlihat",
+      "lulus": true,
+      "detail": {
+        "urlKasirDashboard": "/kasir",
+        "isiKasirDashboard": ""
+      }
+    },
+    {
+      "nama": "Saran: tombol \"Muat Saran\" mengisi tabel",
+      "lulus": true,
+      "detail": {
+        "baris": 20,
+        "contoh": "Nescafe Classic Sachet 2g -6 renceng 1 pcs renceng 61 2,03 -30 8 renceng Terjual 61 pcs dalam 30 hari, sisa -61 pcs (-30 hari lagi)."
+      }
+    },
+    {
+      "nama": "Saran: mengubah \"hari\" mengirim permintaan baru dan mengubah hasil",
+      "lulus": true,
+      "detail": {
+        "baris30": 20,
+        "baris90": 20,
+        "contoh30": "Nescafe Classic Sachet 2g -6 renceng 1 pcs renceng 61 2,03 -30 8 renceng Terjual 61 pcs dalam 30 hari, sisa -61 pcs (-30 hari lagi).",
+        "contoh90": "Nescafe Classic Sachet 2g -6 renceng 1 pcs renceng 61 0,68 -90 7 renceng Terjual 61 pcs dalam 90 hari, sisa -61 pcs (-90 hari lagi).",
+        "permintaanSaran": [
+          "/api/reports/purchase-suggestions?hari=90&ambang=7"
+        ],
+        "isiCetakMemuatBaris": true
+      }
+    },
+    {
+      "nama": "Saran: \"Cetak Saran\" memanggil window.print",
+      "lulus": true,
+      "detail": {
+        "printDipanggil": true,
+        "panjangTeksCetak": 1370,
+        "cuplikan": "Toko HakimDaftar Saran PembelianDicetak 24/09/2026, 03.09 · Analisis penjualan 90 hari terakhir · target stok 7 hariNama BarangJumlahSatuanSudah dibeliNescafe Classic Sachet 2g7rencengSarimi Isi 2 Ayam Bawang2dusMie Sedaap Soto2dusSampoerna Hijau 124slopTelur ",
+        "barisPertamaTabel": "Nescafe Classic Sachet 2g -6 renceng 1 pcs renceng 61 0,68 -90 7 renceng Terjual"
+      }
+    },
+    {
+      "nama": "Saran: blok cetak memuat nama barang + jumlah",
+      "lulus": true,
+      "detail": {
+        "printDipanggil": true,
+        "panjangTeksCetak": 1370,
+        "cuplikan": "Toko HakimDaftar Saran PembelianDicetak 24/09/2026, 03.09 · Analisis penjualan 90 hari terakhir · target stok 7 hariNama BarangJumlahSatuanSudah dibeliNescafe Classic Sachet 2g7rencengSarimi Isi 2 Ayam Bawang2dusMie Sedaap Soto2dusSampoerna Hijau 124slopTelur ",
+        "barisPertamaTabel": "Nescafe Classic Sachet 2g -6 renceng 1 pcs renceng 61 0,68 -90 7 renceng Terjual"
+      }
+    },
+    {
+      "nama": "Saran: \"Unduh CSV\" benar-benar mengunduh berkas CSV berisi data",
+      "lulus": true,
+      "detail": {
+        "namaBerkas": "saran-pembelian.csv",
+        "panjangIsi": 3687,
+        "tajuk": "﻿Nama Barang,Saran,Satuan,Stok Sekarang,Terjual (90 hari)\r",
+        "barisData": 99,
+        "pesan": "Berkas saran-pembelian.csv berhasil diunduh."
+      }
+    },
+    {
+      "nama": "Izin minus: stok kosong ditolak di kasir + pesan menyebut izin",
+      "lulus": true,
+      "detail": {
+        "stokBase": 11,
+        "stokDisplay": "0,92 dus",
+        "teksDilarang": "UJI Baru Hitung 4108607 | Tanpa kategori | Sisa 0,92 dus | pcs · Rp 5.000 | dus · Rp 54.000",
+        "baris": 0,
+        "galat": "Stok \"UJI Baru Hitung 4108607\" tidak cukup (sisa 11, butuh 12). Minta superadmin memberi izin jual stok kosong."
+      }
+    },
+    {
+      "nama": "Izin minus: tombol /stok memakai PATCH /products/:id/pengaturan (bukan PUT)",
+      "lulus": true,
+      "detail": {
+        "panggilan": [
+          "PATCH /api/products/122/pengaturan"
+        ],
+        "izin_minus": true
+      }
+    },
+    {
+      "nama": "Izin minus: izin benar-benar menyala di server",
+      "lulus": true,
+      "detail": {
+        "panggilan": [
+          "PATCH /api/products/122/pengaturan"
+        ],
+        "izin_minus": true
+      }
+    },
+    {
+      "nama": "Izin minus: setelah izin menyala barang MASUK keranjang",
+      "lulus": true,
+      "detail": {
+        "teks": "UJI Baru Hitung 4108607 | Tanpa kategori | Sisa 0,92 dus | pcs · Rp 5.000 | dus · Rp 54.000",
+        "baris": 1
+      }
+    },
+    {
+      "nama": "PUT produk: harga baru benar-benar tersimpan (satuan pcs, bukan menimpa satuan lain)",
+      "lulus": true,
+      "detail": {
+        "sebelum": {
+          "izin_minus": true,
+          "base_unit_id": 4,
+          "harga": {
+            "dus": 54000,
+            "pcs": 5000
+          }
+        },
+        "payload": {
+          "izin_minus": true,
+          "base_unit_id": 4,
+          "harga": {
+            "pcs": 5555,
+            "dus": 54000
+          }
+        },
+        "sesudah": {
+          "izin_minus": true,
+          "base_unit_id": 4,
+          "harga": {
+            "dus": 54000,
+            "pcs": 5555
+          }
+        }
+      }
+    },
+    {
+      "nama": "PUT produk: izin_minus + base_unit_id TIDAK tereset",
+      "lulus": true,
+      "detail": {
+        "sebelum": {
+          "izin_minus": true,
+          "base_unit_id": 4,
+          "harga": {
+            "dus": 54000,
+            "pcs": 5000
+          }
+        },
+        "payload": {
+          "izin_minus": true,
+          "base_unit_id": 4,
+          "harga": {
+            "pcs": 5555,
+            "dus": 54000
+          }
+        },
+        "sesudah": {
+          "izin_minus": true,
+          "base_unit_id": 4,
+          "harga": {
+            "dus": 54000,
+            "pcs": 5555
+          }
+        }
+      }
+    },
+    {
+      "nama": "Stok: angka utama dalam satuan hitung (0,92 dus) + base sebagai keterangan",
+      "lulus": true,
+      "detail": {
+        "kolom": [
+          "Produk",
+          "Satuan hitung",
+          "Stok",
+          "Base",
+          "Status"
+        ],
+        "baris": "UJI Baru Hitung 4108607 dus 0,92 dus 11 pcs normal Boleh minus Larang minus"
+      }
+    },
+    {
+      "nama": "Pagination /produk: 20 baris, pilih 10, Berikutnya -> 11–20",
+      "lulus": true,
+      "detail": {
+        "total": 104,
+        "baris20": 20,
+        "halaman20": "Menampilkan 1–20 dari 104",
+        "baris10": 10,
+        "halaman10": "Menampilkan 1–10 dari 104",
+        "halamanBerikut": "Menampilkan 11–20 dari 104",
+        "barisBerikut": 10
+      }
+    },
+    {
+      "nama": "Pagination /stok: 20 baris, pilih 10, Berikutnya -> 11–20",
+      "lulus": true,
+      "detail": {
+        "total": 104,
+        "baris20": 20,
+        "halaman20": "Menampilkan 1–20 dari 104",
+        "baris10": 10,
+        "halaman10": "Menampilkan 1–10 dari 104",
+        "halamanBerikut": "Menampilkan 11–20 dari 104",
+        "barisBerikut": 10
+      }
+    },
+    {
+      "nama": "Modal: kolom isian menerima ketikan utuh (bukan satu huruf)",
+      "lulus": true,
+      "detail": {
+        "diharapkan": "UJI Ketik 1234567890",
+        "nilaiNama": "UJI Ketik 1234567890"
+      }
+    },
+    {
+      "nama": "Tambah Stok: kolom catatan sudah tidak ada di modal",
+      "lulus": true,
+      "detail": {
+        "adaLabelCatatan": 0,
+        "adaInputCatatan": 0,
+        "body": {
+          "product_id": 123,
+          "unit_id": 4,
+          "qty": 2,
+          "note": null
+        }
+      }
+    },
+    {
+      "nama": "Tambah Stok: POST /stock/in mengirim note: null",
+      "lulus": true,
+      "detail": {
+        "adaLabelCatatan": 0,
+        "adaInputCatatan": 0,
+        "body": {
+          "product_id": 123,
+          "unit_id": 4,
+          "qty": 2,
+          "note": null
+        }
+      }
+    },
+    {
+      "nama": "Tambah Stok: baris baru muncul di Riwayat Pergerakan Stok, kolom Catatan tetap ada dan berisi \"-\"",
+      "lulus": true,
+      "detail": {
+        "kolom": [
+          "waktu",
+          "produk",
+          "tipe",
+          "qty (base)",
+          "catatan",
+          "oleh"
+        ],
+        "sel": [
+          "24/09/2026, 03.10",
+          "UJI Baru Catatan 4108607",
+          "Masuk",
+          "+24",
+          "-",
+          "Super Admin"
+        ]
+      }
+    },
+    {
+      "nama": "Offline: simpanPenjualan memperbarui stok_base DAN stok_hitung/display_hitung",
+      "lulus": true,
+      "detail": {
+        "sebelum": {
+          "stok_base": 100,
+          "stok_hitung": 8.33,
+          "display_hitung": "8,33 dus",
+          "display": "8 dus 4 pcs",
+          "minus": false
+        },
+        "sesudah": {
+          "stok_base": 88,
+          "stok_hitung": 7.33,
+          "display_hitung": "7,33 dus",
+          "display": "7 dus 4 pcs",
+          "minus": false
+        },
+        "saleUjiDiAntre": 1
+      }
+    },
+    {
+      "nama": "Offline: display_hitung TIDAK basi (bukan 8,33 dus) dan display base ikut berubah",
+      "lulus": true,
+      "detail": {
+        "sebelum": {
+          "stok_base": 100,
+          "stok_hitung": 8.33,
+          "display_hitung": "8,33 dus",
+          "display": "8 dus 4 pcs",
+          "minus": false
+        },
+        "sesudah": {
+          "stok_base": 88,
+          "stok_hitung": 7.33,
+          "display_hitung": "7,33 dus",
+          "display": "7 dus 4 pcs",
+          "minus": false
+        },
+        "saleUjiDiAntre": 1
+      }
+    },
+    {
+      "nama": "Offline: transaksi tersimpan di antrean lokal (tidak hilang)",
+      "lulus": true,
+      "detail": {
+        "sebelum": {
+          "stok_base": 100,
+          "stok_hitung": 8.33,
+          "display_hitung": "8,33 dus",
+          "display": "8 dus 4 pcs",
+          "minus": false
+        },
+        "sesudah": {
+          "stok_base": 88,
+          "stok_hitung": 7.33,
+          "display_hitung": "7,33 dus",
+          "display": "7 dus 4 pcs",
+          "minus": false
+        },
+        "saleUjiDiAntre": 1
+      }
+    },
+    {
+      "nama": "Pembersihan: produk uji + satuan + pergerakan + item benar-benar hilang dari database",
+      "lulus": true,
+      "detail": {
+        "ids": [
+          "123",
+          "124",
+          "122"
+        ],
+        "sebelum": {
+          "produk_uji": "3",
+          "satuan_uji": "6",
+          "movement_uji": "3",
+          "item_uji": "0",
+          "movement_yatim": "0",
+          "cashflow_yatim": "0",
+          "total_sale": "9",
+          "total_arus": "9",
+          "total_produk": "104"
+        },
+        "sesudah": {
+          "produk_uji": "0",
+          "satuan_uji": "0",
+          "movement_uji": "0",
+          "item_uji": "0",
+          "movement_yatim": "0",
+          "cashflow_yatim": "0",
+          "total_sale": "9",
+          "total_arus": "9",
+          "total_produk": "101"
+        }
+      }
+    },
+    {
+      "nama": "Pembersihan: tidak ada pergerakan stok yatim",
+      "lulus": true,
+      "detail": {
+        "ids": [
+          "123",
+          "124",
+          "122"
+        ],
+        "sebelum": {
+          "produk_uji": "3",
+          "satuan_uji": "6",
+          "movement_uji": "3",
+          "item_uji": "0",
+          "movement_yatim": "0",
+          "cashflow_yatim": "0",
+          "total_sale": "9",
+          "total_arus": "9",
+          "total_produk": "104"
+        },
+        "sesudah": {
+          "produk_uji": "0",
+          "satuan_uji": "0",
+          "movement_uji": "0",
+          "item_uji": "0",
+          "movement_yatim": "0",
+          "cashflow_yatim": "0",
+          "total_sale": "9",
+          "total_arus": "9",
+          "total_produk": "101"
+        }
+      }
+    },
+    {
+      "nama": "Pembersihan: tidak ada arus kas yatim",
+      "lulus": true,
+      "detail": {
+        "ids": [
+          "123",
+          "124",
+          "122"
+        ],
+        "sebelum": {
+          "produk_uji": "3",
+          "satuan_uji": "6",
+          "movement_uji": "3",
+          "item_uji": "0",
+          "movement_yatim": "0",
+          "cashflow_yatim": "0",
+          "total_sale": "9",
+          "total_arus": "9",
+          "total_produk": "104"
+        },
+        "sesudah": {
+          "produk_uji": "0",
+          "satuan_uji": "0",
+          "movement_uji": "0",
+          "item_uji": "0",
+          "movement_yatim": "0",
+          "cashflow_yatim": "0",
+          "total_sale": "9",
+          "total_arus": "9",
+          "total_produk": "101"
+        }
+      }
+    }
+  ]
+}

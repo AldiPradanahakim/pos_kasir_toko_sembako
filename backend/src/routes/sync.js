@@ -10,7 +10,7 @@ const router = express.Router();
 router.get('/sync/pull', async (_req, res) => {
   const [categories, units, products, settings, stock] = await Promise.all([
     q('SELECT id, name, is_active FROM categories ORDER BY name'),
-    q('SELECT id, name, is_active FROM units ORDER BY name'),
+    q('SELECT id, name, inisial, is_active FROM units ORDER BY name'),
     listProducts(),
     getSettings(),
     stockList(),

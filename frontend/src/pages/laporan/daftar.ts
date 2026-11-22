@@ -99,6 +99,22 @@ export const ENTRI: EntriLaporan[] = [
     jenis: 'khusus',
   },
   {
+    slug: 'export-per-kasir',
+    judul: 'Export Laporan per Kasir',
+    ket: 'Unduh rekap kasir & shift sebagai berkas CSV.',
+    jenis: 'unduh',
+    path: (q) => `/reports/per-kasir.csv?from=${q.dari}&to=${q.sampai}`,
+    berkas: 'laporan-per-kasir.csv',
+  },
+  {
+    slug: 'export-per-jam',
+    judul: 'Export Laporan per Jam',
+    ket: 'Unduh rekap per jam sebagai berkas CSV.',
+    jenis: 'unduh',
+    path: (q) => `/reports/per-jam.csv?from=${q.dari}&to=${q.sampai}`,
+    berkas: 'laporan-per-jam.csv',
+  },
+  {
     slug: 'export-arus-stok',
     judul: 'Export Laporan Arus Stok',
     ket: 'Unduh pergerakan stok sebagai berkas CSV.',
@@ -127,6 +143,20 @@ export const ENTRI: EntriLaporan[] = [
     ket: 'Laba kotor harian dalam rentang tanggal.',
     jenis: 'rentang',
     path: (q) => `/reports/profit?from=${q.dari}&to=${q.sampai}`,
+  },
+  {
+    slug: 'per-kasir',
+    judul: 'Laporan per Kasir',
+    ket: 'Transaksi, omzet, dan selisih kas tiap kasir/shift.',
+    jenis: 'rentang',
+    path: (q) => `/reports/per-kasir?from=${q.dari}&to=${q.sampai}`,
+  },
+  {
+    slug: 'per-jam',
+    judul: 'Laporan per Jam',
+    ket: 'Jam berapa toko paling ramai dalam rentang tanggal.',
+    jenis: 'rentang',
+    path: (q) => `/reports/per-jam?from=${q.dari}&to=${q.sampai}`,
   },
   {
     slug: 'harga',

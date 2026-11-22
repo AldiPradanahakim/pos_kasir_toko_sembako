@@ -1,0 +1,102 @@
+{
+  "catatan": [],
+  "gerbang": {
+    "adaTombolBukaKas": true,
+    "adaTombolSimpan": false,
+    "adaKotakCari": false
+  },
+  "bukaKas": {
+    "adaTombolTutupKas": true,
+    "teks": "Kas dibuka 13.18 · modal Rp 50.000 · seharusnya di laci Rp 50.000\nTutup Kas\nKeranjang (0)\n\nBARANG\tQTY\tHARGA\tSUBTOTAL\tHAPUS\n\nKeranjang kosong. Cari barang di kotak pencarian di atas.\n\nPembayaran\n\nTotal",
+    "server": {
+      "id": 11,
+      "user_id": 19,
+      "user_name": "Aldi Pradana Hakim",
+      "dibuka_pada": "2026-10-20T06:18:13.046Z",
+      "modal_awal": 50000,
+      "ditutup_pada": null,
+      "uang_fisik": null,
+      "selisih": null,
+      "catatan": null,
+      "kas_seharusnya": 50000,
+      "transaksi": 0,
+      "omzet": 0
+    }
+  },
+  "bonTanpaNama": {
+    "url": "http://127.0.0.1:3000/kasir",
+    "pesan": "Bon butuh nama pelanggan (untuk ditagih nanti)."
+  },
+  "bonTersimpan": {
+    "uuid": "4fc4bd8d-1d46-4ad9-b8c4-e12dc9305dff",
+    "struk": "☰\nMenu\nOnline\n\nSinkron terakhir: 20/10/2026, 13.18\n\nStruk\nKasir\nRiwayat\nCetak\n\nKertas 58mm. Pada dialog cetak pilih printer thermal dan margin \"None\" agar hasil pas.\n\nTOKO HAKIM\n\nNo\nINV-2026-000120\nTanggal\n20/10/2026, 13.18\nKasir\nAldi Pradana Hakim\nTuan/Nyonya\nPelanggan Uji Bon\n\nSedaap Soto\n\n1 pcs x Rp 2.700\nRp 2.700\nTOTAL\nRp 2.700\nMetode\nTunai\nDibayar\nRp 1.000\nSISA (BON)\nRp 1.700\n\nTerima kasih telah berbelanja\n\nBarang yang sudah dibeli tidak dapat ditukar"
+  },
+  "bonDiServer": {
+    "status": 200,
+    "total": 2700,
+    "dibayar": 1000,
+    "sisa_piutang": 1700,
+    "customer_id": 8,
+    "shift_id": 11
+  },
+  "piutangPelanggan": {
+    "semua": [
+      "Pelanggan Uji Bon=1700"
+    ],
+    "baris": [
+      {
+        "customer_id": 8,
+        "nama": "Pelanggan Uji Bon",
+        "telepon": "",
+        "jumlah_bon": 1,
+        "sisa": 1700,
+        "bon_tertua": "2026-10-20T06:18:19.184Z",
+        "jatuh_tempo_terdekat": null
+      }
+    ]
+  },
+  "tutupKas": {
+    "seharusnya": 51000,
+    "shiftAktifSesudah": null,
+    "pesanLayar": "Kas ditutup. Selisih Rp 0 dari Rp 51.000 seharusnya.Buka Kas",
+    "riwayat403UntukKasir": 403,
+    "shiftDipakai": 11
+  },
+  "laporanPerKasir": {
+    "status": 200,
+    "total": 2700,
+    "baris": [
+      {
+        "kasir": "Aldi Pradana Hakim",
+        "shift_mulai": "2026-10-20 13:18",
+        "transaksi": 1,
+        "omzet": 2700,
+        "selisih": 0
+      }
+    ]
+  },
+  "laporanPerJam": {
+    "status": 200,
+    "total": 2700,
+    "baris": [
+      {
+        "jam": "13:00",
+        "transaksi": 1,
+        "omzet": 2700
+      }
+    ]
+  },
+  "pembersihan": [
+    {
+      "uuid": "4fc4bd8d-1d46-4ad9-b8c4-e12dc9305dff",
+      "id": 190,
+      "statusHapus": 200,
+      "hasil": {
+        "ok": true,
+        "deleted": 1,
+        "restored_movements": 1,
+        "restore_stock": true
+      }
+    }
+  ]
+}

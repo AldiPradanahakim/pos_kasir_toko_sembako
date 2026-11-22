@@ -10,6 +10,7 @@ export default function Users() {
   const saya = useAuth((s) => s.user);
 
   const [rows, setRows] = useState<UserRow[]>([]);
+  const [cari, setCari] = useState('');
   const [error, setError] = useState('');
   const [buka, setBuka] = useState(false);
   const [edit, setEdit] = useState<UserRow | null>(null);
@@ -35,6 +36,15 @@ export default function Users() {
   useEffect(() => {
     void muat();
   }, [muat]);
+
+  const kata = cari.trim().toLowerCase();
+  const tampil = kata
+    ? rows.filter((u) =>
+        [u.name, u.username, u.role === 'superadmin' ? 'superadmin' : 'kasir'].some((t) =>
+          t.toLowerCase().includes(kata),
+        ),
+      )
+    : rows;
 
   function bukaTambah() {
     setEdit(null);
@@ -112,10 +122,20 @@ export default function Users() {
       {!online && <Alert tone="info">Manajemen pengguna hanya bisa dibuka saat online.</Alert>}
       {error && <Alert>{error}</Alert>}
 
-      <Card title={`Daftar Pengguna (${rows.length})`}>
+      <Card title={`Daftar Pengguna (${tampil.length})`}>
+        <div className="mb-3">
+          <Input
+            type="search"
+            value={cari}
+            onChange={(e) => setCari(e.target.value)}
+            placeholder="Nama atau username…"
+            aria-label="Cari pengguna"
+          />
+        </div>
+
         {/* Di HP dibaca sebagai kartu; tabelnya hanya muncul dari md ke atas. */}
         <ul className="space-y-2 md:hidden">
-          {rows.map((u) => (
+          {tampil.map((u) => (
             <li key={u.id} className="min-w-0 rounded-md border border-slate-200 p-3">
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0 break-words font-medium">
@@ -163,7 +183,7 @@ export default function Users() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((u) => (
+              {tampil.map((u) => (
                 <tr key={u.id} className="border-b border-slate-50">
                   <td className="min-w-0 break-words py-2 font-medium">
                     {u.name}
@@ -200,6 +220,9 @@ export default function Users() {
           </table>
         </div>
         {!rows.length && <Kosong>{online ? 'Belum ada pengguna.' : 'Menyambung ke server…'}</Kosong>}
+        {!!rows.length && !tampil.length && (
+          <Kosong>Tidak ada pengguna yang cocok dengan pencarian "{cari.trim()}".</Kosong>
+        )}
       </Card>
 
       <Modal open={buka} title={edit ? `Ubah Pengguna: ${edit.name}` : 'Tambah Pengguna'} onClose={() => setBuka(false)}>

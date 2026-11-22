@@ -79,11 +79,21 @@ warna: dua warna inti (teal + netral) ditambah satu aksen (teal) dan tiga warna 
 
 - **Kasir satu layar penuh.** Halaman `/kasir` tidak menggulir sejak tablet; yang bergulir hanya
   daftar hasil cari dan tabel keranjang (`Layout.tsx` -> `kasirPenuh`, `Kasir.tsx`).
+- **Keranjang memakai tinggi yang tersisa.** Kotak cari, **Scan Nota**, nama pelanggan, jumlah
+  keranjang, dan tombol Kosongkan duduk di atas tabel; dari 1280px semuanya **satu baris**, di
+  bawah itu kotak cari mengambil satu baris penuh dan sisanya turun ke baris kedua. Alasannya
+  terukur: kolom kiri di 768px hanya ~406px, jadi memaksa semuanya sebaris membuat kotak cari
+  tinggal 132px — lebih merugikan daripada 52px tinggi yang dihemat. Judul kartu keranjang dan
+  baris TOTAL di dalam tabel sengaja dihapus supaya tabelnya dapat baris terbanyak (total sudah
+  besar di kartu Pembayaran). Judul kolomnya `sticky`, jadi tetap terlihat saat isinya digulir.
+  Tiap baris keranjang setinggi 45px dan bernomor di samping nama barangnya.
 - **Tabel lebar tidak pernah melebarkan halaman.** Semua tabel dibungkus `.tabel-scroll`
   (`index.css`), menggeser ke samping di dalam kotak.
 - **Sidebar hanya di desktop sungguhan:** lebar >=1280px DAN penunjuk presisi
   (`tailwind.config.js` -> `screens.desktop`). Alasan tertulis di kode: iPad Pro 12,9 inci
   landscape juga 1366px, dan pemilik minta sidebar hilang di tablet.
+- **Kalkulator hanya di penunjuk kasar** (`screens.presisi`, `(pointer: fine)`): di laptop kolom
+  Dibayar bisa diketik langsung, di tablet/HP tombolnya membuka kalkulator angka besar.
 - **Baris aksi selalu terjangkau** lewat `.bar-aksi-lengket` (`index.css`).
 - **Cetak:** dua ukuran kertas bernama, `@page struk` 58mm dan `@page laporan` A4.
 
@@ -103,6 +113,20 @@ Satu baris per keputusan, supaya tiap teknik punya tujuan yang bisa disebut.
 | `backdrop-blur` di baris aksi lengket | Isi halaman yang lewat di bawah baris aksi tetap samar terlihat, sehingga kasir tahu masih ada konten di bawah dan tidak mengira halaman sudah habis. (R-10, satu elemen, di dalam batas dosis) |
 | Mode terang saja, tanpa tombol tema | Layar dipakai di dalam toko yang terang dan sering dilihat sambil berdiri, jadi latar terang justru lebih terbaca; ini alasan yang sama jenisnya dengan alat pengembang yang beralasan memilih gelap. (R-21) |
 | Judul grup sidebar tanpa huruf besar | Pembeda antar kelompok cukup dari bobot huruf dan jarak; HURUF BESAR berjarak lebar adalah gaya bawaan yang tidak menambah keterbacaan. (R-06) |
+| Qty diubah langsung dari baris keranjang | Kasir mengubah jumlah belasan kali per transaksi; membuka panel dulu untuk menekan − / + menambah satu langkah dan menggeser tabel di tengah antrean. |
+| Nota pelanggan dipindai, bukan diketik satu per satu | Pelanggan grosir datang dengan daftar belanja tulisan tangan; memindai sekali dan memeriksa hasilnya lebih cepat daripada mencari barang satu per satu di kotak cari, dan hasil pindai tetap wajib dicentang kasir sebelum masuk keranjang. |
+| Kas retur & pelunasan menempel ke shift (`cash_flows.shift_id`) | Begitu kasir boleh menerima retur dan pelunasan, uangnya keluar/masuk laci pada shift yang sedang berjalan. Baris kas tanpa `shift_id` membuat laci selalu terlihat selisih sebesar transaksi itu di laporan tutup kas — jadi shift dicari saat menulis, bukan dicocokkan manual belakangan. |
+| Retur, Hutang & Piutang, Pembelian dibuka untuk kasir; koreksinya tetap superadmin | Ketiganya pekerjaan meja kasir (pembeli membawa barang kembali, pelanggan melunasi bon, barang datang dari supplier) — menahannya di superadmin berarti kasir mencatat di kertas lalu disalin nanti. Yang tetap dikunci adalah membalik catatan yang sudah jadi (ubah nominal, hapus pembelian/retur), karena itu mengubah stok dan kas yang sudah lewat. |
+| Laporan tutup kas tampil sekali di layar kasir; "Riwayat Kas" khusus superadmin | Pertanyaan yang harus dijawab setelah menutup kas selalu sama ("uang fisik cocok atau tidak"), jadi jawabannya ditampilkan saat itu juga ke kasir yang menutupnya — bukan lewat menu yang harus dia cari. Daftar seluruh kas tetap milik superadmin karena isinya pemeriksaan uang kasir lain. |
+| Rekap kas dibangun dari tabel `shifts`, bukan `sales` | Kas yang dibuka lalu ditutup tanpa satu pun penjualan tetap harus punya laporan — justru di situlah selisih modal muncul; rekap dari tabel penjualan akan menghilangkannya. |
+| Satuan punya inisial 1–4 huruf | Kasir dan pelanggan menulis nota dengan singkatan ("2 (r) Beng Beng"); inisial yang unik membuat singkatan itu bisa dibaca sistem tanpa menebak, sedangkan nama satuan tetap dipakai di layar supaya tidak ada singkatan yang harus dihafal. |
+| Total barang & total qty ditampilkan | Antrean grosir memeriksa jumlah item dan jumlah keping sebelum membayar; angka itu juga yang dicocokkan dengan nota, jadi tidak perlu menghitung baris keranjang satu per satu. |
+| Harga jual tidak diambil dari nota | Nota pelanggan sering tanpa harga dan nota supplier berisi harga modal; memakai angka nota akan menjual di bawah modal tanpa ketahuan. Harga selalu dari master, perubahan harga tetap lewat pop up beralasan. |
+| Nama barang dan angka qty membuka pop up | Perubahan harga (jarang, butuh alasan tertulis) dan hapus barang dipindah ke pop up supaya tabel keranjang tetap satu baris per barang dan tidak melompat saat disentuh. |
+| Tombol − dan + kecil di dalam kotak 44px | Kotak abu 44px terlihat mepet dan berat di baris setinggi 45px; yang dikecilkan tampilannya (28px), bukan area sentuhnya. |
+| Transaksi tercetak bersifat final | Kasir tidak boleh menghapus riwayat penjualan; koreksi hanya lewat "Hapus Permanen" milik superadmin, supaya angka penjualan tidak bisa hilang diam-diam. |
+| Nomor baris di samping nama barang | Antrean panjang membuat kasir perlu menyebut "barang nomor tiga" saat memeriksa keranjang bersama pembeli. |
+| Kalkulator hanya di penunjuk kasar | Laptop punya papan ketik, jadi kolom Dibayar diketik langsung; di tablet/HP keyboard lembut menutupi layar, jadi tombolnya membuka kalkulator angka besar. |
 
 ### Catatan untuk mode gelap (R-21)
 

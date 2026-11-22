@@ -1,0 +1,53 @@
+LULUS retur    "barang rusak / kadaluarsa"
+LULUS hutang-piutang "barang rusak / kadaluarsa"
+LULUS keuangan "barang rusak / kadaluarsa"
+LULUS produk   "barang rusak / kadaluarsa"
+{
+  "base": "http://localhost:3000",
+  "teksDiketik": "barang rusak / kadaluarsa",
+  "modal": [
+    {
+      "nama": "retur",
+      "rute": "/retur",
+      "judulKolom": "Alasan retur",
+      "nilai": "barang rusak / kadaluarsa",
+      "fokusMasihDiKolom": true,
+      "utuh": true,
+      "dialogTertutup": true,
+      "percobaan": 1
+    },
+    {
+      "nama": "hutang-piutang",
+      "rute": "/hutang-piutang",
+      "judulKolom": "Nama pihak",
+      "nilai": "barang rusak / kadaluarsa",
+      "fokusMasihDiKolom": true,
+      "utuh": true,
+      "dialogTertutup": true,
+      "percobaan": 1
+    },
+    {
+      "nama": "keuangan",
+      "rute": "/keuangan",
+      "judulKolom": "Catatan arus kas",
+      "nilai": "barang rusak / kadaluarsa",
+      "fokusMasihDiKolom": true,
+      "utuh": true,
+      "dialogTertutup": true,
+      "percobaan": 1
+    },
+    {
+      "nama": "produk",
+      "rute": "/produk",
+      "judulKolom": "Nama produk",
+      "nilai": "barang rusak / kadaluarsa",
+      "fokusMasihDiKolom": true,
+      "utuh": true,
+      "dialogTertutup": true,
+      "percobaan": 1
+    }
+  ],
+  "lulus": true
+}
+
+LULUS: semua kolom modal menerima ketikan utuh.

@@ -153,11 +153,20 @@ router.get('/reports/umum', requireSuperadmin, async (req, res) => {
   const { from, to } = range(req);
 
   const [sales, items, purchases, cash, top] = await Promise.all([
+    // Omzet dihitung dari `sales` SENDIRI: kalau di-SUM setelah JOIN ke sale_items,
+    // s.total tergandakan sebanyak item transaksinya (omzet & laba_kotor jadi
+    // berkali lipat). Modal tetap dari sale_items, dipisah di CTE kedua.
     q(
-      `SELECT COUNT(DISTINCT s.id) AS transaksi, COALESCE(SUM(s.total), 0) AS omzet,
-              COALESCE(SUM(si.harga_modal_snapshot * si.qty), 0) AS modal
-         FROM sales s JOIN sale_items si ON si.sale_id = s.id
-        WHERE ${NOT_CANCELLED} AND ${DAY} BETWEEN $1 AND $2`,
+      `WITH jual AS (
+         SELECT COUNT(*) AS transaksi, COALESCE(SUM(s.total), 0) AS omzet
+           FROM sales s
+          WHERE ${NOT_CANCELLED} AND ${DAY} BETWEEN $1 AND $2
+       ), hpp AS (
+         SELECT COALESCE(SUM(si.harga_modal_snapshot * si.qty), 0) AS modal
+           FROM sale_items si JOIN sales s ON s.id = si.sale_id
+          WHERE ${NOT_CANCELLED} AND ${DAY} BETWEEN $1 AND $2
+       )
+       SELECT jual.transaksi, jual.omzet, hpp.modal FROM jual, hpp`,
       [from, to],
     ),
     q(
@@ -681,6 +690,138 @@ router.get('/reports/stock-flow.csv', requireSuperadmin, async (req, res) => {
     ['Produk', 'Kategori', 'Satuan Dasar', 'Masuk', 'Keluar', 'Penyesuaian', 'Pembatalan', 'Saldo Akhir'],
     rows,
   );
+});
+
+/**
+ * Rekap per kasir. Dikelompokkan per (kasir, shift) sekaligus: penjualan yang dibuat
+ * sebelum fitur shift ada punya `shift_id` NULL dan otomatis jadi satu baris per kasir,
+ * sedangkan yang sudah bershift jadi satu baris per shift. Satu query, dua kegunaan.
+ */
+/**
+ * Rekap kas per shift (satu baris = satu buka-tutup kas satu kasir).
+ *
+ * Sumbernya tabel `shifts`, BUKAN `sales`: laporan tutup kas justru dipakai untuk shift
+ * yang uangnya harus dicocokkan, dan shift tanpa satu pun penjualan (mis. kas dibuka lalu
+ * langsung ditutup) tetap harus muncul dengan modal, uang fisik, dan selisihnya. Semua
+ * penjualan sejak migrasi 007 selalu menempel ke shift, jadi tidak ada penjualan yang
+ * hilang dari rekap ini.
+ */
+async function perKasirReport(from, to) {
+  const { rows } = await q(
+    `SELECT u.name AS kasir, sh.user_id,
+            to_char(sh.dibuka_pada AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI') AS shift_mulai,
+            to_char(sh.ditutup_pada AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI') AS shift_selesai,
+            sh.modal_awal,
+            sh.modal_awal + COALESCE(kas.arus, 0) AS kas_seharusnya,
+            sh.uang_fisik,
+            sh.selisih,
+            COALESCE(jual.transaksi, 0) AS transaksi,
+            COALESCE(jual.omzet, 0) AS omzet,
+            COALESCE(jual.items, 0) AS items
+       FROM shifts sh
+       JOIN users u ON u.id = sh.user_id
+       LEFT JOIN LATERAL (
+         SELECT SUM(CASE WHEN cf.tipe = 'masuk' THEN cf.jumlah ELSE -cf.jumlah END) AS arus
+           FROM cash_flows cf WHERE cf.shift_id = sh.id
+       ) kas ON true
+       LEFT JOIN LATERAL (
+         SELECT COUNT(*) AS transaksi, COALESCE(SUM(s.total), 0) AS omzet,
+                COALESCE(SUM((SELECT SUM(si.qty) FROM sale_items si WHERE si.sale_id = s.id)), 0) AS items
+           FROM sales s WHERE s.shift_id = sh.id AND s.status = 'selesai'
+       ) jual ON true
+      WHERE (sh.dibuka_pada AT TIME ZONE 'Asia/Jakarta')::date BETWEEN $1 AND $2
+      ORDER BY sh.dibuka_pada DESC`,
+    [from, to],
+  );
+
+  // Penjualan yang TIDAK menempel ke shift (dibuat lewat API langsung sebelum kas dibuka,
+  // atau data lama) tetap dihitung per kasir. Tanpa baris ini uangnya hilang dari laporan
+  // justru karena tidak ada shift yang bisa dicocokkan.
+  const { rows: tanpaShift } = await q(
+    `SELECT u.name AS kasir, s.user_id,
+            NULL::text AS shift_mulai, NULL::text AS shift_selesai,
+            NULL::int AS modal_awal, NULL::int AS kas_seharusnya,
+            NULL::int AS uang_fisik, NULL::int AS selisih,
+            COUNT(*) AS transaksi, COALESCE(SUM(s.total), 0) AS omzet,
+            COALESCE(SUM((SELECT SUM(si.qty) FROM sale_items si WHERE si.sale_id = s.id)), 0) AS items
+       FROM sales s JOIN users u ON u.id = s.user_id
+      WHERE ${NOT_CANCELLED} AND ${DAY} BETWEEN $1 AND $2 AND s.shift_id IS NULL
+      GROUP BY u.name, s.user_id
+      ORDER BY omzet DESC`,
+    [from, to],
+  );
+
+  return [...rows, ...tanpaShift].map((r) => ({
+    ...r,
+    modal_awal: r.modal_awal === null ? null : Number(r.modal_awal),
+    kas_seharusnya: r.kas_seharusnya === null ? null : Number(r.kas_seharusnya),
+    transaksi: Number(r.transaksi),
+    omzet: Number(r.omzet),
+    items: Number(r.items),
+  }));
+}
+
+router.get('/reports/per-kasir', requireSuperadmin, async (req, res) => {
+  const { from, to } = range(req);
+  const rows = await perKasirReport(from, to);
+  res.json({ from, to, total: rows.reduce((a, r) => a + r.omzet, 0), rows });
+});
+
+router.get('/reports/per-kasir.csv', requireSuperadmin, async (req, res) => {
+  const { from, to } = range(req);
+  const data = await perKasirReport(from, to);
+  const jumlah = (k) => data.reduce((a, r) => a + Number(r[k] ?? 0), 0);
+  const rows = data.map((r) => [
+    r.kasir, r.shift_mulai ?? '', r.shift_selesai ?? '', r.modal_awal ?? '', r.kas_seharusnya ?? '',
+    r.uang_fisik ?? '', r.selisih ?? '', r.transaksi, r.omzet, r.items,
+  ]);
+  rows.push([
+    'TOTAL', '', '', jumlah('modal_awal'), jumlah('kas_seharusnya'), jumlah('uang_fisik'),
+    jumlah('selisih'), jumlah('transaksi'), jumlah('omzet'), jumlah('items'),
+  ]);
+  sendCsv(
+    res,
+    `laporan-per-kasir-${from}-${to}.csv`,
+    ['Kasir', 'Shift Mulai', 'Shift Selesai', 'Modal Awal', 'Kas Seharusnya', 'Uang Fisik',
+      'Selisih Kas', 'Transaksi', 'Omzet', 'Item Terjual'],
+    rows,
+  );
+});
+
+/** Rekap per jam (jam dinding Jakarta): kapan toko ramai. */
+async function perJamReport(from, to) {
+  const { rows } = await q(
+    `SELECT EXTRACT(HOUR FROM (s.created_at AT TIME ZONE 'Asia/Jakarta'))::int AS jam,
+            COUNT(DISTINCT s.id) AS transaksi,
+            COALESCE(SUM(s.total), 0) AS omzet,
+            COALESCE((SELECT SUM(si.qty) FROM sale_items si
+                       WHERE si.sale_id = ANY(array_agg(DISTINCT s.id))), 0) AS items
+       FROM sales s
+      WHERE ${NOT_CANCELLED} AND ${DAY} BETWEEN $1 AND $2
+      GROUP BY 1 ORDER BY 1`,
+    [from, to],
+  );
+  return rows.map((r) => ({
+    jam: `${String(r.jam).padStart(2, '0')}:00`,
+    transaksi: Number(r.transaksi),
+    omzet: Number(r.omzet),
+    items: Number(r.items),
+  }));
+}
+
+router.get('/reports/per-jam', requireSuperadmin, async (req, res) => {
+  const { from, to } = range(req);
+  const rows = await perJamReport(from, to);
+  res.json({ from, to, total: rows.reduce((a, r) => a + r.omzet, 0), rows });
+});
+
+router.get('/reports/per-jam.csv', requireSuperadmin, async (req, res) => {
+  const { from, to } = range(req);
+  const data = await perJamReport(from, to);
+  const jumlah = (k) => data.reduce((a, r) => a + Number(r[k] ?? 0), 0);
+  const rows = data.map((r) => [r.jam, r.transaksi, r.omzet, r.items]);
+  rows.push(['TOTAL', jumlah('transaksi'), jumlah('omzet'), jumlah('items')]);
+  sendCsv(res, `laporan-per-jam-${from}-${to}.csv`, ['Jam', 'Transaksi', 'Omzet', 'Item Terjual'], rows);
 });
 
 export default router;

@@ -20,6 +20,8 @@ export interface Category {
 export interface Unit {
   id: number;
   name: string;
+  /** Singkatan di nota ("r" = renceng, "p" = pack); null bila belum diisi. */
+  inisial?: string | null;
   is_active: boolean;
 }
 
@@ -41,6 +43,10 @@ export interface Product {
   base_unit: string;
   barcode: string | null;
   is_active: boolean;
+  /** Satuan hitung pilihan superadmin; null/kosong = otomatis (satuan isi terbesar). */
+  base_unit_id?: number | null;
+  /** Boleh dijual sampai stok minus; default false. */
+  izin_minus?: boolean;
   units: ProductUnit[];
 }
 
@@ -51,6 +57,14 @@ export interface StockRow {
   stok_base: number;
   display: string;
   minus: boolean;
+  base_unit_id?: number | null;
+  /** Nama satuan hitung yang berlaku menurut server. */
+  satuan_hitung?: string;
+  /** stok_base / isi satuan hitung. */
+  stok_hitung?: number;
+  /** Mis. "3,3 dus". */
+  display_hitung?: string;
+  izin_minus?: boolean;
 }
 
 export interface StockMovement {
@@ -85,6 +99,8 @@ export interface SalePayload {
   dibayar: number;
   created_at: string;
   nama_pelanggan?: string | null;
+  /** Bon: pelanggan berutang sisa (dibayar < total). */
+  bon?: boolean;
 }
 
 export interface SaleItem {
@@ -115,8 +131,62 @@ export interface Sale {
   status: 'selesai' | 'dibatalkan';
   alasan_batal?: string | null;
   nama_pelanggan?: string | null;
+  customer_id?: number | null;
+  customer_nama?: string | null;
+  shift_id?: number | null;
+  /** Sisa piutang transaksi ini (0 kalau lunas / bukan bon). */
+  sisa_piutang?: number;
   created_at: string;
   items?: SaleItem[];
+}
+
+/** Shift kas: dibuka dengan modal awal, ditutup dengan hitungan uang fisik. */
+export interface Shift {
+  id: number;
+  user_id: number;
+  user_name?: string;
+  dibuka_pada: string;
+  modal_awal: number;
+  ditutup_pada: string | null;
+  uang_fisik: number | null;
+  selisih: number | null;
+  catatan: string | null;
+  /** Modal awal + kas masuk - kas keluar shift ini (hanya dari server). */
+  kas_seharusnya?: number;
+  /** Uang yang masuk ke laci selama shift (penjualan tunai, setoran). */
+  kas_masuk?: number;
+  /** Uang laci yang dipakai selama shift: beli barang, bayar ongkos, dsb. */
+  kas_keluar?: number;
+  transaksi?: number;
+  omzet?: number;
+  /** Total keping barang terjual selama shift (hanya dari server). */
+  items?: number;
+  /** Rincian baris kas shift (uang dipakai, retur), urut waktu. */
+  rincian?: KasShift[];
+}
+
+/** Satu baris kas milik shift, dibaca di laporan tutup kas. */
+export interface KasShift {
+  id: number;
+  tipe: 'masuk' | 'keluar';
+  kategori: string;
+  jumlah: number;
+  keterangan: string | null;
+  ref_type: string | null;
+  /** Jam HH:MM waktu pencatatan (Jakarta). */
+  jam: string;
+  user_name: string | null;
+}
+
+/** Saldo tagihan satu pelanggan. */
+export interface PelangganSaldo {
+  customer_id: number | null;
+  nama: string;
+  telepon: string;
+  jumlah_bon: number;
+  sisa: number;
+  bon_tertua: string;
+  jatuh_tempo_terdekat: string | null;
 }
 
 export interface SettingsMap {

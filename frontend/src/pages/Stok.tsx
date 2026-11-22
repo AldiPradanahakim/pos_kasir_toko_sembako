@@ -2,10 +2,13 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
+import CariSelect from '../components/CariSelect';
+import Pagination, { potongHalaman } from '../components/Pagination';
 import { Alert, Button, Card, Input, Kosong, Label, Modal, Select } from '../components/ui';
 import { db } from '../db';
 import { formatTanggalJam, parseUang } from '../lib/format';
 import { useOnline } from '../lib/useOnline';
+import { useAuth } from '../store';
 import { pullSync } from '../sync';
 import type { Product, StockMovement, StockRow } from '../types';
 
@@ -18,22 +21,27 @@ const LABEL_TIPE: Record<string, string> = {
 
 export default function Stok() {
   const online = useOnline();
+  const superadmin = useAuth((s) => s.user?.role === 'superadmin');
   const stok = useLiveQuery(() => db.cachedStock.toArray(), [], [] as StockRow[]);
   const products = useLiveQuery(() => db.products.toArray(), [], [] as Product[]);
 
   const [cari, setCari] = useState('');
   const [hanyaMinus, setHanyaMinus] = useState(false);
+  const [halaman, setHalaman] = useState(1);
+  const [perHalaman, setPerHalaman] = useState(20);
   const [bukaTambah, setBukaTambah] = useState(false);
+  const [izinProses, setIzinProses] = useState<number | null>(null);
+  const [errorIzin, setErrorIzin] = useState('');
 
   const [productId, setProductId] = useState('');
   const [unitId, setUnitId] = useState('');
   const [qty, setQty] = useState('1');
-  const [note, setNote] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Riwayat pergerakan
   const [mvProduct, setMvProduct] = useState('');
+  const [mvCari, setMvCari] = useState('');
   const [mvDari, setMvDari] = useState('');
   const [mvSampai, setMvSampai] = useState('');
   const [movements, setMovements] = useState<StockMovement[]>([]);
@@ -43,8 +51,77 @@ export default function Stok() {
   const daftar = stok.filter((s) => {
     if (hanyaMinus && !s.minus) return false;
     const q = cari.trim().toLowerCase();
-    return !q || s.name.toLowerCase().includes(q);
+    if (!q) return true;
+    return (
+      s.name.toLowerCase().includes(q) ||
+      s.base_unit.toLowerCase().includes(q) ||
+      (s.satuan_hitung ?? '').toLowerCase().includes(q)
+    );
   });
+
+  const jumlahHalaman = Math.max(1, Math.ceil(daftar.length / perHalaman));
+  const hal = Math.min(halaman, jumlahHalaman);
+  const halamanIni = potongHalaman(daftar, hal, perHalaman);
+
+  /** Riwayat yang sudah dimuat disaring di memori: server hanya mengirim 100 baris terakhir. */
+  const mvCariTeks = mvCari.trim().toLowerCase();
+  const movementsTampil = movements.filter(
+    (m) =>
+      !mvCariTeks ||
+      m.product_name.toLowerCase().includes(mvCariTeks) ||
+      (LABEL_TIPE[m.type] ?? m.type).toLowerCase().includes(mvCariTeks) ||
+      (m.note ?? '').toLowerCase().includes(mvCariTeks),
+  );
+
+  /**
+   * Nyalakan/matikan izin jual stok kosong lewat endpoint sempit: PUT /products/:id mengganti
+   * seluruh produk, jadi memakainya di sini akan mereset nama, satuan, dan harga.
+   */
+  async function ubahIzin(s: StockRow, nilai: boolean) {
+    setErrorIzin('');
+    setIzinProses(s.product_id);
+    try {
+      await api.patch(`/products/${s.product_id}/pengaturan`, { izin_minus: nilai });
+      await pullSync();
+    } catch (e) {
+      setErrorIzin(e instanceof Error ? e.message : 'Gagal mengubah izin jual stok kosong');
+    } finally {
+      setIzinProses(null);
+    }
+  }
+
+  /** Lencana + (untuk superadmin) tombol pengubah izin. Dipakai kartu HP maupun tabel. */
+  function kontrolIzin(s: StockRow) {
+    const izin = s.izin_minus === true;
+    const lencana = (
+      <span
+        className={`rounded-full px-2 py-0.5 text-xs ${
+          izin ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-600'
+        }`}
+      >
+        {izin ? 'Boleh minus' : 'Tidak boleh minus'}
+      </span>
+    );
+    if (!superadmin) return lencana;
+    return (
+      <div className="flex flex-wrap items-center gap-1.5">
+        {lencana}
+        <Button
+          variant="ghost"
+          ukuran="sm"
+          aria-label={
+            izin
+              ? `Larang penjualan saat stok "${s.name}" kosong`
+              : `Izinkan penjualan saat stok "${s.name}" kosong`
+          }
+          disabled={!online || izinProses === s.product_id}
+          onClick={() => void ubahIzin(s, !izin)}
+        >
+          {izinProses === s.product_id ? 'Menyimpan…' : izin ? 'Larang minus' : 'Izinkan minus'}
+        </Button>
+      </div>
+    );
+  }
 
   const produkTerpilih = products.find((p) => p.id === Number(productId));
   const satuanTerpilih = produkTerpilih?.units.find((u) => u.unit_id === Number(unitId));
@@ -54,7 +131,6 @@ export default function Stok() {
     setProductId('');
     setUnitId('');
     setQty('1');
-    setNote('');
     setError('');
     setBukaTambah(true);
   }
@@ -77,7 +153,9 @@ export default function Stok() {
         product_id: Number(productId),
         unit_id: Number(unitId),
         qty: q,
-        note: note.trim() || null,
+        // Catatan tidak pernah ditampilkan di layar, jadi tidak diminta ke pengguna.
+        // Kolom "Catatan" di riwayat pergerakan tetap ada: isinya diisi server.
+        note: null,
       });
       await pullSync();
       setBukaTambah(false);
@@ -130,12 +208,21 @@ export default function Stok() {
       <Card title={`Stok per Produk (${daftar.length})`}>
         <div className="mb-3 flex flex-wrap items-center gap-3">
           <div className="max-w-xs flex-1">
-            <Input value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari produk…" />
+            <Input
+              value={cari}
+              onChange={(e) => {
+                setCari(e.target.value);
+                setHalaman(1);
+              }}
+              placeholder="Cari produk / satuan…"
+            />
           </div>
-          <label className="flex min-h-sentuh items-center gap-2 text-sm">
+          {/* `.centang` memberi area sentuh 44×44px sambil menjaga kotak yang terlihat
+              tetap 20px; lihat catatannya di index.css. */}
+          <label className="flex min-h-sentuh cursor-pointer items-center gap-2 text-sm">
             <input
               type="checkbox"
-              className="h-5 w-5"
+              className="centang"
               checked={hanyaMinus}
               onChange={(e) => setHanyaMinus(e.target.checked)}
             />
@@ -143,9 +230,11 @@ export default function Stok() {
           </label>
         </div>
 
+        {errorIzin && <Alert>{errorIzin}</Alert>}
+
         {/* HP: daftar kartu supaya tidak perlu menggeser tabel ke samping. */}
         <div className="space-y-2 md:hidden">
-          {daftar.map((s) => (
+          {halamanIni.map((s) => (
             <div
               key={s.product_id}
               className={`min-w-0 rounded-lg border p-3 ${s.minus ? 'border-red-200 bg-red-50' : 'border-slate-200'}`}
@@ -160,12 +249,12 @@ export default function Stok() {
                   <span className="shrink-0 rounded-full bg-teal-50 px-2 py-0.5 text-xs text-teal-700">normal</span>
                 )}
               </div>
+              {/* Angka utama dalam satuan hitung (dus/karton/bal); base jadi keterangan sekunder. */}
               <p className="mt-1 text-sm text-slate-600">
-                Stok: <b>{s.display}</b>
+                Stok: <b>{s.display_hitung ?? s.display}</b>
               </p>
-              <p className="text-xs text-slate-500">
-                Base {s.base_unit}: {s.stok_base.toLocaleString('id-ID')}
-              </p>
+              <p className="text-xs text-slate-500">{s.display}</p>
+              <div className="mt-2">{kontrolIzin(s)}</div>
             </div>
           ))}
         </div>
@@ -175,27 +264,30 @@ export default function Stok() {
             <thead>
               <tr className="border-b border-slate-100 text-left text-xs uppercase text-slate-500">
                 <th className="py-2">Produk</th>
+                <th className="py-2">Satuan hitung</th>
+                <th className="py-2 text-right">Stok</th>
                 <th className="py-2">Base</th>
-                <th className="py-2 text-right">Stok (base)</th>
-                <th className="py-2">Tampilan</th>
                 <th className="py-2">Status</th>
               </tr>
             </thead>
             <tbody>
-              {daftar.map((s) => (
+              {halamanIni.map((s) => (
                 <tr key={s.product_id} className={`border-b border-slate-50 ${s.minus ? 'bg-red-50' : ''}`}>
                   <td className="py-2 font-medium">{s.name}</td>
-                  <td className="py-2">{s.base_unit}</td>
-                  <td className="py-2 text-right">{s.stok_base.toLocaleString('id-ID')}</td>
-                  <td className="py-2">{s.display}</td>
+                  <td className="py-2">{s.satuan_hitung ?? s.base_unit}</td>
+                  <td className="py-2 text-right font-semibold">{s.display_hitung ?? s.display}</td>
+                  <td className="py-2 text-xs text-slate-500">{s.display}</td>
                   <td className="py-2">
-                    {s.minus ? (
-                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
-                        minus, perlu dicek
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs text-teal-700">normal</span>
-                    )}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {s.minus ? (
+                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                          minus, perlu dicek
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs text-teal-700">normal</span>
+                      )}
+                      {kontrolIzin(s)}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -203,20 +295,33 @@ export default function Stok() {
           </table>
         </div>
         {!daftar.length && <Kosong>Belum ada data stok. Jalankan sinkronisasi terlebih dahulu.</Kosong>}
+        <Pagination
+          total={daftar.length}
+          halaman={hal}
+          perHalaman={perHalaman}
+          onHalaman={setHalaman}
+          onPerHalaman={(n) => {
+            setPerHalaman(n);
+            setHalaman(1);
+          }}
+        />
       </Card>
 
       <Card title="Riwayat Pergerakan Stok">
         <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-4">
           <div>
             <Label>Produk</Label>
-            <Select value={mvProduct} onChange={(e) => setMvProduct(e.target.value)}>
-              <option value="">Semua produk</option>
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </Select>
+            {/* Daftar produk bisa ribuan: kolom cari lebih cepat daripada <select> panjang. */}
+            <CariSelect
+              value={mvProduct}
+              onChange={setMvProduct}
+              ariaLabel="Saring riwayat per produk"
+              placeholder="Semua produk"
+              options={[
+                { value: '', label: 'Semua produk' },
+                ...products.map((p) => ({ value: p.id, label: p.name, hint: p.category_name ?? undefined })),
+              ]}
+            />
           </div>
           <div>
             <Label>Dari tanggal</Label>
@@ -235,6 +340,15 @@ export default function Stok() {
 
         {mvError && <Alert>{mvError}</Alert>}
 
+        <div className="mb-3 max-w-sm">
+          <Input
+            value={mvCari}
+            onChange={(e) => setMvCari(e.target.value)}
+            placeholder="Cari produk / tipe / catatan…"
+            aria-label="Cari di riwayat pergerakan stok"
+          />
+        </div>
+
         <div className="tabel-scroll">
           <table className="w-full text-sm">
             <thead>
@@ -248,7 +362,7 @@ export default function Stok() {
               </tr>
             </thead>
             <tbody>
-              {movements.map((m) => (
+              {movementsTampil.map((m) => (
                 <tr key={m.id} className="border-b border-slate-50">
                   <td className="py-2 whitespace-nowrap">{formatTanggalJam(m.created_at)}</td>
                   <td className="py-2">{m.product_name}</td>
@@ -265,6 +379,7 @@ export default function Stok() {
           </table>
         </div>
         {!movements.length && <Kosong>Klik "Tampilkan" untuk memuat riwayat pergerakan stok.</Kosong>}
+        {!!movements.length && !movementsTampil.length && <Kosong>Tidak ada baris yang cocok.</Kosong>}
       </Card>
 
       <Modal open={bukaTambah} title="Tambah Stok" onClose={() => setBukaTambah(false)}>
@@ -278,21 +393,22 @@ export default function Stok() {
           </Link>
           <div>
             <Label>Produk</Label>
-            <Select
+            {/* Produk bisa 1000 baris: <select> sepanjang itu tidak terpakai di HP. */}
+            <CariSelect
               value={productId}
-              onChange={(e) => {
-                setProductId(e.target.value);
+              onChange={(v) => {
+                setProductId(v);
                 setUnitId('');
               }}
+              ariaLabel="Pilih produk untuk tambah stok"
+              autoFocus
               required
-            >
-              <option value="">Pilih produk…</option>
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </Select>
+              options={products.map((p) => ({
+                value: p.id,
+                label: p.name,
+                hint: p.category_name ?? undefined,
+              }))}
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -324,11 +440,6 @@ export default function Stok() {
               <b>{konversi.toLocaleString('id-ID')} {produkTerpilih?.base_unit}</b> ditambahkan ke stok.
             </p>
           )}
-          <div>
-            <Label>Catatan (opsional)</Label>
-            <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="mis. kulakan pasar" />
-          </div>
-
           {error && <Alert>{error}</Alert>}
 
           <div className="flex justify-end gap-2">

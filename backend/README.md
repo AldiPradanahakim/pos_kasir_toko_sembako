@@ -14,6 +14,8 @@ API POS (point of sale) untuk toko grosir sembako. Node.js ESM + Express 5 + Pos
 
 - **Pembayaran hanya tunai (migrasi `004_tunai_saja.sql`).** Atas permintaan pemilik, QRIS dan transfer dihapus: `sales.metode_bayar` dibatasi `CHECK (metode_bayar = 'tunai')` (data lama dinormalkan lebih dulu), `POST /sales` menolak metode lain dengan 422, unggahan gambar QRIS beserta folder `storage/` dan penyajian `/uploads/**` dibuang, dan laporan `GET /reports/payment-methods` dihapus karena isinya hanya satu metode. Spesifikasi awal (`PROMPT-POS.md`) yang meminta QRIS statis karena itu sudah tidak berlaku.
 
+- **Satuan hitung & izin jual stok kosong (migrasi `006_satuan_hitung_dan_izin_minus.sql`).** Atas permintaan pemilik, superadmin memilih satuan hitung per produk (`products.base_unit_id`) supaya stok tampil dalam satuan yang dipakai menghitung (mis. "dus"), dan memberi izin per produk (`products.izin_minus`) untuk menjual saat stok kosong. Tanpa izin, `POST /sales` yang membuat stok minus ditolak 422 — dulu penjualan offline selalu diterima apa pun stoknya. Migrasi ini murni **additive**: dua kolom baru, tidak ada kolom/baris lama yang diubah, dan `izin_minus` default `false` (perilaku lama tetap berlaku begitu superadmin memberi izin).
+
 ## Prasyarat
 
 - Node.js >= 20 (diuji di v22.12.0) dan npm >= 10.
@@ -39,10 +41,25 @@ API POS (point of sale) untuk toko grosir sembako. Node.js ESM + Express 5 + Pos
 3. **Cek hasilnya.** `Servers` → `POS Hakim` → `Databases` → `pos_hakim` → `Schemas` → `public` → `Tables`.
    Setelah `npm run migrate` dijalankan, tabel yang muncul: `_migrations`, `cash_flows`, `categories`,
    `debts`, `product_aliases`, `product_units`, `products`, `purchase_items`, `purchases`, `returns`,
-   `sale_items`, `sales`, `settings`, `stock_movements`, `stock_opnames`, `struk_counters`, `tokens`,
+   `sale_items`, `sales`, `settings`, `stock_movements`, `stock_opnames`, `struk_counters_tahun`, `tokens`,
    `units`, `users`.
    Untuk memeriksa data: klik kanan `pos_hakim` → `Query Tool`, lalu jalankan
    `SELECT * FROM settings;` atau `SELECT * FROM units ORDER BY name;`.
+
+   Catatan dua hal yang sering bikin bingung saat memeriksa tabel:
+
+   - Tabel penghitung nomor struk bernama **`struk_counters_tahun`** (kunci: `tahun`, kolom `last`).
+     Tabel lama `struk_counters` (kunci: `day`) sudah dibuang migrasi `005` — nomor struk per hari
+     tidak cukup begitu satu hari tembus 999 struk, sedangkan nomor yang sudah keluar tidak boleh
+     dipakai ulang.
+   - `products` punya dua kolom tambahan dari migrasi `006`: **`base_unit_id`** (bigint → `units.id`,
+     NULL = belum dipilih superadmin) dan **`izin_minus`** (boolean NOT NULL, default `false`).
+     Keduanya dijelaskan di bagian *Aturan bisnis yang dijaga server*.
+   - `units` punya kolom **`inisial`** dari migrasi `008`: singkatan 1–4 huruf/angka yang unik
+     tanpa beda huruf besar/kecil (`r` = renceng, `p` = pack, `d` = dus). Dipakai layar kasir untuk
+     membaca nota yang ditulis singkat ("2 (r) Beng Beng"). Satuan pecahan seperti `1/2 kg`
+     sengaja dibiarkan kosong: pengurai membuang angka dari nama barang, jadi singkatan `1/2`
+     tidak akan pernah bisa dicocokkan.
 
 4. **Catatan port.** Instance PostgreSQL 18 default di `5432`, instance 14 default di `5433`. Cek yang benar-benar
    mendengarkan dengan `Get-NetTCPConnection -State Listen -LocalPort 5432,5433`. Port yang dipakai proyek ini
@@ -98,6 +115,22 @@ slop isi 10 305.000). Sifatnya:
 - Barcode diturunkan dari nama produk (sha256 → `899` + 10 digit), jadi stabil di setiap
   penjalanan dan tidak berubah walau urutan daftar diubah.
 - Ringkasan yang dicetak: `produk dibuat: N, dilewati: M, satuan dibuat: K`.
+
+### Daftar migrasi
+
+| Berkas | Isi |
+| --- | --- |
+| `001_init.sql` | Skema dasar: users, tokens, categories, units, products, product_units, sales, sale_items, stock_movements, settings, `struk_counters` (digantikan `005`) |
+| `002_fitur_lengkap.sql` | Buku kas, pembelian, hutang/piutang, retur, stok opname, alias OCR |
+| `003_pembelian_tanpa_harga.sql` | Pembelian tanpa harga (`harga_beli`/`subtotal` NULL, `total` 0, tanpa baris kas) |
+| `004_tunai_saja.sql` | `metode_bayar` dikunci ke `'tunai'`, data lama dinormalkan |
+| `005_nomor_struk_tahunan.sql` | `struk_counters` diganti `struk_counters_tahun` (`INV-YYYY-######`) |
+| `006_satuan_hitung_dan_izin_minus.sql` | `products.base_unit_id` + `products.izin_minus` |
+| `007_pelanggan_bon_shift.sql` | Pelanggan, pelunasan piutang, shift kas |
+| `008_satuan_inisial.sql` | `units.inisial` — singkatan satuan untuk membaca nota (`r` = renceng, `p` = pack) |
+
+Semuanya idempotent (aman dijalankan ulang) dan **additive**, kecuali `005` yang membuang
+`struk_counters` lama — nomor struk per hari tidak cukup begitu satu hari tembus 999 struk.
 
 ### Backfill buku kas (`npm run backfill:kas`)
 
@@ -162,8 +195,10 @@ data seed database uji, lalu membersihkan datanya sendiri. Skrip ini menulis dat
 memakai `TEST_DATABASE_URL`** dan menolak berjalan bila nama database-nya tidak berakhiran `_test` — database
 produksi tidak pernah tersentuh.
 
-`npm run reset:data` mengosongkan seluruh data transaksi dan produk lalu mengembalikan pengaturan, satuan,
-dan akun superadmin ke kondisi seed, tanpa menghapus skema. Perintah ini **menolak berjalan** pada database
+`npm run reset:data` mengosongkan seluruh data transaksi dan produk lalu mengembalikan pengaturan, satuan
+(beserta inisialnya), dan akun superadmin ke kondisi seed, tanpa menghapus skema. Tabel `customers`,
+`debt_payments`, dan `shifts` ikut dikosongkan — ketiganya tidak terkena `CASCADE` dari tabel transaksi,
+jadi tanpa disebut eksplisit nama pelanggan lama dan shift kas akan tertinggal. Perintah ini **menolak berjalan** pada database
 yang namanya tidak berakhiran `_test` kecuali diberi `--force`:
 
 ```
@@ -183,17 +218,25 @@ npm run reset:data -- --force # untuk database produksi (MENGHAPUS SEMUA DATA)
 Semua di bawah prefix `/api`. Autentikasi: header `Authorization: Bearer <token>`. Error berbentuk
 `{"error":"pesan"}` dengan status 401/403/404/422. Endpoint tulis butuh `superadmin` kecuali disebutkan lain.
 
+`POST /login` membuat satu token (32 byte acak; yang disimpan hanya hash SHA-256-nya) yang berlaku
+`TOKEN_TTL_HOURS` jam (default 720 = 30 hari). `POST /logout` mencabut token yang dipakai. Token yang
+sudah kedaluwarsa dibersihkan dari tabel `tokens` setiap ada login baru; `POST /login` juga satu-satunya
+cara membuat baris di tabel itu.
+
 | Grup | Endpoint |
 | --- | --- |
 | Auth | `POST /login`, `POST /logout`, `GET /me` |
-| Master | `GET\|POST\|PUT\|DELETE /categories`, `/units`, `/products`, `/users` |
+| Master | `GET\|POST\|PUT\|DELETE /categories`, `/units`, `/products`, `/users`; `PATCH /products/:id/pengaturan` |
+| Retur / Hutang / Pembelian | Baca + catat boleh kasir (`GET/POST /returns`, `GET/POST /debts`, `POST /debts/:id/bayar`, `GET/POST /purchases`, `GET /reports/purchase-suggestions`); **hapus/ubah tetap superadmin** (`DELETE /returns/:id`, `PUT/DELETE /debts/:id`, `DELETE /purchases/:id`) |
+| Kas (shift) | `GET /shifts/aktif`, `POST /shifts/buka`, `POST /shifts/tutup` (semua peran); `GET /shifts` = riwayat tutup kas semua kasir, **khusus superadmin** |
 | Stok | `GET /stock`, `GET /stock/movements`, `POST /stock/in` (kasir boleh), `POST /stock/in/bulk` (kasir boleh), `GET\|POST /stock-opnames`, `GET /product-aliases` |
-| Transaksi | `POST /sales` (kasir boleh), `GET /sales`, `GET /sales/:id`, `GET /sales/by-uuid/:uuid`, `POST /sales/:id/cancel`, `DELETE /sales/:id`, `POST /sales/purge` |
+| Transaksi | `POST /sales` (kasir boleh), `GET /sales`, `GET /sales/:id`, `GET /sales/by-uuid/:uuid`, `DELETE /sales/:id`, `POST /sales/purge` |
 | Pembelian | `GET\|POST /purchases`, `GET\|DELETE /purchases/:id` |
 | Keuangan | `GET\|POST /cash-flows`, `GET /cash-flows/summary`, `PUT\|DELETE /cash-flows/:id` |
 | Retur & hutang | `GET\|POST /returns`, `DELETE /returns/:id`, `GET\|POST\|PUT\|DELETE /debts` |
 | Sinkronisasi | `GET /sync/pull` |
 | Laporan | `GET /reports/{omzet,daily,sales,profit,price-changes,umum,transactions,cash-flow,sales-by-category,purchases,modal,debts,profit-loss,returns,stock-flow}` (superadmin), `GET /reports/{stock-flow,cash-flow}.csv` (superadmin) |
+| Dashboard | `GET /reports/dashboard`, `GET /reports/purchase-suggestions`, `GET /reports/purchase-suggestions.csv` (semuanya superadmin) |
 | Pengaturan | `GET /settings`, `PUT /settings` |
 
 Ringkasan bentuk respons yang tidak jelas dari namanya:
@@ -228,23 +271,75 @@ Ringkasan bentuk respons yang tidak jelas dari namanya:
 - Pembayaran hanya **tunai**: `metode_bayar` selain `'tunai'` ditolak 422, dan kolomnya di database
   dibatasi `CHECK (metode_bayar = 'tunai')` (migrasi `004_tunai_saja.sql` menormalkan data lama).
 - Kembalian pas sampai rupiah. `dibayar >= total` wajib.
-- `no_struk` `INV-YYYYMMDD-####` diberikan server, urut dan tidak bolong per hari Jakarta (tabel `struk_counters`, dikunci dalam transaksi yang sama).
+- `no_struk` `INV-YYYY-######` diberikan server, urut dan tidak bolong per tahun Jakarta (tabel
+  `struk_counters_tahun`, dikunci dalam transaksi yang sama). Tanggal **tidak** diulang di nomor
+  karena sudah tercetak di barisnya sendiri; 6 digit perlu karena setahun bisa ribuan transaksi.
 - Idempotensi offline: `POST /sales` dengan `uuid` yang sama mengembalikan transaksi yang sudah ada (`duplicate: true`), tidak membuat baris kedua.
-- Pembatalan hanya penuh, wajib `alasan_batal`, superadmin atau kasir dengan kredensial superadmin. Transaksi tidak dihapus: `status='dibatalkan'`, `no_struk` tetap, stok dikembalikan lewat movement `pembatalan`.
-- Stok minus dari penjualan offline tetap diterima dan ditandai `minus: true` di `GET /stock`.
+- **Pembatalan transaksi sudah DIHAPUS (permintaan pemilik).** Transaksi yang sudah tersimpan dan
+  tercetak bersifat final: tidak ada endpoint `POST /sales/:id/cancel` dan tidak ada tombolnya di
+  riwayat. Satu-satunya cara mengoreksi adalah `DELETE /sales/:id` (hanya superadmin), yang membuang
+  barisnya dari riwayat dan mengembalikan stoknya. Baris lama berstatus `dibatalkan` tetap dibaca
+  apa adanya oleh laporan dan riwayat, dan `deleteSales` tetap tidak mengembalikan stoknya dua kali.
+- Stok minus dari penjualan **offline** hanya boleh bila superadmin sudah memberi izin: `POST /sales`
+  menolak 422 penjualan yang membuat stok minus pada produk dengan `products.izin_minus = false`
+  (pesannya menyebut sisa, kebutuhan, dan izin yang harus diminta). Pemeriksaan berjalan di dalam
+  transaksi penjualan yang sama, dalam **dua langkah**: kunci baris produknya dulu
+  (`SELECT … FOR UPDATE`, urut id supaya tidak deadlock), baru baca stoknya di pernyataan terpisah.
+  Urutan itu bukan gaya penulisan: kalau `SUM(stock_movements)` dihitung di pernyataan yang sama
+  dengan `FOR UPDATE`, subquery-nya masih memakai snapshot saat pernyataan dimulai — yaitu sebelum
+  transaksi saingan commit — sehingga dua sync bersamaan sama-sama melihat stok lama dan dua-duanya
+  lolos (stok minus tanpa izin). Dites di `tests/fitur.test.js` no. 24. Produk berizin
+  (`izin_minus = true`) tetap boleh minus dan ditandai `minus: true` di `GET /stock`.
+- **Izin minus HANYA berlaku untuk penjualan.** Barang yang benar-benar datang atau benar-benar
+  keluar tidak boleh diblokir izin stok, karena menolaknya tidak membuat stok lebih benar — hanya
+  membuat catatan tidak sesuai kenyataan. Jadi `POST /stock/in`, `POST /stock/in/bulk`,
+  `POST /purchases` (movement `masuk`), retur penjualan (barang kembali, `masuk`), dan
+  `DELETE /sales/:id` (mengembalikan stok) selalu boleh. Jalur yang menurunkan stok tanpa lewat
+  penjualan pun tetap boleh: **retur pembelian** (`keluar` — barang memang dikirim balik ke supplier,
+  hanya superadmin yang bisa mencatatnya) dan **stok opname** (`penyesuaian` — intinya justru
+  memaksa sistem sama dengan hitungan fisik; memblokirnya membuat selisih tidak bisa dikoreksi).
+- Satuan hitung (`products.base_unit_id`, migrasi `006`): satuan pilihan superadmin untuk menghitung
+  stok, mis. "dus" untuk rokok. Tiap baris `GET /stock` dan `GET /sync/pull` memuat `base_unit_id`,
+  `satuan_hitung`, `stok_hitung` (2 desimal), `display_hitung` (gaya Indonesia, mis. `3,3 dus`), dan
+  `izin_minus`. `base_unit_id` NULL → server memakai satuan dengan `isi` terbesar milik produk itu,
+  dan produk tanpa satuan (atau hanya `isi <= 1`) memakai `base_unit` apa adanya.
+  Aturan "pilihan superadmin dulu, baru satuan terbesar" itu ditulis **sekali** di
+  `satuanHitungOf()` (`src/lib.js`) dan dipakai bersama oleh `GET /stock`, `GET /sync/pull`, dan
+  saran pembelian — dua tempat menghitung sendiri-sendiri pernah membuat saran menyebut "dus"
+  sementara halaman stok menyebut "slop" untuk produk yang sama.
+- `display` dan `display_hitung` sengaja **berdampingan, bukan saling menggantikan**: `display`
+  (pecahan satuan, mis. `7 dus 37 pcs`) dipakai di halaman stok sebagai keterangan sekunder, dan
+  `display_hitung` (mis. `2,08 dus`) sebagai angka utama. Keduanya diturunkan dari `stok_base` yang
+  sama, jadi tidak ada tempat yang menampilkan angka basi.
+- `base_unit_id` wajib salah satu satuan produk itu sendiri: `POST`/`PUT /products` menolak 422
+  (`base_unit_id tidak valid` bila bukan angka, `base_unit_id harus salah satu satuan produk` bila
+  bukan milik produk — termasuk satuan yang ikut terhapus oleh PUT yang mengganti seluruh `units[]`).
+- **`PATCH /products/:id/pengaturan`** (superadmin) mengubah **hanya** field yang dikirim:
+  `{izin_minus?, base_unit_id?}`. PUT mengganti seluruh produk, jadi menyalakan izin minus lewat PUT
+  memaksa klien mengirim ulang nama/kategori/semua satuan/harga — satu field yang terlewat akan
+  tereset diam-diam. Endpoint ini karena itu memakai `CASE WHEN … ELSE kolom_lama END`, bukan nilai
+  default: field yang tidak dikirim selalu dibiarkan apa adanya. `izin_minus` harus boolean terbaca
+  (true/false/1/0/"true"/"false") else 422; `base_unit_id` boleh `null` (kembali ke otomatis =
+  satuan terbesar) atau satuan milik produk itu; body tanpa kedua field → 422
+  `Tidak ada pengaturan yang diubah`; produk tidak ada → 404.
+  Semua pemeriksaan (termasuk "satuan itu memang milik produk ini") selesai **sebelum** satu UPDATE
+  pun dijalankan, jadi body `{izin_minus:true, base_unit_id:999999}` ditolak 422 dan `izin_minus`
+  tidak ikut tersimpan — tidak ada perubahan setengah jalan.
+- Barcode `products.barcode` dan `product_units.barcode` **opsional** (nullable, diisi `NULL` bila
+  kosong supaya UNIQUE tidak bentrok): tidak ada endpoint yang mewajibkannya.
 
 ### Hapus riwayat pesanan (superadmin)
 
-- `DELETE /sales/:id` **menghapus permanen** transaksi beserta `sale_items`-nya. Berbeda dari
-  pembatalan, barisnya benar-benar hilang dari database.
+- `DELETE /sales/:id` **menghapus permanen** transaksi beserta `sale_items`-nya. Inilah satu-satunya
+  jalan membatalkan transaksi yang sudah berhasil.
 - Stok dikembalikan lewat movement `penyesuaian` sebesar `+total base_unit` transaksi itu, dengan
   catatan `Hapus transaksi <no_struk>`. **Hanya untuk transaksi berstatus `selesai`**: transaksi
-  `dibatalkan` stoknya sudah kembali lewat movement `pembatalan`, jadi mengembalikannya lagi akan
-  menggandakan stok.
+  `dibatalkan` (data lama) stoknya sudah kembali lewat movement `pembatalan`, jadi mengembalikannya
+  lagi akan menggandakan stok.
 - `?restore_stock=false` menghapus TANPA menyentuh stok (untuk membersihkan entri uji).
 - `POST /sales/purge` body `{from, to, status?, restore_stock?}` menghapus massal per rentang
   tanggal dan mengembalikan `{deleted: n}`. Inilah yang dipakai tombol "hapus riwayat" di UI.
-- **`struk_counters` sengaja TIDAK disentuh.** Nomor struk yang sudah keluar tidak pernah dipakai
+- **`struk_counters_tahun` sengaja TIDAK disentuh.** Nomor struk yang sudah keluar tidak pernah dipakai
   ulang, sehingga penomoran **tidak pernah bolong secara surut**: menghapus transaksi nomor 3 dari
   hari ini tidak membuat transaksi nomor 4 bergeser, dan transaksi berikutnya tetap 5. Riwayat
   nomor struk karena itu tetap utuh walau barisnya sudah dihapus.
@@ -302,6 +397,10 @@ Ringkasan bentuk respons yang tidak jelas dari namanya:
 - `GET /reports/umum` dan `GET /reports/profit-loss` membaca uang pembelian dari `cash_flows`,
   bukan dari `purchases.total`, jadi pembelian baru (yang tidak menulis kas) otomatis menyumbang 0
   dan tidak ada angka yang dihitung dua kali.
+- `GET /reports/umum` menghitung omzet dari `sales` **sendiri**, bukan dari `SUM(s.total)` setelah
+  JOIN ke `sale_items` — dengan JOIN, satu transaksi ikut terhitung sebanyak jumlah itemnya sehingga
+  omzet dan laba kotor membengkak berkali-kali lipat. Modal tetap dari `sale_items`, dipisah di CTE
+  kedua. Karena itu `omzet` di `/reports/umum`, `/reports/omzet`, dan `/reports/dashboard` sama.
 - `GET /reports/modal` menghitung `modal_tersimpan` dari stok saat ini (`stok_base × harga_modal`
   per base unit, memakai satuan dengan isi TERKECIL agar pembulatannya paling kecil) dan
   `modal_terjual` dari `harga_modal_snapshot` pada periode.
@@ -309,5 +408,38 @@ Ringkasan bentuk respons yang tidak jelas dari namanya:
   (kas keluar selain `pembelian` dan `pembatalan`). Pembatalan sengaja tidak dihitung: transaksi
   yang dibatalkan sudah dikeluarkan dari omzet, jadi mengurangi uangnya lagi akan menghitung dua
   kali.
-- Nama pelanggan pada `sales.nama_pelanggan` bersifat opsional, dan hanya dipakai untuk laporan —
-  tidak ada modul pelanggan.
+- Nama tuan/nyonya pada `sales.nama_pelanggan` bersifat opsional, dan hanya dipakai untuk laporan —
+  tidak ada modul pelanggan. Di struk barisnya berlabel "Tuan/Nyonya".
+
+### Dashboard & saran pembelian (superadmin)
+
+- `GET /reports/dashboard?from&to` (default: awal bulan berjalan s/d hari ini, zona Asia/Jakarta)
+  mengembalikan satu layar: `hari_ini`, `ringkasan`, `harian[]`, `terlaris[]`, `stok_menipis[]`,
+  `nilai_stok`, `kas`, `hutang_piutang`, `per_kategori[]`, `per_kasir[]`.
+  **Angka omzetnya dihitung dari `sales` sendiri, bukan dari `sale_items`** — kalau `SUM(s.total)`
+  dijumlah setelah JOIN ke `sale_items`, satu transaksi ikut terhitung sebanyak jumlah itemnya
+  (persis bug yang dulu ada di `/reports/umum`). Karena itu `omzet` di sini, di `/reports/omzet`,
+  dan di `/reports/umum` selalu sama.
+- `stok_menipis[]` berisi produk berstok `<= 0` (paling minus dulu, maksimal 20 baris) beserta
+  `display` (format sama dengan halaman stok) dan `izin_minus`, supaya pemilik tahu produk mana
+  yang sudah minus karena memang diizinkan.
+- `GET /reports/purchase-suggestions?hari&ambang` menyarankan pembelian berdasarkan kecepatan
+  jual: `terjual` hanya menghitung movement `keluar` ber-`reference_type='sale'` dari penjualan
+  yang masih `selesai` (penyesuaian, retur, dan transaksi yang dihapus/dibatalkan tidak ikut).
+  `hari` dijepit 1–365 (default 30) dan `ambang` 1–90 (default 7) — nilai aneh/negatif/teks jatuh
+  ke default, bukan 500.
+- Saran hanya berisi produk yang **perlu** dibeli: stok habis/minus, atau `hari_tersisa <= ambang`.
+  `hari_tersisa` null = belum pernah terjual dalam jendela itu, jadi produk begitu hanya muncul
+  kalau stoknya sudah `<= 0` (kalau stoknya masih ada dan tidak laku, tidak ada yang perlu dibeli).
+- `satuan_hitung`/`satuan_hitung_isi` pada saran memakai **aturan yang sama dengan halaman stok**
+  (pilihan superadmin `base_unit_id` dulu, baru satuan `isi > 1` terbesar) supaya saran dan stok
+  tidak menyebut satuan yang berbeda untuk produk yang sama.
+- `?hari`/`?ambang` juga berlaku di `GET /reports/purchase-suggestions.csv`. Daftar di layar
+  dipotong **50 baris** (paling mendesak dulu), tetapi CSV-nya **utuh** — berkas yang dibawa ke
+  supplier tidak boleh kehilangan barang yang perlu dibeli.
+- Saran pembelian memakai `LIMIT` di SQL dan tidak melakukan query per produk: seluruh kandidat
+  dihitung satu kali di database (JSON satuan per produk lewat subquery `json_agg`), bukan satu
+  query per baris. Skalanya masih nyaman untuk ratusan produk; kalau nanti produknya ribuan,
+  yang perlu ditambahkan lebih dulu adalah indeks pada `stock_movements (reference_type, reference_id)`
+  dan `(type, created_at)` — keduanya belum ada dan saat ini masih `Seq Scan` (masih cepat di data
+  sekarang, tetapi akan melambat seiring riwayat penjualan bertambah).

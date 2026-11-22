@@ -176,6 +176,12 @@ try {
   eq('stok terbaca 800 pcs', stokAfterIn?.stok_base, 800);
   eq('tampilan stok enak dibaca', stokAfterIn?.display, '2 bal');
   eq('stok tidak minus', stokAfterIn?.minus, false);
+  // Tanpa satuan hitung yang dipilih, server memakai satuan terbesar milik produk (bal isi 400).
+  eq('satuan hitung jatuh ke satuan terbesar', stokAfterIn?.satuan_hitung, 'bal');
+  eq('stok dalam satuan hitung', stokAfterIn?.stok_hitung, 2);
+  eq('tampilan stok dalam satuan hitung', stokAfterIn?.display_hitung, '2 bal');
+  eq('izin minus default mati', stokAfterIn?.izin_minus, false);
+  eq('satuan hitung pilihan superadmin masih kosong', stokAfterIn?.base_unit_id, null);
 
   // ------------------------------------------------- transaksi multi-satuan
   const mixedUuid = uuid();
@@ -197,7 +203,7 @@ try {
     `total=${mixed.body?.sale?.total}`);
   eq('total transaksi dihitung otomatis', mixed.body?.sale?.total, expectedTotal);
   eq('kembalian pas sampai rupiah', mixed.body?.sale?.kembalian, 1_000_000 - expectedTotal);
-  check('no_struk format INV-YYYYMMDD-####', /^INV-\d{8}-\d{4}$/.test(mixed.body?.sale?.no_struk || ''), mixed.body?.sale?.no_struk);
+  check('no_struk format INV-YYYY-######', /^INV-\d{4}-\d{6}$/.test(mixed.body?.sale?.no_struk || ''), mixed.body?.sale?.no_struk);
 
   const stokAfterSale = (await req('GET', '/api/stock')).body.find((s) => s.product_id === pid);
   const expectedStock = 800 - (3 * 1 + 2 * 40 + 1 * 400);
@@ -251,14 +257,52 @@ try {
   const { rows: countRows } = await q('SELECT count(*)::int AS n FROM sales WHERE uuid = $1', [mixedUuid]);
   eq('hanya satu baris sale di database', countRows[0].n, 1);
 
+  // -------------------------------------------- izin jual stok kosong
+  // Stok saat ini 317 pcs; jual 10 dus (400) berarti minus, jadi butuh izin superadmin dulu.
+  const stokSebelumTolakMinus = (await req('GET', '/api/stock')).body.find((s) => s.product_id === pid).stok_base;
+  const lebihDariStok = await req('POST', '/api/sales', {
+    tok: kasirTok,
+    body: { uuid: uuid(), items: [{ product_id: pid, unit_id: idOf('dus'), qty: 10 }], metode_bayar: 'tunai', dibayar: 10_000_000 },
+  });
+  check('jual melebihi stok tanpa izin ditolak 422',
+    lebihDariStok.status === 422 && /izin jual stok kosong/.test(lebihDariStok.body?.error || ''),
+    `${lebihDariStok.status} ${lebihDariStok.body?.error}`);
+  eq('penjualan yang ditolak tidak menyentuh stok',
+    (await req('GET', '/api/stock')).body.find((s) => s.product_id === pid).stok_base, stokSebelumTolakMinus);
+
+  const putProduk = (extra) => req('PUT', `/api/products/${pid}`, {
+    body: {
+      name: prod.body.name,
+      category_id: cat.body.id,
+      base_unit: 'pcs',
+      barcode: prod.body.barcode,
+      units: prod.body.units.map((u) => ({ ...u })),
+      ...extra,
+    },
+  });
+  eq('base_unit_id yang bukan satuan produk ditolak 422',
+    (await putProduk({ base_unit_id: idOf('slop') })).status, 422);
+  eq('base_unit_id yang bukan angka ditolak 422',
+    (await putProduk({ base_unit_id: 'dus' })).status, 422);
+
+  const izin = await putProduk({ base_unit_id: idOf('dus'), izin_minus: true });
+  check('superadmin memberi izin minus + satuan hitung dus',
+    izin.status === 200 && izin.body.izin_minus === true && izin.body.base_unit_id === idOf('dus'),
+    `izin_minus=${izin.body?.izin_minus} base_unit_id=${izin.body?.base_unit_id}`);
+  const rowHitung = (await req('GET', '/api/stock')).body.find((s) => s.product_id === pid);
+  eq('satuan hitung mengikuti pilihan superadmin', rowHitung.satuan_hitung, 'dus');
+  eq('stok dalam satuan hitung pilihan', rowHitung.stok_hitung, Math.round((stokSebelumTolakMinus / 40) * 100) / 100);
+  check('tampilan satuan hitung pakai koma gaya Indonesia',
+    /^-?[\d.,]+ dus$/.test(rowHitung.display_hitung), rowHitung.display_hitung);
+
   // --------------------------------------------------- transaksi offline
   // Counter no_struk bersifat permanen (tidak pernah mundur), jadi nomor yang
-  // diharapkan dihitung relatif terhadap isi struk_counters saat ini.
-  const OFFLINE_DAY = '2026-02-10';
+  // diharapkan dihitung relatif terhadap isi struk_counters_tahun saat ini.
+  const OFFLINE_YEAR = 2026;
   const { rows: counterBefore } = await q(
-    'SELECT COALESCE((SELECT last FROM struk_counters WHERE day = $1), 0)::int AS n', [OFFLINE_DAY],
+    'SELECT COALESCE((SELECT last FROM struk_counters_tahun WHERE tahun = $1), 0)::int AS n', [OFFLINE_YEAR],
   );
-  const expectedNo = `INV-20260210-${String(counterBefore[0].n + 1).padStart(4, '0')}`;
+  const expectedNo = `INV-${OFFLINE_YEAR}-${String(counterBefore[0].n + 1).padStart(6, '0')}`;
 
   const offline = await req('POST', '/api/sales', {
     tok: kasirTok,
@@ -300,32 +344,35 @@ try {
   eq('kasir ditolak 403 saat ubah pengaturan', (await req('PUT', '/api/settings', { tok: kasirTok, body: { toko_nama: 'X' } })).status, 403);
   eq('kasir boleh lihat stok', (await req('GET', '/api/stock', { tok: kasirTok })).status, 200);
 
-  // ------------------------------------------------------------ pembatalan
+  // ------------------------------------- pembatalan sudah bukan fitur aplikasi
+  // Aplikasi hanya bisa MENGHAPUS transaksi (superadmin). Endpoint pembatalan tidak ada lagi.
+  eq('endpoint pembatalan tidak ada lagi', (await req('POST', `/api/sales/${mixed.body.sale.id}/cancel`, {
+    body: { alasan_batal: 'salah input' },
+  })).status, 404);
+
+  // Baris lama berstatus 'dibatalkan' tetap harus dibaca benar oleh laporan: disiapkan
+  // langsung di database, persis efek yang dulu ditulis endpoint pembatalan.
   const stokBeforeCancel = (await req('GET', '/api/stock')).body.find((s) => s.product_id === pid).stok_base;
-
-  const cancelByKasirNoCreds = await req('POST', `/api/sales/${mixed.body.sale.id}/cancel`, {
-    tok: kasirTok, body: { alasan_batal: 'salah input' },
-  });
-  eq('kasir tanpa kredensial superadmin ditolak 403', cancelByKasirNoCreds.status, 403);
-
-  const cancel = await req('POST', `/api/sales/${mixed.body.sale.id}/cancel`, {
-    body: { alasan_batal: 'Salah input satuan' },
-  });
-  eq('superadmin membatalkan transaksi', cancel.status, 200);
-  eq('status menjadi dibatalkan', cancel.body?.status, 'dibatalkan');
-  eq('alasan batal tersimpan', cancel.body?.alasan_batal, 'Salah input satuan');
-  eq('no_struk tidak hilang setelah batal', cancel.body?.no_struk, mixed.body.sale.no_struk);
+  await q(
+    `UPDATE sales SET status = 'dibatalkan', alasan_batal = 'Salah input satuan',
+            dibatalkan_oleh = (SELECT id FROM users WHERE username = 'superadmin')
+      WHERE id = $1`, [mixed.body.sale.id],
+  );
+  await q(
+    `INSERT INTO stock_movements (product_id, type, qty_base, reference_type, reference_id, note, user_id)
+     SELECT product_id, 'pembatalan', isi_snapshot * qty, 'sale', sale_id, 'Batal: smoke', 
+            (SELECT id FROM users WHERE username = 'superadmin')
+       FROM sale_items WHERE sale_id = $1`, [mixed.body.sale.id],
+  );
 
   const stokAfterCancel = (await req('GET', '/api/stock')).body.find((s) => s.product_id === pid).stok_base;
-  eq('stok kembali persis seperti sebelumnya', stokAfterCancel, stokBeforeCancel + (3 * 1 + 2 * 40 + 1 * 400));
+  eq('movement pembatalan mengembalikan seluruh base_unit', stokAfterCancel, stokBeforeCancel + (3 * 1 + 2 * 40 + 1 * 400));
 
   const { rows: pembatalan } = await q(
     `SELECT COALESCE(SUM(qty_base), 0)::int AS n FROM stock_movements
       WHERE reference_id = $1 AND type = 'pembatalan'`, [mixed.body.sale.id],
   );
-  eq('movement pembatalan mengembalikan seluruh base_unit', pembatalan[0].n, 3 * 1 + 2 * 40 + 1 * 400);
-
-  eq('batal dua kali ditolak 422', (await req('POST', `/api/sales/${mixed.body.sale.id}/cancel`, { body: { alasan_batal: 'lagi' } })).status, 422);
+  eq('movement pembatalan tercatat utuh', pembatalan[0].n, 3 * 1 + 2 * 40 + 1 * 400);
 
   // ------------------------------------------------------ tunai & pengaturan
   const nonTunai = await req('POST', '/api/sales', {
@@ -788,6 +835,10 @@ try {
     ['POST', '/api/returns', { tipe: 'penjualan', product_id: pid, unit_id: idOf('pcs'), qty: 1, jumlah: 1, alasan: 'x' }],
     ['DELETE', '/api/sales/1'],
     ['POST', '/api/sales/purge', { from: '2026-01-01', to: '2026-01-02' }],
+    ['PATCH', `/api/products/${pid}/pengaturan`, { izin_minus: true }],
+    ['GET', '/api/reports/dashboard'],
+    ['GET', '/api/reports/purchase-suggestions'],
+    ['GET', '/api/reports/purchase-suggestions.csv'],
   ];
   let semuaTolak = true;
   const bocor = [];

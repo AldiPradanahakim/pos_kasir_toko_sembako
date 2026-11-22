@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { api, TOKEN_KEY, USER_KEY } from './api';
+import { api, ApiError, TERBUKA_KEY, TOKEN_KEY, USER_KEY } from './api';
 import type { AuthUser } from './types';
 
 function bacaUserTersimpan(): AuthUser | null {
@@ -30,6 +30,7 @@ export const useAuth = create<AuthState>((set, get) => ({
     const res = await api.post<{ token: string; user: AuthUser }>('/login', { username, password });
     localStorage.setItem(TOKEN_KEY, res.token);
     localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+    sessionStorage.setItem(TERBUKA_KEY, '1');
     set({ token: res.token, user: res.user, siap: true });
   },
 
@@ -41,6 +42,7 @@ export const useAuth = create<AuthState>((set, get) => ({
     }
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem(TERBUKA_KEY);
     set({ token: null, user: null });
   },
 
@@ -49,14 +51,48 @@ export const useAuth = create<AuthState>((set, get) => ({
       set({ siap: true });
       return;
     }
+    const lupakanSesi = () => {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      set({ token: null, user: null, siap: true });
+    };
+
+    // Aplikasi baru dibuka (tab/PWA baru): kredensial wajib diketik lagi walau token tersimpan
+    // masih sah, supaya siapa pun yang memegang perangkat tidak memakai sesi orang sebelumnya.
+    const sudahDibuka = sessionStorage.getItem(TERBUKA_KEY) === '1';
+
+    // Pengecualian: perangkat memang tidak punya jaringan, sehingga login mustahil. Sesi
+    // tersimpan dipakai supaya kasir tetap bisa melayani pembeli secara offline.
+    if (!sudahDibuka && !navigator.onLine) {
+      sessionStorage.setItem(TERBUKA_KEY, '1');
+      set({ siap: true });
+      return;
+    }
+
     try {
       const res = await api.getSilent<{ user: AuthUser }>('/me');
       localStorage.setItem(USER_KEY, JSON.stringify(res.user));
-      set({ user: res.user });
-    } catch {
-      // Offline: pakai data user yang tersimpan supaya aplikasi tetap jalan.
+      if (!sudahDibuka) {
+        lupakanSesi();
+        return;
+      }
+      set({ user: res.user, siap: true });
+    } catch (err) {
+      // Server MENOLAK token (kedaluwarsa, dicabut, atau akun dinonaktifkan): sesi benar-benar
+      // berakhir. Tanpa cabang ini, token mati yang masih tersimpan di localStorage tetap
+      // membuka aplikasi lewat URL apa pun, hanya dengan API yang gagal 401 di belakangnya.
+      if (err instanceof ApiError && err.status === 401) {
+        lupakanSesi();
+        return;
+      }
+      // Server tidak menjawab. Sesi yang sudah dibuka di tab ini tetap lanjut supaya muat ulang
+      // di tengah gangguan tidak mengunci kasir; aplikasi yang baru dibuka harus lewat login.
+      if (sudahDibuka) {
+        set({ siap: true });
+        return;
+      }
+      lupakanSesi();
     }
-    set({ siap: true });
   },
 }));
 

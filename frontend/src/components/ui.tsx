@@ -81,6 +81,38 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
   );
 });
 
+/**
+ * Input rupiah: yang TERBACA selalu bertitik ribuan ("10.000", "1.000", "100.000").
+ *
+ * Pemanggil tetap memegang digit mentah ("10000") supaya nilai yang dikirim ke server tidak
+ * perlu diurai lagi, dan `parseUang` memang sudah membuang titik. Nol di depan dibuang saat
+ * diketik agar "010.000" tidak pernah tampil.
+ *
+ * Satu komponen untuk semua halaman: kalau setiap layar menulis ulang `toLocaleString`
+ * sendiri, cepat atau lambat ada kolom uang yang kembali menampilkan "10000".
+ */
+type PropsInputUang = Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'inputMode'> & {
+  /** Digit tanpa pemisah, mis. "10000". */
+  nilai: string;
+  onNilai: (digit: string) => void;
+};
+
+const digitSaja = (teks: string) => teks.replace(/[^\d]/g, '').replace(/^0+(?=\d)/, '');
+
+export function InputUang({ nilai, onNilai, className = '', ...props }: PropsInputUang) {
+  const digit = digitSaja(nilai);
+  return (
+    <Input
+      {...props}
+      inputMode="numeric"
+      autoComplete="off"
+      value={digit ? Number(digit).toLocaleString('id-ID') : ''}
+      onChange={(e) => onNilai(digitSaja(e.target.value))}
+      className={className}
+    />
+  );
+}
+
 export function Select({ className = '', ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
@@ -119,6 +151,15 @@ export function Modal({
 }) {
   const panel = useRef<HTMLDivElement>(null);
   const judulId = useId();
+  /**
+   * `onClose` disimpan di ref, TIDAK masuk daftar dependensi efek di bawah.
+   * Pemanggil selalu mengirim arrow baru (`() => setBuka(false)`), jadi kalau masuk
+   * dependensi efeknya jalan ulang tiap render; bagian pembersihnya lalu mengembalikan
+   * fokus ke tombol pembuka modal — akibatnya kolom isian kehilangan fokus setiap kali
+   * satu huruf diketik, dan kasir hanya bisa mengetik SATU huruf per kolom.
+   */
+  const tutupRef = useRef(onClose);
+  tutupRef.current = onClose;
 
   /**
    * Tiga hal yang membuat modal bisa dipakai tanpa mouse (R-32):
@@ -133,7 +174,7 @@ export function Modal({
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         e.stopPropagation();
-        onClose();
+        tutupRef.current();
         return;
       }
       if (e.key !== 'Tab' || !panel.current) return;
@@ -170,7 +211,7 @@ export function Modal({
       document.removeEventListener('keydown', onKey);
       sebelumnya?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
   return (

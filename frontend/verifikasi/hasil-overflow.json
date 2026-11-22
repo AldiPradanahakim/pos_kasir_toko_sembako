@@ -8,36 +8,7 @@
     "scrollWidth": 360,
     "innerWidth": 360,
     "bodyScrollWidth": 360,
-    "pelanggar": [
-      {
-        "tag": "div",
-        "cls": "min-w-0 rounded-lg border px-3 py-2 border-slate-200 bg-white min-w-[150px] flex-1",
-        "right": 478,
-        "left": 328,
-        "w": 150
-      },
-      {
-        "tag": "p",
-        "cls": "truncate text-xs text-slate-500",
-        "right": 465,
-        "left": 341,
-        "w": 124
-      },
-      {
-        "tag": "p",
-        "cls": "truncate text-base font-bold text-slate-800 sm:text-lg",
-        "right": 465,
-        "left": 341,
-        "w": 124
-      },
-      {
-        "tag": "p",
-        "cls": "truncate text-xs text-slate-500",
-        "right": 465,
-        "left": 341,
-        "w": 124
-      }
-    ]
+    "pelanggar": []
   },
   {
     "rute": "/kasir",
@@ -48,36 +19,7 @@
     "scrollWidth": 390,
     "innerWidth": 390,
     "bodyScrollWidth": 390,
-    "pelanggar": [
-      {
-        "tag": "div",
-        "cls": "min-w-0 rounded-lg border px-3 py-2 border-slate-200 bg-white min-w-[150px] flex-1",
-        "right": 478,
-        "left": 328,
-        "w": 150
-      },
-      {
-        "tag": "p",
-        "cls": "truncate text-xs text-slate-500",
-        "right": 465,
-        "left": 341,
-        "w": 124
-      },
-      {
-        "tag": "p",
-        "cls": "truncate text-base font-bold text-slate-800 sm:text-lg",
-        "right": 465,
-        "left": 341,
-        "w": 124
-      },
-      {
-        "tag": "p",
-        "cls": "truncate text-xs text-slate-500",
-        "right": 465,
-        "left": 341,
-        "w": 124
-      }
-    ]
+    "pelanggar": []
   },
   {
     "rute": "/kasir",

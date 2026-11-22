@@ -1,4 +1,5 @@
-import { Card, Kosong, Stat } from '../../components/ui';
+import { useState } from 'react';
+import { Card, Input, Kosong, Stat } from '../../components/ui';
 import { formatTanggal, formatTanggalJam, labelMetode, rupiah } from '../../lib/format';
 
 /** Judul kolom bahasa Indonesia. Kolom baru dari laporan lanjutan cukup ditambah di sini. */
@@ -10,7 +11,7 @@ export const LABEL: Record<string, string> = {
   created_at: 'Waktu',
   no_struk: 'No Struk',
   nama: 'Nama',
-  nama_pelanggan: 'Pelanggan',
+  nama_pelanggan: 'Tuan/Nyonya',
   tipe: 'Jenis',
   tipe_arus: 'Jenis',
   kategori: 'Kategori',
@@ -100,6 +101,12 @@ export const LABEL: Record<string, string> = {
   minus: 'Stok Minus',
   base_unit: 'Satuan',
   display: 'Stok',
+  jam: 'Jam',
+  shift_mulai: 'Shift Mulai',
+  shift_selesai: 'Shift Selesai',
+  jumlah_bon: 'Jumlah Bon',
+  telepon: 'Telepon',
+  items: 'Item Terjual',
 };
 
 /** Kolom rupiah. `(^|_)saldo` supaya `produk_bersaldo` (jumlah produk) tidak ikut diformat uang. */
@@ -188,58 +195,85 @@ export function TabelLaporan({
   rows,
   kosong,
   sembunyi = [],
+  cari,
 }: {
   rows: Record<string, unknown>[];
   kosong?: string;
   /** Nama kolom yang tidak ditampilkan (mis. `total` pada laporan pembelian yang kini berbasis qty). */
   sembunyi?: string[];
+  /** Teks placeholder kolom pencarian; tanpa ini tabel tampil apa adanya (mis. tabel ringkasan). */
+  cari?: string;
 }) {
+  const [kata, setKata] = useState('');
+  const q = kata.trim().toLowerCase();
+  // Menyaring lewat nilai yang BENAR-BENAR tampil, jadi yang dicari pengguna pasti ketemu.
+  const tampil = q
+    ? rows.filter((r) => Object.keys(r).some((k) => tampilNilai(k, r[k]).toLowerCase().includes(q)))
+    : rows;
+
   if (!rows.length) return <Kosong>{kosong ?? 'Tidak ada data pada rentang ini.'}</Kosong>;
-  const { kolom, total } = hitung(rows, sembunyi);
+  const { kolom, total } = hitung(tampil, sembunyi);
   const adaTotal = Object.keys(total).length > 0;
 
   return (
-    <div className="tabel-scroll">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-slate-100 text-left text-xs uppercase text-slate-500">
-            {kolom.map((k) => (
-              <th key={k} className="whitespace-nowrap py-2 pr-3">
-                {judulKolom(k)}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={i} className="border-b border-slate-50">
-              {kolom.map((k) => (
-                <td key={k} className="whitespace-nowrap py-2 pr-3">
-                  {tampilNilai(k, r[k])}
-                </td>
+    <div className="min-w-0">
+      {cari && (
+        <div className="no-print mb-3">
+          <Input
+            type="search"
+            value={kata}
+            onChange={(e) => setKata(e.target.value)}
+            placeholder={cari}
+            aria-label={cari}
+          />
+        </div>
+      )}
+      {!tampil.length ? (
+        <Kosong>Tidak ada baris yang cocok dengan pencarian "{kata.trim()}".</Kosong>
+      ) : (
+        <div className="tabel-scroll">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-100 text-left text-xs uppercase text-slate-500">
+                {kolom.map((k) => (
+                  <th key={k} className="whitespace-nowrap py-2 pr-3">
+                    {judulKolom(k)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {tampil.map((r, i) => (
+                <tr key={i} className="border-b border-slate-50">
+                  {kolom.map((k) => (
+                    <td key={k} className="whitespace-nowrap py-2 pr-3">
+                      {tampilNilai(k, r[k])}
+                    </td>
+                  ))}
+                </tr>
               ))}
-            </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr className="border-t border-slate-200 font-semibold">
-            {kolom.map((k, i) => (
-              <td key={k} className="whitespace-nowrap py-2 pr-3">
-                {i === 0
-                  ? // Kolom pertama tetap menampilkan nilainya kalau bisa dijumlahkan (mis. tabel per kategori).
-                    k in total
-                    ? `TOTAL · ${tampilNilai(k, total[k])}`
-                    : 'TOTAL'
-                  : k in total
-                    ? tampilNilai(k, total[k])
-                    : !adaTotal && i === kolom.length - 1
-                      ? `${rows.length} baris`
-                      : ''}
-              </td>
-            ))}
-          </tr>
-        </tfoot>
-      </table>
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-slate-200 font-semibold">
+                {kolom.map((k, i) => (
+                  <td key={k} className="whitespace-nowrap py-2 pr-3">
+                    {i === 0
+                      ? // Kolom pertama tetap menampilkan nilainya kalau bisa dijumlahkan (mis. tabel per kategori).
+                        k in total
+                        ? `TOTAL · ${tampilNilai(k, total[k])}`
+                        : 'TOTAL'
+                      : k in total
+                        ? tampilNilai(k, total[k])
+                        : !adaTotal && i === kolom.length - 1
+                          ? `${tampil.length} baris`
+                          : ''}
+                  </td>
+                ))}
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

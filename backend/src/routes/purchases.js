@@ -33,7 +33,7 @@ async function purchaseDetail(where, params) {
   return { ...purchase, user: { id: purchase.user_id, name: purchase.user_name }, items };
 }
 
-router.get('/purchases', requireSuperadmin, async (req, res) => {
+router.get('/purchases', async (req, res) => {
   const from = dateOrNull(req.query.from);
   const to = dateOrNull(req.query.to);
   const supplier = toStr(req.query.supplier);
@@ -54,7 +54,7 @@ router.get('/purchases', requireSuperadmin, async (req, res) => {
   res.json(rows);
 });
 
-router.get('/purchases/:id', requireSuperadmin, async (req, res) => {
+router.get('/purchases/:id', async (req, res) => {
   const id = toInt(req.params.id);
   if (id === null) throw new ApiError(404, 'Pembelian tidak ditemukan');
   const purchase = await purchaseDetail('pu.id = $1', [id]);
@@ -70,7 +70,9 @@ router.get('/purchases/:id', requireSuperadmin, async (req, res) => {
  * yang ditulis. `harga_beli` dari klien (bila masih dikirim versi lama) diabaikan, bukan
  * ditolak. `qty_base` = `isi_snapshot × qty`.
  */
-router.post('/purchases', requireSuperadmin, async (req, res) => {
+/** Barang masuk dari supplier. Boleh kasir: barang datang saat kasir jaga, bukan menunggu
+ * pemilik. Menghapus pembelian tetap superadmin karena membalik stok yang sudah tercatat. */
+router.post('/purchases', async (req, res) => {
   const items = req.body?.items;
   if (!Array.isArray(items) || items.length === 0) throw new ApiError(422, 'items tidak boleh kosong');
 

@@ -8,7 +8,8 @@
 import { test, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  resetDb, seedMaster, createUser, startServer, login, productFixture, stokOf, closePool, q,
+  resetDb, seedMaster, createUser, startServer, login, productFixture, stokOf, closePool, q, pool,
+  tandaiDibatalkan,
 } from './helper.js';
 import { runBackfillKas } from '../scripts/backfill-kas.js';
 
@@ -104,7 +105,8 @@ test('12. transaksi yang sudah dibatalkan tidak dikembalikan stoknya dua kali sa
     token,
     body: saleBody([{ product_id: fx.productId, unit_id: fx.dusId, qty: 2 }]),
   });
-  await api.req('POST', `/api/sales/${sale.body.sale.id}/cancel`, { token, body: { alasan_batal: 'salah input' } });
+  // Baris lama berstatus dibatalkan (dari sebelum pembatalan dihapus dari aplikasi).
+  await tandaiDibatalkan(sale.body.sale.id, 'salah input');
   assert.equal((await stokOf(api.req, token, fx.productId)).stok_base, 200, 'pembatalan sudah mengembalikan stok');
 
   // Pembatalan menulis kas keluar penyeimbang; keduanya hilang bersama transaksinya.
@@ -277,7 +279,7 @@ test('17. omset hanya untuk superadmin dan konsisten dengan transaksi berjalan',
   const total = a.body.sale.total + b.body.sale.total;
 
   // Transaksi yang dibatalkan tidak boleh ikut terhitung.
-  await api.req('POST', `/api/sales/${b.body.sale.id}/cancel`, { token, body: { alasan_batal: 'salah' } });
+  await tandaiDibatalkan(b.body.sale.id, 'salah');
 
   const omzet = (await api.req('GET', '/api/reports/omzet', { token })).body;
   assert.equal(omzet.hari_ini.total, a.body.sale.total);
@@ -315,11 +317,9 @@ test('19. kasir ditolak 403 di seluruh endpoint baru milik superadmin', async ()
     ['GET', '/api/cash-flows/summary', undefined],
     ['POST', '/api/cash-flows', { tipe: 'keluar', kategori: 'listrik', jumlah: 1000 }],
     ['DELETE', '/api/cash-flows/1', undefined],
-    ['GET', '/api/purchases', undefined],
-    ['POST', '/api/purchases', { items: [{ product_id: fx.productId, unit_id: fx.pcsId, qty: 1, harga_beli: 1000 }] }],
     ['DELETE', '/api/purchases/1', undefined],
-    ['GET', '/api/debts', undefined],
-    ['POST', '/api/debts', { tipe: 'utang', pihak: 'Supplier', jumlah: 1000 }],
+    ['PUT', '/api/debts/1', { jumlah: 1 }],
+    ['DELETE', '/api/debts/1', undefined],
     ['GET', '/api/reports/omzet', undefined],
     ['GET', '/api/reports/umum', undefined],
     ['GET', '/api/reports/transactions', undefined],
@@ -334,10 +334,12 @@ test('19. kasir ditolak 403 di seluruh endpoint baru milik superadmin', async ()
     ['GET', '/api/reports/stock-flow.csv', undefined],
     ['GET', '/api/reports/cash-flow.csv', undefined],
     ['POST', '/api/stock-opnames', { items: [{ product_id: fx.productId, stok_fisik: 1 }] }],
-    ['POST', '/api/returns', { tipe: 'penjualan', product_id: fx.productId, unit_id: fx.pcsId, qty: 1, jumlah: 100, alasan: 'rusak' }],
     ['DELETE', '/api/returns/1', undefined],
     ['DELETE', `/api/sales/1`, undefined],
     ['POST', '/api/sales/purge', { from: '2026-01-01', to: '2026-01-02' }],
+    ['PATCH', `/api/products/${fx.productId}/pengaturan`, { izin_minus: true }],
+    ['GET', '/api/reports/dashboard', undefined],
+    ['GET', '/api/reports/purchase-suggestions.csv', undefined],
   ];
 
   for (const [method, path, body] of denied) {
@@ -350,11 +352,59 @@ test('19. kasir ditolak 403 di seluruh endpoint baru milik superadmin', async ()
   assert.equal((await api.req('GET', '/api/product-aliases', { token: kasir })).status, 200);
   assert.equal((await api.req('GET', '/api/returns', { token: kasir })).status, 200);
   assert.equal((await api.req('GET', '/api/stock-opnames', { token: kasir })).status, 200);
+  // Menu Retur, Hutang & Piutang, dan Pembelian dipakai kasir: baca + catat boleh,
+  // membatalkan/menghapus/mengubah tetap superadmin (diuji di atas).
+  assert.equal((await api.req('GET', '/api/purchases', { token: kasir })).status, 200);
+  assert.equal((await api.req('GET', '/api/debts', { token: kasir })).status, 200);
+  assert.equal((await api.req('GET', '/api/debts/pelanggan?tipe=piutang', { token: kasir })).status, 200);
+  assert.equal((await api.req('GET', '/api/reports/purchase-suggestions', { token: kasir })).status, 200);
   // Stok masuk massal adalah alur OCR yang dipakai kasir, seperti POST /stock/in.
   assert.equal((await api.req('POST', '/api/stock/in/bulk', {
     token: kasir,
     body: { items: [{ product_id: fx.productId, unit_id: fx.pcsId, qty: 1 }] },
   })).status, 201);
+});
+
+test('kasir bisa mencatat retur, pelunasan hutang, dan barang masuk; koreksinya tetap superadmin', async () => {
+  // Barang masuk: stok bertambah, tanpa baris kas (pembelian tidak memakai uang).
+  const beli = await api.req('POST', '/api/purchases', {
+    token: kasir,
+    body: { items: [{ product_id: fx.productId, unit_id: fx.dusId, qty: 2 }] },
+  });
+  assert.equal(beli.status, 201, 'kasir mencatat barang masuk yang datang saat dia jaga');
+  assert.equal(Number((await stokOf(api.req, token, fx.productId)).stok_base), 80, '2 dus x 40 pcs');
+
+  // Retur penjualan: barang kembali ke stok, uang keluar dari laci.
+  const retur = await api.req('POST', '/api/returns', {
+    token: kasir,
+    body: {
+      tipe: 'penjualan', product_id: fx.productId, unit_id: fx.pcsId, qty: 3, jumlah: 9_000, alasan: 'kemasan rusak',
+    },
+  });
+  assert.equal(retur.status, 201);
+  assert.equal(retur.body.user_name, 'Kasir Satu', 'retur tercatat atas nama kasir yang melayani');
+  assert.equal(Number((await stokOf(api.req, token, fx.productId)).stok_base), 83);
+
+  // Hutang: kasir mencatat, lalu melunasi sebagian.
+  const utang = await api.req('POST', '/api/debts', {
+    token: kasir, body: { tipe: 'utang', pihak: 'Supplier Gula', jumlah: 50_000 },
+  });
+  assert.equal(utang.status, 201);
+  const bayar = await api.req('POST', `/api/debts/${utang.body.id}/bayar`, {
+    token: kasir, body: { jumlah: 20_000 },
+  });
+  assert.equal(bayar.status, 200, 'pelunasan dicatat kasir');
+  assert.equal(Number(bayar.body.sisa), 30_000);
+
+  // Koreksi pembukuan tetap milik superadmin.
+  assert.equal((await api.req('PUT', `/api/debts/${utang.body.id}`, { token: kasir, body: { jumlah: 1 } })).status, 403);
+  assert.equal((await api.req('DELETE', `/api/debts/${utang.body.id}`, { token: kasir })).status, 403);
+  assert.equal((await api.req('DELETE', `/api/returns/${retur.body.id}`, { token: kasir })).status, 403);
+  assert.equal((await api.req('DELETE', `/api/purchases/${beli.body.id}`, { token: kasir })).status, 403);
+
+  // Superadmin tetap bisa mengoreksinya, dan stok kembali seperti semula.
+  assert.equal((await api.req('DELETE', `/api/returns/${retur.body.id}`, { token })).status, 200);
+  assert.equal(Number((await stokOf(api.req, token, fx.productId)).stok_base), 80);
 });
 
 test('20. backfill kas melengkapi transaksi lama, idempotent, dan tidak menyentuh baris yang ada', async () => {
@@ -396,7 +446,7 @@ test('20. backfill kas melengkapi transaksi lama, idempotent, dan tidak menyentu
     body: saleBody([{ product_id: fx.productId, unit_id: fx.pcsId, qty: 2 }]),
   });
   const batalId = batal.body.sale.id;
-  await api.req('POST', `/api/sales/${batalId}/cancel`, { token, body: { alasan_batal: 'salah input' } });
+  await tandaiDibatalkan(batalId, 'salah input');
   await q(`DELETE FROM cash_flows WHERE ref_type = 'sale' AND ref_id = $1`, [batalId]);
 
   const run3 = await runBackfillKas(process.env.DATABASE_URL, { log: () => {} });
@@ -477,4 +527,91 @@ test('22. hapus pembelian tetap jalan tanpa baris kas, dan menyapu baris kas war
   assert.equal((await api.req('DELETE', `/api/purchases/${lama}`, { token })).status, 200);
   assert.equal((await stokOf(api.req, token, fx.productId)).stok_base, 0);
   assert.equal((await cashFlows('?from=2026-09-13&to=2026-09-13')).rows.length, 0);
+});
+
+test('23. saran pembelian memakai satuan hitung yang sama dengan halaman stok', async () => {
+  // Produk dengan tiga satuan; satuan hitung yang DIPILIH superadmin (slop) sengaja
+  // bukan yang terbesar (dus), supaya satuan terbesar tidak bisa lolos sebagai jawaban.
+  const units = (await api.req('GET', '/api/units', { token })).body;
+  const idOf = (n) => units.find((u) => u.name === n).id;
+  const cat = (await api.req('GET', '/api/categories', { token })).body[0];
+  const prod = await api.req('POST', '/api/products', {
+    token,
+    body: {
+      name: 'Rokok Tiga Satuan',
+      category_id: cat.id,
+      base_unit: 'pcs',
+      base_unit_id: idOf('slop'),
+      izin_minus: true,
+      units: [
+        { unit_id: idOf('pcs'), isi: 1, harga_jual: 2500, harga_modal: 2000 },
+        { unit_id: idOf('slop'), isi: 12, harga_jual: 29000, harga_modal: 24000 },
+        { unit_id: idOf('dus'), isi: 144, harga_jual: 340000, harga_modal: 288000 },
+      ],
+    },
+  });
+  assert.equal(prod.status, 201);
+  const pid = prod.body.id;
+
+  // Tanpa stok, produk ini masuk saran pembelian (stok <= 0) dan saran pembelian harus
+  // menyebut satuan yang sama dengan GET /stock — bukan satuan terbesar.
+  const stok = (await api.req('GET', '/api/stock', { token })).body.find((r) => r.product_id === pid);
+  assert.equal(stok.satuan_hitung, 'slop');
+  assert.equal(stok.stok_hitung, 0);
+
+  const saran = (await api.req('GET', '/api/reports/purchase-suggestions', { token })).body;
+  const baris = saran.items.find((i) => i.product_id === pid);
+  assert.ok(baris, 'produk berstok 0 harus muncul di saran pembelian');
+  assert.equal(baris.satuan_hitung, stok.satuan_hitung);
+  assert.equal(baris.satuan_hitung_isi, 12);
+  assert.equal(baris.stok_hitung, stok.stok_hitung);
+
+  // CSV yang dibawa ke supplier memakai satuan yang sama juga.
+  const csv = (await api.req('GET', '/api/reports/purchase-suggestions.csv', { token })).body;
+  const barisCsv = csv.split('\r\n').find((l) => l.startsWith('Rokok Tiga Satuan,'));
+  assert.ok(barisCsv, 'produk harus ada di CSV saran pembelian');
+  assert.equal(barisCsv.split(',')[2], 'slop');
+});
+
+test('24. penjualan yang menunggu kunci produk membaca stok SETELAH lawannya commit', async () => {
+  // Kasus yang dulu bocor: stok diperiksa di pernyataan yang sama dengan `FOR UPDATE`,
+  // sehingga subquery SUM-nya masih memakai snapshot sebelum transaksi saingan commit.
+  // Dua sync bersamaan jadi sama-sama lolos dan stok minus tanpa izin.
+  //
+  // Di sini balapannya dibuat PASTI, bukan bergantung waktu: transaksi saingan mengunci
+  // baris produk dan menghabiskan stok, lalu permintaan penjualan ditembakkan (ia pasti
+  // menunggu kunci itu), baru transaksi saingan commit.
+  assert.equal((await api.req('PATCH', `/api/products/${fx.productId}/pengaturan`, {
+    token, body: { izin_minus: false },
+  })).status, 200);
+  await api.req('POST', '/api/stock/in', { token, body: { product_id: fx.productId, unit_id: fx.pcsId, qty: 30 } });
+
+  const saingan = await pool.connect();
+  try {
+    await saingan.query('BEGIN');
+    await saingan.query('SELECT id FROM products WHERE id = $1 FOR UPDATE', [fx.productId]);
+    await saingan.query(
+      `INSERT INTO stock_movements (product_id, type, qty_base, reference_type, note)
+       VALUES ($1, 'keluar', -30, 'sale', 'balapan')`,
+      [fx.productId],
+    );
+
+    const sale = api.req('POST', '/api/sales', {
+      token,
+      body: saleBody([{ product_id: fx.productId, unit_id: fx.pcsId, qty: 30 }], { uuid: 'balapan' }),
+    });
+    // Beri waktu permintaan itu sampai ke database dan benar-benar menunggu kunci.
+    await new Promise((r) => setTimeout(r, 300));
+    await saingan.query('COMMIT');
+
+    const hasil = await sale;
+    assert.equal(hasil.status, 422, `stok sudah habis, harus 422, dapat ${hasil.status}`);
+    assert.match(hasil.body.error, /izin jual stok kosong/);
+  } finally {
+    saingan.release();
+  }
+  // Penjualan yang ditolak tidak menulis apa pun, dan stok tidak pernah jadi minus.
+  assert.equal((await stokOf(api.req, token, fx.productId)).stok_base, 0);
+  const { rows } = await q('SELECT count(*)::int AS n FROM sales WHERE uuid = $1', ['balapan']);
+  assert.equal(rows[0].n, 0);
 });

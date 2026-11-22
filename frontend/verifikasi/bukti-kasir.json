@@ -2,7 +2,6 @@
   "catatan": [],
   "susunan": {
     "judulKartu": [
-      "Keranjang (0)",
       "Pembayaran"
     ],
     "adaJudulDaftarProduk": false,
@@ -10,27 +9,27 @@
     "tombolMetodeBayar": [],
     "teksMetodeBayar": false,
     "kotakNamaPelanggan": {
-      "atas": 110,
-      "kiri": 25,
-      "lebar": 340
+      "atas": 264,
+      "kiri": 21,
+      "lebar": 348
     },
     "kotakCari": {
-      "atas": 192,
-      "kiri": 25,
-      "lebar": 340
+      "atas": 212,
+      "kiri": 21,
+      "lebar": 348
     },
     "kotakKeranjang": {
-      "atas": 261,
+      "atas": 337,
       "kiri": 12,
       "lebar": 366
     },
     "kolomKeranjang": {
-      "atas": 73,
+      "atas": 203,
       "kiri": 12,
       "lebar": 366
     },
     "kolomPembayaran": {
-      "atas": 519,
+      "atas": 490,
       "kiri": 12,
       "lebar": 366
     },
@@ -76,12 +75,12 @@
     "namaTampil": [
       "Sedaap Soto",
       "Makanan",
+      "Sisa 17,95 dus",
       "Mie Sedaap Soto",
       "Makanan",
+      "Sisa -1 dus · stok kosong (sisa -1 dus), minta izin superadmin",
       "Mie Sedaap Kari Spesial",
-      "Makanan",
-      "Keranjang kosong. Cari barang di kotak pencarian di atas.",
-      "Total Pembayaran"
+      "Makanan"
     ]
   },
   "hasilCariKategori": {
@@ -109,7 +108,7 @@
       },
       {
         "teks": "Subtotal",
-        "terlihat": true
+        "terlihat": false
       },
       {
         "teks": "Hapus",
@@ -119,38 +118,74 @@
     "jumlahBaris": 1,
     "baris": [
       [
-        "Sedaap Soto / pcs",
-        "1",
+        "1 / Sedaap Soto / pcs / Rp 2.700",
+        "− / 1 / +",
         "Rp 2.700",
         "Rp 2.700",
         "✕"
       ]
     ],
-    "total": "TOTAL\tRp 2.700"
+    "total": "Rp 2.700"
+  },
+  "nomorBaris": [
+    "1"
+  ],
+  "namaPelangganHuruf": {
+    "diketik": "Bu Siti 88 !!",
+    "tersimpan": "Bu Siti  "
   },
   "tambahLewatEnter": {
     "barisSebelum": 1,
-    "barisSesudah": 2,
+    "barisSesudah": 1,
     "barisTerakhir": [
-      "Indomie Goreng / pcs",
-      "1",
-      "Rp 3.500",
-      "Rp 3.500",
+      "1 / Sedaap Soto / pcs / Rp 2.700",
+      "− / 1 / +",
+      "Rp 2.700",
+      "Rp 2.700",
       "✕"
     ],
-    "pesan": "Ditambahkan: Indomie Goreng (pcs)"
+    "pesan": null
+  },
+  "qtyLangsung": {
+    "sebelum": "1",
+    "setelahPlus": "2",
+    "setelahMinus": "1",
+    "dialogTerbuka": false
+  },
+  "qtyMinimum": {
+    "sebelumDikurangi": "3",
+    "qty": "1",
+    "tombolMinusNonaktif": true
+  },
+  "popUp": {
+    "terbuka": true,
+    "judul": "Sedaap Soto",
+    "diDalamTabel": false,
+    "barisTabelSaatPopUp": 1,
+    "adaTombolQty": true,
+    "adaHapus": true,
+    "adaAlasanAwal": false,
+    "alasanSetelahHargaDiubah": true,
+    "simpanTerkunciTanpaAlasan": true,
+    "setelahSimpan": {
+      "dialogTertutup": true,
+      "baris": "1 Sedaap Soto pcs · harga diubah Rp 9.999 − 1 + ✕",
+      "adaPenandaHargaDiubah": true,
+      "judulAlasan": "Alasan ubah harga: uji verifikasi"
+    }
   },
   "kolomDibayar": {
-    "tag": "BUTTON",
-    "type": "button",
-    "contenteditable": null,
-    "inputDiDalamnya": 0
+    "ada": true,
+    "terlihat": true,
+    "type": null,
+    "inputmode": "numeric"
   },
   "saatKalkulatorTerbuka": {
     "adaModal": true,
     "judulModal": "Masukkan Jumlah Dibayar",
     "kolomEditableDiModal": 0,
     "elemenAktif": "BUTTON",
+    "kolomDibayarTerfokus": false,
     "jumlahTab": 0,
     "teksModeKembalian": false
   },
@@ -161,53 +196,64 @@
   },
   "setelahEnter": {
     "modalMasihTerbuka": false,
-    "nilaiDibayar": "Rp 50.000",
-    "kembalian": "Rp 43.800",
-    "totalTabel": "TOTAL\tRp 6.200"
+    "nilaiDibayar": "50.000",
+    "kembalian": "Rp 40.001",
+    "totalTabel": "Rp 9.999"
   },
   "escape": {
     "modalMasihTerbuka": false
   },
   "simpanStruk": {
-    "uuid": "50adc1fb-7174-4634-a1f1-9d2183bc0e5a",
+    "uuid": "55561712-9c73-494d-960f-42067dca459e",
     "printSebelum": 0,
     "printSesudah": 0,
     "adaNamaPelanggan": true,
-    "struk": "TOKO HAKIM\n\nNo\nINV-20260921-0006\nTanggal\n21/09/2026, 19.49\nKasir\nAldi Pradana Hakim\nPelanggan\nPelanggan Uji Simpan\n\nSedaap Soto\n\n1 pcs x Rp 2.700\nRp 2.700\n\nIndomie Goreng\n\n1 pcs x Rp 3.500\nRp 3.500\nTOTAL\nRp 6.200\nMetode\nTunai\nDibayar\nRp 50.000\nKembalian\nRp 43.800\n\nTerima kasih telah berbelanja\n\nBarang yang sudah dibeli tidak dapat ditukar"
+    "struk": "TOKO HAKIM\n\nNo\nINV-2026-000121\nTanggal\n20/10/2026, 13.20\nKasir\nAldi Pradana Hakim\nTuan/Nyonya\nPelanggan Uji Simpan\n\nSedaap Soto\n\n1 pcs x Rp 9.999\nRp 9.999\n\n* harga diubah: uji verifikasi\n\nTOTAL\nRp 9.999\nMetode\nTunai\nDibayar\nRp 50.000\nKembalian\nRp 40.001\n\nTerima kasih telah berbelanja\n\nBarang yang sudah dibeli tidak dapat ditukar"
   },
   "penjualanTersimpan": {
     "status": 200,
-    "id": 43,
+    "id": 191,
     "metode_bayar": "tunai",
     "dibayar": 50000,
-    "kembalian": 43800,
-    "total": 6200,
+    "kembalian": 40001,
+    "total": 9999,
     "nama_pelanggan": "Pelanggan Uji Simpan"
   },
   "cetakStruk": {
-    "uuid": "b1b6ec56-4615-4b9e-81f0-5cf8cf462552",
+    "uuid": "3d9e478a-30ee-4ee0-8eab-6bb670fec270",
     "printSesudah": 1,
-    "struk": "TOKO HAKIM\n\nNo\nINV-20260921-0007\nTanggal\n21/09/2026, 19.49\nKasir\nAldi Pradana Hakim\nPelanggan\nPelanggan Uji Cetak\n\nSedaap Soto\n\n1 pcs x Rp 2.700\nRp 2.700\nTOTAL\nRp 2.700\nMetode\nTunai\nDibayar\nRp 2.700\nKembalian\nRp 0\n\nTerima kasih telah berbelanja\n\nBarang yang sudah dibeli tidak dapat ditukar"
+    "struk": "TOKO HAKIM\n\nNo\nINV-2026-000122\nTanggal\n20/10/2026, 13.20\nKasir\nAldi Pradana Hakim\nTuan/Nyonya\nPelanggan Uji Cetak\n\nSedaap Soto\n\n1 pcs x Rp 2.700\nRp 2.700\nTOTAL\nRp 2.700\nMetode\nTunai\nDibayar\nRp 2.700\nKembalian\nRp 0\n\nTerima kasih telah berbelanja\n\nBarang yang sudah dibeli tidak dapat ditukar"
   },
   "omzet": {
     "permintaanOmzet": [],
     "respons403": []
   },
+  "laptop": {
+    "pointerFine": true,
+    "inputTampil": true,
+    "tombolKalkulatorTerpisah": false,
+    "terfokusSetelahKlik": true,
+    "kalkulatorTerbukaSetelahKlik": false,
+    "nilaiDiketik": "50.000",
+    "kembalian": "Rp 47.300",
+    "kalkulatorTerbuka": false,
+    "nomorBarisPertama": "1 Sedaap Soto pcs"
+  },
   "pembersihan": [
     {
-      "uuid": "50adc1fb-7174-4634-a1f1-9d2183bc0e5a",
-      "id": 43,
+      "uuid": "55561712-9c73-494d-960f-42067dca459e",
+      "id": 191,
       "statusHapus": 200,
       "hasil": {
         "ok": true,
         "deleted": 1,
-        "restored_movements": 2,
+        "restored_movements": 1,
         "restore_stock": true
       }
     },
     {
-      "uuid": "b1b6ec56-4615-4b9e-81f0-5cf8cf462552",
-      "id": 44,
+      "uuid": "3d9e478a-30ee-4ee0-8eab-6bb670fec270",
+      "id": 192,
       "statusHapus": 200,
       "hasil": {
         "ok": true,

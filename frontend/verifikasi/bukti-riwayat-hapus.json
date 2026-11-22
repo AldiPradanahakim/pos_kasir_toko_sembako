@@ -1,9 +1,13 @@
 {
+  "saleUji": {
+    "id": 174,
+    "no_struk": "INV-2026-000104"
+  },
   "superadmin": {
     "adaBaris": true,
     "teksHapusPerBaris": true,
     "teksHapusRentang": true,
-    "teksBatalkan": true,
+    "teksBatalkan": false,
     "tombolHapus": [
       {
         "teks": "Hapus Riwayat per Tanggal",
@@ -30,40 +34,88 @@
         "lebar": 314
       }
     ],
-    "tombolBatalkan": [
-      {
-        "teks": "Batalkan Transaksi",
-        "warna": "rgb(255, 251, 235)",
-        "tinggi": 46,
-        "lebar": 314
-      },
-      {
-        "teks": "Batalkan Transaksi",
-        "warna": "rgb(255, 251, 235)",
-        "tinggi": 46,
-        "lebar": 314
-      }
+    "tombolBatalkan": [],
+    "tombolAksi": [
+      "Detail",
+      "Cetak ulang",
+      "Hapus Permanen",
+      "Detail",
+      "Cetak ulang",
+      "Hapus Permanen",
+      "Detail",
+      "Cetak ulang",
+      "Hapus Permanen",
+      "Detail",
+      "Cetak ulang",
+      "Hapus Permanen",
+      "Detail",
+      "Cetak ulang",
+      "Hapus Permanen",
+      "Detail",
+      "Cetak ulang",
+      "Hapus Permanen",
+      "Detail",
+      "Cetak ulang",
+      "Hapus Permanen",
+      "Detail",
+      "Cetak ulang",
+      "Hapus Permanen",
+      "Detail",
+      "Cetak ulang",
+      "Hapus Permanen",
+      "Detail",
+      "Cetak ulang",
+      "Hapus Permanen",
+      "Detail",
+      "Cetak ulang",
+      "Hapus Permanen",
+      "Detail",
+      "Cetak ulang",
+      "Hapus Permanen"
     ]
   },
   "kasir": {
     "adaBaris": true,
     "teksHapusPerBaris": false,
     "teksHapusRentang": false,
-    "teksBatalkan": true,
+    "teksBatalkan": false,
     "tombolHapus": [],
-    "tombolBatalkan": [
-      {
-        "teks": "Batalkan Transaksi",
-        "warna": "rgb(255, 251, 235)",
-        "tinggi": 46,
-        "lebar": 314
-      },
-      {
-        "teks": "Batalkan Transaksi",
-        "warna": "rgb(255, 251, 235)",
-        "tinggi": 46,
-        "lebar": 314
-      }
+    "tombolBatalkan": [],
+    "tombolAksi": [
+      "Detail",
+      "Cetak ulang",
+      "Detail",
+      "Cetak ulang",
+      "Detail",
+      "Cetak ulang",
+      "Detail",
+      "Cetak ulang",
+      "Detail",
+      "Cetak ulang",
+      "Detail",
+      "Cetak ulang",
+      "Detail",
+      "Cetak ulang",
+      "Detail",
+      "Cetak ulang",
+      "Detail",
+      "Cetak ulang",
+      "Detail",
+      "Cetak ulang",
+      "Detail",
+      "Cetak ulang",
+      "Detail",
+      "Cetak ulang"
     ]
+  },
+  "pembersihan": {
+    "id": 174,
+    "status": 200,
+    "hasil": {
+      "ok": true,
+      "deleted": 1,
+      "restored_movements": 1,
+      "restore_stock": true
+    }
   }
 }

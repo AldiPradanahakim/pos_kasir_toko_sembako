@@ -15,10 +15,53 @@ Ada **dua peran** pengguna:
 - **Kasir** — melayani penjualan di halaman `/kasir` (cari produk, scan barcode, pilih satuan, atur jumlah,
   masukkan uang tunai, cetak struk), melihat dan mencetak ulang riwayat transaksi, melihat stok,
   dan menambah stok masuk. Kasir juga boleh mengubah harga saat melayani, tapi wajib menuliskan alasannya.
+  Di tabel keranjang, qty diubah langsung dengan tombol **−** dan **+** di barisnya (kotaknya kecil, 28px);
+  mengetuk nama barang atau angka qty membuka pop up untuk mengubah qty/harga atau menghapus barangnya.
+  Tiap baris bernomor di samping nama barangnya, dan nama pelanggan hanya menerima huruf.
+  Kartu Pembayaran menampilkan **jumlah barang** dan **total qty** keranjang; angka yang sama
+  tercetak di struk sebagai baris "Jumlah".
+  Untuk pelanggan yang datang membawa **daftar belanja**, tombol **Scan Nota** di baris alat membaca
+  foto/tangkapan layar nota itu (OCR di perangkat), lalu menampilkan barangnya — nama, jumlah, dan
+  jenis/satuan seperti *renteng*, *pack*, *dus* — untuk diperiksa dan dicentang kasir. Singkatan juga
+  dikenali selama inisialnya diisi di halaman Satuan: `2 (r) Beng Beng` terbaca dua renceng, `3 P Indomie`
+  terbaca tiga pack. Harga yang dipakai adalah harga jual master produk, **bukan** angka di nota.
+  Kasir membuka kas dengan **modal awal** dan menutupnya dengan **uang fisik yang dihitung**; sesudah
+  ditutup, laporan penutupannya langsung terbuka sekali di layar kasir (modal, uang seharusnya, uang
+  fisik, selisih, omzet) dan bisa dicetak. Riwayat seluruh kas ada di menu **Riwayat Kas** (`/kas`)
+  yang khusus superadmin: kasir tidak melihat daftar kas kasir lain.
+  Uang laci yang **dipakai selama shift** (beli barang dagangan, bayar ongkos, bayar tukang) dicatat
+  lewat tombol **Kas Keluar** di layar kasir, wajib menyebut dipakai untuk apa. Jumlahnya langsung
+  mengurangi *seharusnya di laci*, dan rinciannya (jam, keterangan, jumlah) ikut tercetak di laporan
+  tutup kas — tanpa itu selisih kas selalu terlihat kurang sebesar uang yang sudah dibelanjakan.
+  Salah catat bisa dibatalkan selama kas masih terbuka. **Retur penjualan** dan **pelunasan
+  hutang/piutang** yang dilakukan kasir juga langsung menempel ke shift-nya, jadi uang yang keluar
+  atau masuk lewat kedua menu itu ikut tercocokkan saat tutup kas.
+  Semua kolom uang di aplikasi menampilkan titik ribuan saat diketik (`10.000`, `1.000`, `100.000`);
+  angka yang dikirim ke server tetap digit murni.
+  Kasir juga memegang menu **Retur**, **Hutang & Piutang**, dan **Pembelian**: mencatat barang
+  kembali, mencatat/melunasi hutang-piutang, dan mencatat barang masuk dari supplier. Yang tetap
+  milik superadmin adalah koreksinya — ubah nominal, hapus catatan, hapus pembelian — karena itu
+  membalik stok dan kas yang sudah tercatat.
 - **Superadmin** — semua yang bisa dilakukan kasir, ditambah mengelola produk/kategori/satuan/pengguna,
-  membatalkan transaksi, mengatur identitas toko, serta membuka halaman laporan.
+  termasuk mengisi **inisial** tiap satuan (`r` untuk renceng, `p` untuk pack, `d` untuk dus) yang dipakai
+  membaca nota singkat dari kasir,
+  menghapus transaksi dari riwayat, mengatur identitas toko, serta membuka halaman laporan dan
+  **dashboard**. Superadmin juga yang menentukan, per produk, **satuan hitung** yang dipakai menampilkan
+  stok (mis. "dus" untuk rokok) dan apakah produk itu **boleh dijual sampai stok minus**.
+
+Penjualan yang membuat stok minus **ditolak** (pesannya menyebut sisa dan kebutuhan stok) sampai
+superadmin menyalakan izin untuk produk itu di halaman stok. Stok masuk, pembelian, retur, dan stok
+opname **tidak** butuh izin — barang yang benar-benar datang atau keluar tidak boleh diblokir.
+
+Halaman dashboard menampilkan ringkasan penjualan, stok menipis, kas, hutang/piutang, dan **saran
+pembelian** (produk yang stoknya tipis dibanding kecepatan jualnya) yang bisa diunduh sebagai CSV
+untuk dibawa ke supplier.
 
 Pembayaran **hanya tunai** — tidak ada QRIS maupun transfer, dan tidak ada gambar QR yang perlu diunggah.
+
+Transaksi yang sudah tersimpan dan tercetak bersifat **final**: tidak ada tombol "Batalkan Transaksi"
+di halaman riwayat. Satu-satunya koreksi adalah **Hapus Permanen**, dan tombol itu hanya muncul untuk
+superadmin.
 
 Aplikasi bisa tetap dipakai saat internet mati: transaksi disimpan dulu di perangkat, lalu dikirim ke server
 secara otomatis saat online kembali — tanpa menghasilkan transaksi ganda.
@@ -39,7 +82,7 @@ secara otomatis saat online kembali — tanpa menghasilkan transaksi ganda.
 - **Struk dicetak lewat `window.print()` dengan CSS `@page { size: 58mm auto }`** — tanpa library printer ESC/POS.
   Aplikasi juga **bukan** aplikasi desktop Electron/Tauri; cukup dipasang sebagai PWA.
 - **Seluruh kebutuhan fungsional spesifikasi tetap dipenuhi 1:1:** skema tabel, aturan bisnis (konversi stok,
-  snapshot harga, nomor struk tidak bolong, idempotensi sinkronisasi, pembatalan transaksi), semua endpoint `/api`,
+  snapshot harga, nomor struk tidak bolong, idempotensi sinkronisasi, penghapusan transaksi), semua endpoint `/api`,
   peran `kasir`/`superadmin`, dukungan offline, dan laporan.
 
 ---
@@ -114,8 +157,14 @@ Di panel kiri: klik kanan **`Servers`** → **`Register`** → **`Server…`**
 ### 3. Periksa hasilnya
 
 - **Melihat tabel:** `Servers` → `POS Hakim` → `Databases` → `pos_hakim` → `Schemas` → `public` → `Tables`.
-  Setelah `npm run migrate` dijalankan, akan terlihat tabel: `_migrations`, `categories`, `product_units`,
-  `products`, `sale_items`, `sales`, `settings`, `stock_movements`, `struk_counters`, `tokens`, `units`, `users`.
+  Setelah `npm run migrate` dijalankan, akan terlihat tabel: `_migrations`, `cash_flows`, `categories`,
+  `debts`, `product_aliases`, `product_units`, `products`, `purchase_items`, `purchases`, `returns`,
+  `sale_items`, `sales`, `settings`, `stock_movements`, `stock_opnames`, **`struk_counters_tahun`**,
+  `tokens`, `units`, `users`.
+  Nama yang benar untuk penghitung nomor struk adalah `struk_counters_tahun` (per tahun), bukan
+  `struk_counters` — tabel lama itu sudah dibuang karena nomor per hari tidak cukup begitu satu hari
+  tembus 999 struk. Kolom `products` bertambah `base_unit_id` (satuan hitung pilihan superadmin) dan
+  `izin_minus` (boleh dijual sampai stok minus) sejak migrasi `006`.
 - **Melihat data:** klik kanan `pos_hakim` → **`Query Tool`**, lalu jalankan misalnya:
 
   ```sql
@@ -272,6 +321,22 @@ Cara mengganti password superadmin:
 
 Password disimpan dalam bentuk terenkripsi (bcrypt), bukan teks biasa.
 
+**Sesi login** (`frontend/src/store.ts`):
+
+- Kredensial **wajib diketik setiap aplikasi dibuka** — menutup browser/PWA lalu membukanya lagi
+  (atau membuka tab baru) selalu kembali ke halaman login, walau token di perangkat masih sah.
+  Tujuannya supaya siapa pun yang memegang perangkat tidak otomatis memakai sesi orang sebelumnya.
+- **Muat ulang halaman** (F5) di tab yang sama tidak memaksa login ulang — sesi masih milik tab itu.
+- **Saat perangkat tidak punya jaringan**, sesi tersimpan tetap dipakai karena login mustahil tanpa
+  jaringan. Jadi kasir tetap bisa melayani pembeli dan transaksinya menyusul saat online.
+  Kalau perangkat punya jaringan tetapi server tidak menjawab, aplikasi tetap meminta login; hanya
+  muat ulang di tab yang sudah dibuka yang tidak mengunci kasir saat server sedang mati.
+- Token yang **kedaluwarsa, dicabut, atau akun dinonaktifkan** langsung membuang sesi dan kembali ke
+  halaman login. `npm run reset:data` juga mencabut semua token yang ada.
+- Tombol **Keluar** menghapus token di perangkat sekaligus di server.
+- Umur token di server **30 hari** (`TOKEN_TTL_HOURS` di `backend/.env`); token yang sudah kedaluwarsa
+  dibersihkan otomatis setiap ada login baru.
+
 **Kredensial database** (hanya untuk pengembangan lokal, lihat bagian Setup PostgreSQL di atas):
 role `pos_hakim` / `pos_hakim_dev`, database `pos_hakim` dan `pos_hakim_test`.
 
@@ -310,10 +375,10 @@ Perintah frontend (dijalankan di folder `frontend`):
 
 Perintah ini mengembalikan database ke kondisi **baru dipasang**, tanpa menghapus skemanya:
 
-- seluruh transaksi, produk, kategori, pergerakan stok, dan nomor struk dihapus;
+- seluruh transaksi, produk, kategori, pergerakan stok, nomor struk, **pelanggan, dan shift kas** dihapus;
 - pengaturan toko kembali ke awal (nama "Toko Hakim", alamat/telepon kosong);
 - semua pengguna dihapus **kecuali** akun `superadmin` (password-nya tidak diubah);
-- daftar satuan dikembalikan ke 10 satuan bawaan;
+- daftar satuan dikembalikan ke 10 satuan bawaan beserta **inisial**-nya;
 - semua sesi login (token) dicabut.
 
 > **PERINGATAN — perintah ini MENGHAPUS DATA PERMANEN.** Semua penjualan, produk, dan pengguna
@@ -327,7 +392,9 @@ cd backend
 npm run reset:data -- --force
 ```
 
-Setelah selesai, aplikasi siap dipakai dari nol — transaksi pertama akan bernomor `INV-<tanggal>-0001`.
+Setelah selesai, aplikasi siap dipakai dari nol — transaksi pertama akan bernomor `INV-<tahun>-000001`.
+Karena semua produk ikut terhapus, **isi produk dulu** di halaman Produk (superadmin) sebelum melayani
+penjualan; layar kasir memang kosong sampai ada produk.
 
 ---
 

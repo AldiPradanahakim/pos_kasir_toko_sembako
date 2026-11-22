@@ -56,6 +56,9 @@ export default function Struk() {
           total: dariServer.total,
           pending: false,
           nama_pelanggan: dariServer.nama_pelanggan ?? null,
+          // Bon = transaksi yang dibayar kurang dari total. `dibayar` dan `total` adalah
+          // angka saat transaksi, jadi tetap benar walau piutangnya sudah dilunasi.
+          bon: dariServer.dibayar < dariServer.total,
           items: (dariServer.items ?? []).map((it) => ({
             product_id: it.product_id,
             name: it.product_name ?? `#${it.product_id}`,
@@ -67,6 +70,13 @@ export default function Struk() {
           })),
         }
       : null;
+
+  /**
+   * Total barang & total qty dihitung dari item struk, bukan dikirim server: struk lama
+   * (dan struk offline) tetap menampilkan angkanya tanpa perlu kolom baru di database.
+   */
+  const jumlahBarang = data?.items.length ?? 0;
+  const jumlahQty = data?.items.reduce((s, it) => s + it.qty, 0) ?? 0;
 
   if (!data) {
     return (
@@ -111,9 +121,12 @@ export default function Struk() {
       )}
 
       <Card className="no-print">
-        <p className="text-xs text-slate-500">
-          Kertas 58mm. Pada dialog cetak pilih printer thermal dan margin "None" agar hasil pas.
-        </p>
+        <div className="flex items-center justify-between gap-2 text-sm">
+          <span className="text-slate-600">
+            {jumlahBarang} barang · {jumlahQty} qty
+          </span>
+          <span className="text-xs text-slate-500">Kertas 58mm, margin "None"</span>
+        </div>
       </Card>
 
       <div className="area-cetak flex justify-center">
@@ -139,7 +152,7 @@ export default function Struk() {
           </div>
           {data.nama_pelanggan && (
             <div className="flex justify-between">
-              <span>Pelanggan</span>
+              <span>Tuan/Nyonya</span>
               <span>{data.nama_pelanggan}</span>
             </div>
           )}
@@ -159,6 +172,14 @@ export default function Struk() {
           ))}
 
           <div className="garis" />
+          {/* Jumlah barang & qty ikut tercetak: pembeli memakai angka ini untuk mencocokkan
+              belanjaannya dengan kantong/nota sebelum meninggalkan kasir. */}
+          <div className="flex justify-between">
+            <span>Jumlah</span>
+            <span>
+              {jumlahBarang} barang · {jumlahQty} qty
+            </span>
+          </div>
           <div className="flex justify-between font-bold">
             <span>TOTAL</span>
             <span>{rupiah(data.total)}</span>
@@ -171,10 +192,23 @@ export default function Struk() {
             <span>Dibayar</span>
             <span>{rupiah(data.dibayar)}</span>
           </div>
-          <div className="flex justify-between">
-            <span>Kembalian</span>
-            <span>{rupiah(data.kembalian)}</span>
-          </div>
+          {/* Bon tidak punya kembalian: yang bermakna justru sisa tagihannya. */}
+          {!data.bon && (
+            <div className="flex justify-between">
+              <span>Kembalian</span>
+              <span>{rupiah(data.kembalian)}</span>
+            </div>
+          )}
+          {/* Bon: sisa tagihan tercetak supaya pelanggan tahu yang harus dibayar. */}
+          {data.bon && data.total - data.dibayar > 0 && (
+            <>
+              <div className="garis" />
+              <div className="flex justify-between font-bold">
+                <span>SISA (BON)</span>
+                <span>{rupiah(data.total - data.dibayar)}</span>
+              </div>
+            </>
+          )}
           <div className="garis" />
           <p className="text-center">Terima kasih telah berbelanja</p>
           <p className="text-center">Barang yang sudah dibeli tidak dapat ditukar</p>

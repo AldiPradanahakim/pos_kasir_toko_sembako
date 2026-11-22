@@ -1,12 +1,14 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
-import { ActionBar, Alert, Button, Card, Input, Kosong, Label, Select } from '../components/ui';
+import CariSelect from '../components/CariSelect';
+import { ActionBar, Alert, Button, Card, Input, InputUang, Kosong, Label, Select } from '../components/ui';
 import { db } from '../db';
 import { rupiah, parseUang } from '../lib/format';
 import { bacaTeks, labelProgres, type Progres } from '../lib/ocr';
 import { parseStruk, tebakProduk, type BarisStruk } from '../lib/ocrParse';
+import { bacaDaftarAlias } from '../lib/notaKasir';
 import { useOnline } from '../lib/useOnline';
 import { pullSync } from '../sync';
 import type { Product, ProductAlias, StockInBulkResult, StockRow } from '../types';
@@ -21,15 +23,6 @@ type BarisScan = {
   qty: string;
   harga: string;
 };
-
-/** Normalisasi balasan daftar alias: bisa array langsung atau dibungkus {rows}. */
-function bacaAlias(data: unknown): ProductAlias[] {
-  if (Array.isArray(data)) return data as ProductAlias[];
-  if (data && typeof data === 'object' && Array.isArray((data as { rows?: unknown }).rows)) {
-    return (data as { rows: ProductAlias[] }).rows;
-  }
-  return [];
-}
 
 export default function StokScan() {
   const online = useOnline();
@@ -47,7 +40,6 @@ export default function StokScan() {
   const [pernahBaca, setPernahBaca] = useState(false);
 
   const [baris, setBaris] = useState<BarisScan[]>([]);
-  const [catatan, setCatatan] = useState('');
   const [error, setError] = useState('');
   const [mengirim, setMengirim] = useState(false);
   const [diterapkan, setDiterapkan] = useState<number | null>(null);
@@ -57,6 +49,16 @@ export default function StokScan() {
   const kunciRef = useRef(0);
 
   const produkById = new Map(produk.map((p) => [p.id, p]));
+
+  const opsiProduk = useMemo(
+    () =>
+      produk.map((p) => ({
+        value: p.id,
+        label: p.name,
+        hint: p.barcode ?? p.category_name ?? undefined,
+      })),
+    [produk],
+  );
 
   useEffect(() => {
     if (!berkas) {
@@ -75,7 +77,7 @@ export default function StokScan() {
     void api
       .get<unknown>('/product-aliases')
       .then((data) => {
-        if (!batal) setAlias(bacaAlias(data));
+        if (!batal) setAlias(bacaDaftarAlias(data));
       })
       .catch((e: unknown) => {
         if (batal) return;
@@ -192,7 +194,9 @@ export default function StokScan() {
           unit_id: Number(b.unitId),
           qty: parseUang(b.qty),
         })),
-        note: catatan.trim() || null,
+        // Catatan per batch sengaja tidak dikirim: nilainya tidak pernah tampil di layar
+        // scan, jadi kolomnya dibuang dari form (pemilik: "gausah ada catatan").
+        note: null,
         aliases: [...peta].map(([a, product_id]) => ({ alias: a, product_id })),
       });
 
@@ -201,7 +205,6 @@ export default function StokScan() {
       await pullSync();
       setStokBaru((await db.cachedStock.toArray()).filter((s) => ids.has(s.product_id)));
       setBaris([]);
-      setCatatan('');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gagal menerapkan stok');
     } finally {
@@ -352,14 +355,14 @@ export default function StokScan() {
                   <div className="space-y-2">
                     <div>
                       <Label>Produk</Label>
-                      <Select value={b.productId} onChange={(e) => gantiProduk(b, e.target.value)}>
-                        <option value="">Pilih produk…</option>
-                        {produk.map((pr) => (
-                          <option key={pr.id} value={pr.id}>
-                            {pr.name}
-                          </option>
-                        ))}
-                      </Select>
+                      <CariSelect
+                        value={b.productId}
+                        onChange={(v) => gantiProduk(b, v)}
+                        options={opsiProduk}
+                        ariaLabel={`Produk baris ${i + 1}`}
+                        placeholder="Ketik nama atau barcode produk…"
+                        kosong="Tidak ada produk yang cocok."
+                      />
                     </div>
 
                     <div>
@@ -404,11 +407,10 @@ export default function StokScan() {
                       </div>
                       <div>
                         <Label>Harga satuan</Label>
-                        <Input
-                          inputMode="numeric"
+                        <InputUang
                           placeholder="0"
-                          value={b.harga}
-                          onChange={(e) => ubah(b.kunci, { harga: e.target.value })}
+                          nilai={b.harga}
+                          onNilai={(harga) => ubah(b.kunci, { harga })}
                         />
                       </div>
                     </div>
@@ -420,15 +422,6 @@ export default function StokScan() {
                 </div>
               );
             })}
-
-            <div>
-              <Label>Catatan (opsional)</Label>
-              <Input
-                value={catatan}
-                onChange={(e) => setCatatan(e.target.value)}
-                placeholder="mis. kulakan nota Wingsfood"
-              />
-            </div>
 
             {error && <Alert>{error}</Alert>}
 

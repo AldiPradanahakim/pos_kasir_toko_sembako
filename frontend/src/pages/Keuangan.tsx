@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../api';
-import { Alert, Button, Card, Input, Kosong, Label, Modal, Select, Stat } from '../components/ui';
+import { Alert, Button, Card, Input, InputUang, Kosong, Label, Modal, Select, Stat } from '../components/ui';
 import { formatTanggal, parseUang, rupiah, tanggalLokal } from '../lib/format';
 import { useOnline } from '../lib/useOnline';
 import type { CashFlowKategori } from '../types';
@@ -100,6 +100,7 @@ export default function Keuangan() {
   const [sampai, setSampai] = useState(tanggalLokal());
   const [tipe, setTipe] = useState('');
   const [kategori, setKategori] = useState('');
+  const [cari, setCari] = useState('');
 
   const [rows, setRows] = useState<ArusKas[]>([]);
   const [saldoAwalDaftar, setSaldoAwalDaftar] = useState<number | null>(null);
@@ -180,6 +181,23 @@ export default function Keuangan() {
     acc.push({ r, saldo });
     return acc;
   }, []);
+
+  // Pencarian di memori; saldo berjalan tetap dihitung dari SELURUH baris rentang,
+  // supaya angka saldo tidak berubah hanya karena daftarnya disaring.
+  const kata = cari.trim().toLowerCase();
+  const barisSaring = kata
+    ? barisTampil.filter(({ r }) =>
+        [
+          r.kategori,
+          r.keterangan,
+          r.tipe === 'masuk' ? 'masuk' : 'keluar',
+          r.ref_type ? (LABEL_REF[r.ref_type] ?? r.ref_type) : '',
+        ].some((t) => (t ?? '').toLowerCase().includes(kata)),
+      )
+    : barisTampil;
+
+  const masukTampil = barisSaring.reduce((s, { r }) => s + (r.tipe === 'masuk' ? Number(r.jumlah) || 0 : 0), 0);
+  const keluarTampil = barisSaring.reduce((s, { r }) => s + (r.tipe === 'keluar' ? Number(r.jumlah) || 0 : 0), 0);
 
   function bukaTambah() {
     setEdit(null);
@@ -324,15 +342,25 @@ export default function Keuangan() {
         </Card>
       )}
 
-      <Card title={`Arus Kas (${rows.length})`}>
+      <Card title={`Arus Kas (${barisSaring.length})`}>
         <p className="mb-3 text-xs text-slate-500">
           Saldo berjalan dihitung urut dari tanggal paling awal pada rentang ini. Baris bertanda "Otomatis" lahir dari
           penjualan, pembelian, atau retur, dan hanya bisa diubah lewat transaksinya.
         </p>
 
+        <div className="mb-3">
+          <Input
+            type="search"
+            value={cari}
+            onChange={(e) => setCari(e.target.value)}
+            placeholder="Keterangan atau kategori…"
+            aria-label="Cari arus kas"
+          />
+        </div>
+
         {/* HP: satu kartu per entri supaya tidak perlu menggeser tabel. */}
         <div className="space-y-2 md:hidden">
-          {barisTampil.map(({ r, saldo }) => (
+          {barisSaring.map(({ r, saldo }) => (
             <div key={r.id} className="rounded-md border border-slate-200 p-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -387,7 +415,7 @@ export default function Keuangan() {
               </tr>
             </thead>
             <tbody>
-              {barisTampil.map(({ r, saldo }) => (
+              {barisSaring.map(({ r, saldo }) => (
                 <tr key={r.id} className="border-b border-slate-50">
                   <td className="whitespace-nowrap py-2 pr-3">{formatTanggal(r.tanggal)}</td>
                   <td className="py-2 pr-3">
@@ -436,16 +464,16 @@ export default function Keuangan() {
                 </tr>
               ))}
             </tbody>
-            {barisTampil.length > 0 && (
+            {barisSaring.length > 0 && (
               <tfoot>
                 <tr className="border-t border-slate-200 font-semibold">
                   <td className="py-2 pr-3" colSpan={3}>
-                    TOTAL ({barisTampil.length} entri)
+                    TOTAL ({barisSaring.length} entri)
                   </td>
                   <td className="whitespace-nowrap py-2 pr-3 text-right">
-                    <span className="text-teal-700">+{rupiah(totalMasuk)}</span>
+                    <span className="text-teal-700">+{rupiah(masukTampil)}</span>
                     <span className="px-1 text-slate-500">/</span>
-                    <span className="text-red-700">−{rupiah(totalKeluar)}</span>
+                    <span className="text-red-700">−{rupiah(keluarTampil)}</span>
                   </td>
                   <td className="py-2 pr-3 text-right">{rupiah(saldoAkhir)}</td>
                   <td colSpan={2} />
@@ -456,6 +484,9 @@ export default function Keuangan() {
         </div>
 
         {!barisTampil.length && <Kosong>Belum ada arus kas pada rentang ini.</Kosong>}
+        {!!barisTampil.length && !barisSaring.length && (
+          <Kosong>Tidak ada arus kas yang cocok dengan pencarian "{cari.trim()}".</Kosong>
+        )}
       </Card>
 
       <Modal open={buka} title={edit ? 'Ubah Arus Kas' : 'Catat Arus Kas'} onClose={() => setBuka(false)} width="max-w-xl">
@@ -494,10 +525,9 @@ export default function Keuangan() {
             </div>
             <div>
               <Label>Jumlah (Rp)</Label>
-              <Input
-                inputMode="numeric"
-                value={form.jumlah}
-                onChange={(e) => setForm({ ...form, jumlah: e.target.value.replace(/[^\d]/g, '') })}
+              <InputUang
+                nilai={form.jumlah}
+                onNilai={(jumlah) => setForm({ ...form, jumlah })}
                 required
               />
             </div>

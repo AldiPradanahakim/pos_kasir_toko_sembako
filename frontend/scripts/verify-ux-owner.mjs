@@ -194,9 +194,14 @@ await bagian('pembelian', async () => {
     jumlahInputAngka: m.querySelectorAll('input[inputmode="numeric"]').length,
   }));
 
-  await modal.locator('select').first().selectOption({ index: 1 });
+  // Pemilih produk kini CariSelect (daftar produk bisa ribuan), bukan <select>: pilih lewat
+  // pencarian. Kolom "Satuan" tetap <select> dan baru aktif setelah produknya terpilih.
+  const produk1 = modal.locator('[role="combobox"][aria-label="Produk baris 1"]');
+  await produk1.click();
   await page.waitForTimeout(300);
-  await modal.locator('select').nth(1).selectOption({ index: 1 });
+  await modal.locator('[role="listbox"] [role="option"]').first().click();
+  await page.waitForTimeout(300);
+  await modal.locator('select').first().selectOption({ index: 1 });
   await modal.locator('input[inputmode="numeric"]').first().fill('2');
   await page.getByRole('button', { name: 'Simpan Pembelian' }).click();
   await page.waitForTimeout(3000);
@@ -393,9 +398,9 @@ await bagian('offline', async () => {
   await page.waitForTimeout(600);
 
   await tambahProduk(page, 'Sedaap');
-  await page.fill('main input[placeholder*="Bu Siti"]', 'Pelanggan Uji Offline');
-  // Dibayar lewat kalkulator (satu-satunya cara mengisi kolom itu).
-  await page.locator('main button[aria-haspopup="dialog"]').click();
+  await page.fill('main input[aria-label^="Nama tuan/nyonya"]', 'Pelanggan Uji Offline');
+  // Dibayar lewat kalkulator: menyentuh kolomnya dengan jari membuka keypad besar.
+  await page.locator('main input[aria-label="Jumlah dibayar"]').tap();
   await page.waitForTimeout(500);
   const modal = page.locator('.fixed.inset-0');
   for (const t of ['1', '0', '0', '0', '0']) await modal.getByRole('button', { name: t, exact: true }).click();

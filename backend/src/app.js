@@ -10,10 +10,12 @@ import stockRouter from './routes/stock.js';
 import salesRouter from './routes/sales.js';
 import syncRouter from './routes/sync.js';
 import reportsRouter from './routes/reports.js';
+import dashboardRouter from './routes/dashboard.js';
 import cashflowsRouter from './routes/cashflows.js';
 import purchasesRouter from './routes/purchases.js';
 import returnsRouter from './routes/returns.js';
 import debtsRouter from './routes/debts.js';
+import shiftsRouter from './routes/shifts.js';
 import settingsRouter from './routes/settings.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -33,8 +35,10 @@ export function createApp() {
   app.use('/api', cashflowsRouter);
   app.use('/api', returnsRouter);
   app.use('/api', debtsRouter);
+  app.use('/api', shiftsRouter);
   app.use('/api', syncRouter);
   app.use('/api', reportsRouter);
+  app.use('/api', dashboardRouter);
   app.use('/api', settingsRouter);
 
   app.use('/api', (_req, res) => res.status(404).json({ error: 'Endpoint tidak ditemukan' }));

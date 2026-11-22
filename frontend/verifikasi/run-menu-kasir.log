@@ -1,0 +1,53 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "menu": {
+    "retur": true,
+    "hutangPiutang": true,
+    "pembelian": true,
+    "menuSuperadminTetapTersembunyi": true
+  },
+  "halaman": [
+    {
+      "url": "/retur",
+      "urlAkhir": "/retur",
+      "terbuka": true,
+      "judulTerlihat": "Retur",
+      "adaTombolHapus": false
+    },
+    {
+      "url": "/hutang-piutang",
+      "urlAkhir": "/hutang-piutang",
+      "terbuka": true,
+      "judulTerlihat": "Hutang & Piutang",
+      "adaTombolHapus": false
+    },
+    {
+      "url": "/pembelian",
+      "urlAkhir": "/pembelian",
+      "terbuka": true,
+      "judulTerlihat": "Pembelian",
+      "adaTombolHapus": false
+    }
+  ],
+  "formHutang": {
+    "jumlahTampil": "50.000"
+  },
+  "setelahCatat": {
+    "adaSupplierUji": true,
+    "nominal": "Rp 50.000",
+    "adaTombolHapus": false,
+    "adaTombolUbah": false
+  },
+  "setelahBayar": {
+    "sisa30": true,
+    "masihAdaPihakUji": true
+  },
+  "superadmin": {
+    "adaUbah": true,
+    "adaHapus": true,
+    "adaSupplierUji": true
+  },
+  "pembersihan": {
+    "selesai": true
+  }
+}

@@ -1,5 +1,11 @@
 export const TOKEN_KEY = 'th_token';
 export const USER_KEY = 'th_user';
+/**
+ * Penanda di sessionStorage: sesi sudah dibuka di browser/tab ini.
+ * sessionStorage sengaja dipakai (bukan localStorage) supaya menutup browser/PWA = keluar,
+ * sementara muat ulang halaman tidak memaksa mengetik kredensial lagi. Lihat store.ts.
+ */
+export const TERBUKA_KEY = 'th_terbuka';
 
 export class ApiError extends Error {
   status: number;
@@ -35,7 +41,10 @@ async function request<T>(path: string, opts: Options = {}): Promise<T> {
     throw new ApiError(0, 'Tidak dapat menghubungi server. Periksa koneksi.');
   }
 
-  if (res.status === 401) {
+  // 401 hanya berarti "sesi berakhir" kalau permintaan ini memang membawa token.
+  // Tanpa syarat itu, 401 dari POST /login (password salah) ikut menghapus sesi dan
+  // menutupi pesan asli server dengan "Sesi berakhir, silakan masuk ulang."
+  if (res.status === 401 && token) {
     if (!opts.silent) {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
@@ -71,6 +80,7 @@ export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body?: unknown) => request<T>(path, { method: 'POST', body: body ?? {} }),
   put: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PUT', body: body ?? {} }),
+  patch: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PATCH', body: body ?? {} }),
   del: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
   /** Varian untuk proses background: tidak memaksa logout saat 401. */
   postSilent: <T>(path: string, body: unknown) => request<T>(path, { method: 'POST', body, silent: true }),

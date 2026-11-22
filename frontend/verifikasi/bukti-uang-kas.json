@@ -1,0 +1,54 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "formatUang": [
+    {
+      "halaman": "Keuangan · Jumlah (Rp)",
+      "ketik": "100000",
+      "tampil": "100.000"
+    },
+    {
+      "halaman": "Produk · Harga jual & modal",
+      "ketik": "10000 / 1000",
+      "tampil": "10.000 / 1.000"
+    },
+    {
+      "halaman": "Hutang & Piutang · Jumlah (Rp)",
+      "ketik": "10000",
+      "tampil": "10.000"
+    },
+    {
+      "halaman": "Stok Scan",
+      "catatan": "input harga memakai InputUang yang sama (diperiksa di StokScan.tsx)"
+    }
+  ],
+  "modalAwalDiLayar": "80.000",
+  "kasKeluar": {
+    "ketikJumlah": "15.000",
+    "daftarSebelumBatal": "Kas Keluar ✕ Catat uang laci yang dipakai selama shift (beli barang dagangan, bayar ongkos, dsb). Jumlahnya otomatis mengurangi “seharusnya di laci” saat tutup kas. Jumlah Dipakai untuk apa SUDAH DICATAT SHIFT INI 18:46 beli gula 5 kg Rp 15.000 Batalkan 18:46 salah catat Rp 5.000 Batalkan Batal Catat Kas Keluar",
+    "daftarSetelahBatal": "Kas Keluar ✕ Catat uang laci yang dipakai selama shift (beli barang dagangan, bayar ongkos, dsb). Jumlahnya otomatis mengurangi “seharusnya di laci” saat tutup kas. Jumlah Dipakai untuk apa SUDAH DICATAT SHIFT INI 18:46 beli gula 5 kg Rp 15.000 Batalkan Batal Catat Kas Keluar"
+  },
+  "barKas": "Kas dibuka 18.46 · modal Rp 80.000 · uang keluar Rp 15.000 · seharusnya di laci Rp 65.000 Kas Keluar ",
+  "dialogTutup": {
+    "teks": "Tutup Kas ✕ Modal awal Rp 80.000 Uang masuk (penjualan & setoran) + Rp 0 Uang keluar (dipakai) − Rp 15.000 Seharusnya di laci Rp 65.000 UANG DIPAKAI SELAMA SHIFT 18:46 beli gula 5 kg Rp 15.000 Total dipakai Rp 15.000 Uang fisik dihitung Catatan (opsional) Batal Tutup Kas",
+    "adaUangMasuk": true,
+    "adaUangKeluar": true,
+    "adaRincian": true,
+    "rincianGula": true,
+    "seharusnya": true
+  },
+  "laporan": {
+    "adaRincian": true,
+    "barisGula": true,
+    "uangKeluar": true,
+    "seharusnya": true,
+    "selisih": true
+  },
+  "riwayatSuperadmin": {
+    "adaRincian": true,
+    "barisGula": true,
+    "kolomKeluar": true
+  },
+  "pembersihan": {
+    "selesai": true
+  }
+}

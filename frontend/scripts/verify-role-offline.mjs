@@ -3,7 +3,9 @@
  *  1. Kasir hanya melihat menu Kasir, Riwayat, Stok, Stok Scan (tanpa tombol hapus riwayat).
  *  2. Superadmin melihat menu lengkap.
  *  3. Penjaga rute: kasir yang membuka /laporan dialihkan ke /kasir.
- *  4. Offline: transaksi disimpan lokal (OFF-), lalu tersinkron tepat sekali saat online
+ *  4. Riwayat: TIDAK ada tombol "Batalkan Transaksi" di peran mana pun (transaksi final);
+ *     "Hapus Permanen" hanya muncul untuk superadmin.
+ *  5. Offline: transaksi disimpan lokal (OFF-), lalu tersinkron tepat sekali saat online
  *     (tanpa duplikat).
  *
  * Jalankan: node scripts/verify-role-offline.mjs
@@ -11,7 +13,7 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
-import { bukaDanTunggu, masuk, pasangPenjagaOverlay, tambahProduk } from './verifikasi-util.mjs';
+import { buatPenjualanUji, bukaDanTunggu, hapusPenjualanUji, masuk, pasangPenjagaOverlay, tambahProduk } from './verifikasi-util.mjs';
 
 const BASE = process.env.BASE_URL ?? 'http://127.0.0.1:5173';
 const API = process.env.API_URL ?? 'http://127.0.0.1:3000';
@@ -20,6 +22,9 @@ fs.mkdirSync(KELUARAN, { recursive: true });
 
 const bukti = {};
 const browser = await chromium.launch();
+
+/** Transaksi uji yang dibuat di blok kasir, dipakai & dibersihkan di blok berikutnya. */
+let saleUji = null;
 
 /** Menu yang benar-benar terlihat di drawer hamburger pada layar HP. */
 async function menuKasir(page, label) {
@@ -48,6 +53,11 @@ async function menuKasir(page, label) {
   bukti.menuKasir = await menuKasir(page, 'kasir');
   await page.screenshot({ path: path.join(KELUARAN, 'menu-kasir-390.png') });
 
+  // Transaksi uji supaya riwayat punya baris (tombol aksi hanya muncul kalau ada barisnya).
+  const tokKasirUji = await page.evaluate(() => localStorage.getItem('th_token'));
+  saleUji = await buatPenjualanUji(API, tokKasirUji, 'Uji Riwayat');
+  bukti.saleUji = { id: saleUji.id, no_struk: saleUji.no_struk };
+
   // Penjaga rute superadmin.
   await page.goto(`${BASE}/laporan`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1500);
@@ -59,12 +69,23 @@ async function menuKasir(page, label) {
   await page.waitForTimeout(1200);
   bukti.kasirBukaKeuangan = new URL(page.url()).pathname;
 
-  // Riwayat: kasir tidak boleh melihat kontrol Hapus.
+  // Riwayat: kasir tidak boleh melihat kontrol Hapus, dan tidak ada tombol Batalkan untuk siapa pun.
   await page.goto(`${BASE}/riwayat`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1500);
+  await page.getByRole('button', { name: 'Tampilkan' }).click();
+  await page.waitForTimeout(2000);
+  const barisKasir = page.locator('main').getByText(saleUji.no_struk).first();
+  bukti.kasirBarisUjiTampil = (await barisKasir.count()) > 0;
   const teksRiwayat = await page.locator('main').innerText();
   bukti.kasirAdaTombolHapusRiwayat = /Hapus Riwayat per Tanggal/.test(teksRiwayat);
-  bukti.kasirLihatBatalkan = /Batalkan/.test(teksRiwayat);
+  bukti.kasirLihatBatalkan = /Batalkan Transaksi/.test(teksRiwayat);
+  bukti.kasirLihatHapusPermanen = /Hapus Permanen/.test(teksRiwayat);
+  bukti.kasirTombolAksiBarisPertama = await page
+    .locator('main tbody tr')
+    .first()
+    .locator('button')
+    .allInnerTexts()
+    .catch(() => []);
   await page.screenshot({ path: path.join(KELUARAN, 'riwayat-kasir-390.png') });
 
   // Backend tetap menolak (pertahanan berlapis).
@@ -77,7 +98,9 @@ async function menuKasir(page, label) {
 
 // ---------- 2. Superadmin ----------
 {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  // hasTouch: true = HP sungguhan (penunjuk kasar). Di HP kolom Dibayar berupa tombol
+  // yang membuka kalkulator; di laptop (penunjuk presisi) kolomnya langsung bisa diketik.
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
   await pasangPenjagaOverlay(page);
   await masuk(page, BASE, 'superadmin', 'password');
@@ -86,6 +109,19 @@ async function menuKasir(page, label) {
   await page.goto(`${BASE}/riwayat`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1500);
   const teks = await page.locator('main').innerText();
+  // Baris transaksi baru dimuat setelah "Tampilkan" ditekan, jadi tombolnya diperiksa setelah itu.
+  await page.getByRole('button', { name: 'Tampilkan' }).click();
+  await page.waitForTimeout(2000);
+  bukti.superadminBarisUjiTampil = (await page.locator('main').getByText(saleUji.no_struk).count()) > 0;
+  const teksBaris = await page.locator('main').innerText();
+  bukti.superadminLihatBatalkan = /Batalkan Transaksi/.test(teksBaris);
+  bukti.superadminLihatHapusPermanen = /Hapus Permanen/.test(teksBaris);
+  bukti.superadminTombolAksiBarisPertama = await page
+    .locator('main tbody tr')
+    .first()
+    .locator('button')
+    .allInnerTexts()
+    .catch(() => []);
   // Teks judul modal baru ada di DOM setelah modalnya dibuka, jadi tombolnya diklik dulu.
   bukti.superadminAdaTombolHapusRiwayat = /Hapus Riwayat per Tanggal/.test(teks);
   await page.getByRole('button', { name: 'Hapus Riwayat per Tanggal' }).click();
@@ -104,9 +140,9 @@ async function menuKasir(page, label) {
   await page.waitForTimeout(500);
 
   await tambahProduk(page, 'Sedaap');
-  await page.fill('main input[placeholder*="Bu Siti"]', 'Pelanggan Uji Offline');
-  // Dibayar diisi lewat kalkulator: kolomnya tombol, bukan input.
-  await page.locator('main button[aria-haspopup="dialog"]').click();
+  await page.fill('main input[aria-label^="Nama tuan/nyonya"]', 'Pelanggan Uji Offline');
+  // Dibayar diisi lewat kalkulator: menyentuh kolomnya dengan jari membuka keypad besar.
+  await page.locator('main input[aria-label="Jumlah dibayar"]').tap();
   await page.waitForTimeout(500);
   const modalKasir = page.locator('.fixed.inset-0');
   for (const t of ['1', '0', '0', '0', '0']) await modalKasir.getByRole('button', { name: t, exact: true }).click();
@@ -140,13 +176,11 @@ async function menuKasir(page, label) {
   bukti.sinkron.jumlahTotalTransaksi = daftar.length;
 
   // Bersihkan transaksi uji (stok dikembalikan server) supaya data pemilik utuh.
-  if (bukti.sinkron.sale?.id) {
-    const hapus = await fetch(`${API}/api/sales/${bukti.sinkron.sale.id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${tok}` },
-    });
-    bukti.pembersihan = { id: bukti.sinkron.sale.id, statusHapus: hapus.status, hasil: await hapus.json().catch(() => null) };
+  const bersih = [];
+  for (const id of [bukti.sinkron.sale?.id, saleUji?.id].filter(Boolean)) {
+    bersih.push(await hapusPenjualanUji(API, tok, id));
   }
+  bukti.pembersihan = bersih;
 
   await ctx.close();
 }

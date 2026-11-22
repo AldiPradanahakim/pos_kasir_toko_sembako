@@ -15,7 +15,7 @@ if (!process.execArgv.some((a) => a.startsWith('--experimental-strip-types'))) {
   process.exit(ulang.status ?? 1);
 }
 
-const { parseStruk, tebakProduk, bacaAngka } = await import('../src/lib/ocrParse.ts');
+const { parseStruk, tebakProduk, bacaAngka, pisahkanSatuan, normalSatuan } = await import('../src/lib/ocrParse.ts');
 
 const baris = (t) => parseStruk(t);
 
@@ -113,6 +113,103 @@ assert.equal(tebakProduk('KOPI KAPAL API', produk), 3, 'kemiripan teks');
 assert.equal(tebakProduk('BATERAI ABC', produk), null, 'tidak ada yang mirip → null');
 assert.equal(tebakProduk('', produk), null);
 
+// ---- Nota daftar belanja pelanggan: tanpa harga, satuan ditulis di nama ----
+// Perilaku bawaan (nota supplier) tidak boleh berubah: baris tanpa harga tetap dibuang.
+assert.equal(baris('GULA PASIR').length, 0, 'tanpa opsi tanpaHarga, baris tanpa harga dilewati');
+
+// Bentuk yang dipakai aplikasi: nama + inisial dari master Satuan.
+const satuan = [
+  { name: 'pcs', inisial: 'pc' },
+  { name: 'renceng', inisial: 'r' },
+  { name: 'pack', inisial: 'p' },
+  { name: 'dus', inisial: 'd' },
+  { name: 'slop', inisial: 'sl' },
+  { name: 'kg', inisial: 'kg' },
+  { name: 'bal', inisial: 'b' },
+];
+const nota = (t) => parseStruk(t, { tanpaHarga: true, satuan });
+
+const daftarBelanja = [
+  'DAFTAR BELANJA',
+  'GULA PASIR 2 kg',
+  'MINYAK GORENG 1 dus',
+  'GUDANG GARAM INTERNATIONAL 12 2 slop',
+  'TEH GELAS 3 bungkus',
+  'Indomie Goreng',
+  'total 5 barang',
+].join('\n');
+
+assert.deepEqual(
+  nota(daftarBelanja).map((b) => [b.nama, b.qty, b.satuan, b.harga]),
+  [
+    ['GULA PASIR', 2, 'kg', 0],
+    ['MINYAK GORENG', 1, 'dus', 0],
+    // Nama barang selalu kehilangan angkanya (perilaku lama pengurai); yang dipakai
+    // sebagai qty hanya angka TERDEKAT sebelum kata satuan, jadi 12 tidak ikut terbaca.
+    ['GUDANG GARAM INTERNATIONAL', 2, 'slop', 0],
+    // Ejaan pembeli "bungkus" dikenali sebagai satuan "pack".
+    ['TEH GELAS', 3, 'pack', 0],
+    ['Indomie Goreng', 1, null, 0],
+  ],
+  'daftar belanja: nama, qty, satuan, tanpa harga',
+);
+
+// Satuan dipecah dari nama, dan hanya kata satuan yang dikenal yang diambil.
+assert.deepEqual(pisahkanSatuan('GUDANG GARAM RENTENG', satuan), {
+  nama: 'GUDANG GARAM',
+  satuan: 'renceng',
+  kata: 'RENTENG',
+});
+assert.deepEqual(pisahkanSatuan('ROKOK 12 SLOP', satuan), { nama: 'ROKOK 12', satuan: 'slop', kata: 'SLOP' });
+assert.deepEqual(pisahkanSatuan('GULA PASIR', satuan), { nama: 'GULA PASIR', satuan: null, kata: null });
+
+// Inisial: singkatan yang ditulis kasir/pelanggan di nota.
+assert.deepEqual(pisahkanSatuan('BENG BENG R', satuan), { nama: 'BENG BENG', satuan: 'renceng', kata: 'R' });
+assert.deepEqual(pisahkanSatuan('INDOMIE P', satuan), { nama: 'INDOMIE', satuan: 'pack', kata: 'P' });
+assert.deepEqual(pisahkanSatuan('AQUA D', satuan), { nama: 'AQUA', satuan: 'dus', kata: 'D' });
+// Nama lengkap menang atas inisial, dan satuan majemuk tidak ikut ditebak dari nama.
+assert.deepEqual(pisahkanSatuan('GULA PASIR KG', satuan), { nama: 'GULA PASIR', satuan: 'kg', kata: 'KG' });
+assert.equal(pisahkanSatuan('ROTI BAKAR', satuan).satuan, null, 'kata yang bukan inisial tidak dianggap satuan');
+
+// Kotoran OCR di dalam kurung tidak boleh jadi qty: "(4d)" terbaca dari "(d)".
+assert.deepEqual(
+  nota('2 (4d) ALE-ALE 350ML').map((b) => [b.nama, b.qty, b.satuan]),
+  [['ALE ALE ML', 2, 'dus']],
+  'angka nyasar di dalam kurung bukan qty',
+);
+
+// Inisial di nota lengkap: tanda kurung, qty, dan nama barang.
+assert.deepEqual(
+  nota('2 (r) BENG BENG').map((b) => [b.nama, b.qty, b.satuan]),
+  [['BENG BENG', 2, 'renceng']],
+);
+assert.deepEqual(
+  nota('3 P INDOMIE GORENG').map((b) => [b.nama, b.qty, b.satuan]),
+  [['INDOMIE GORENG', 3, 'pack']],
+);
+assert.deepEqual(
+  nota('1 D AQUA 600ML').map((b) => [b.nama, b.qty, b.satuan]),
+  [['AQUA ML', 1, 'dus']],
+);
+assert.equal(normalSatuan('Bungkus'), 'pack');
+assert.equal(normalSatuan('renteng'), 'renceng');
+
+// Baris yang bukan barang di nota: alamat dan telepon tidak boleh jadi barang.
+for (const t of ['JL RAYA WARU NO 12 SURABAYA', 'Telp 031-88889999', 'Alamat: Jl. Merdeka 5', 'WA 0812 3456 7890']) {
+  assert.equal(nota(t).length, 0, `harus dilewati di nota: ${t}`);
+}
+
+// Nota yang mencantumkan harga: qty tetap diambil dari kata satuan, bukan dari harga.
+assert.deepEqual(
+  nota('2 dus MIE SEDAAP SOTO 128.000').map((b) => [b.nama, b.qty, b.satuan]),
+  [['MIE SEDAAP SOTO', 2, 'dus']],
+);
+assert.deepEqual(
+  nota('3 slop GUDANG GARAM SURYA 12 915.000').map((b) => [b.nama, b.qty, b.satuan]),
+  [['GUDANG GARAM SURYA', 3, 'slop']],
+);
+
 console.log(
-  `OK — ${hasil.length} baris dari struk contoh, ${hasilUji.length} baris dari struk uji; semua assert lulus.`,
+  `OK — ${hasil.length} baris dari struk contoh, ${hasilUji.length} baris dari struk uji, ` +
+    `${nota(daftarBelanja).length} baris dari daftar belanja; semua assert lulus.`,
 );

@@ -2,30 +2,30 @@
   "catatan": [],
   "dataSebelum": {
     "produk": 101,
-    "sedaap": 160,
-    "penjualan": 2,
-    "pembelian": 0,
+    "sedaap": 720,
+    "penjualan": 9,
+    "pembelian": 1,
     "omzet": {
       "status": 200,
       "body": {
         "hari_ini": {
-          "total": 439000,
-          "transaksi": 1
+          "total": 2066000,
+          "transaksi": 5
         },
         "bulan_ini": {
-          "total": 1209000,
-          "transaksi": 2
+          "total": 5100000,
+          "transaksi": 9
         },
         "tahun_ini": {
-          "total": 1209000,
-          "transaksi": 2
+          "total": 5100000,
+          "transaksi": 9
         },
-        "hari_ini_items": 3
+        "hari_ini_items": 16
       }
     }
   },
   "kasir403Omzet": 403,
-  "bundel": "assets/index-D5iutk-0.js",
+  "bundel": "assets/index-cDbV-o-7.js",
   "omset": {
     "superadmin": {
       "diKasir": {
@@ -34,19 +34,19 @@
       },
       "diLaporan": {
         "kartu": [
-          "Omset Tahun Ini |  | Rp 1.209.000 |  | 2 transaksi"
+          "Omset Tahun Ini |  | Rp 5.100.000 |  | 9 transaksi"
         ],
         "teks": [
           "Omset Hari Ini",
-          "1 transaksi",
+          "5 transaksi",
           "Omset Bulan Ini",
-          "2 transaksi",
+          "9 transaksi",
           "Omset Tahun Ini",
-          "2 transaksi"
+          "9 transaksi"
         ]
       },
       "permintaanOmzet": [
-        "http://127.0.0.1:3100/api/reports/omzet"
+        "http://127.0.0.1:3000/api/reports/omzet"
       ],
       "respons403": []
     },
@@ -62,7 +62,7 @@
   },
   "pembelian": {
     "formulir": {
-      "teks": "Pembelian Baru | ✕ | Cukup isi barang dan jumlahnya, karena pembelian tidak memakai harga. Stok produk bertambah otomatis di server setelah pembelian disimpan. | Tanggal | Supplier (opsional) | Catatan (opsional) | Item pembelian | + Baris | Produk | Pilih produk… | Sedaap Soto | Gudang Garam Surya 12 | Gudang Garam Merah 12 | Gudang Garam International 12 | Sampoerna A Mild 16 | Sampoerna Hijau 12 | Sampoerna Kretek 12 | Djarum Super 12 | Djarum Black 20 | Djarum 76 12 | Bentoel Biru 12 | Marlboro Merah 20 | Marlboro Gold 20 | Dunhill Fine Cut 16 | Dji Sam Soe 234 12 | LA Lights 16 | Apache Filter 12 | Teh Botol Sosro 350ml | Aqua 600ml | Aqua Galon 19L | Coca Cola 390ml | Fanta Strawberry 390ml | Sprite 390ml | Pocari Sweat 500ml | Ultra Milk Cokelat 250ml | Freshtea Botol 350ml | Floridina Orange 350ml | Ale-Ale 350ml | Mizone Isotonik 500ml | Bear Brand 189ml | Kapal Api Kopi Bubuk 165g | Good Day Cappuccino 20g | Kapal Api Kopi Sachet 8g | Nescafe Classic Sachet 2g | Teh Pucuk Harum 350ml | Teh Gelas 350ml | Indomilk Susu Kental Manis 545g | Indomie Goreng | Indomie Kuah Ayam Bawang | Indomie Kari Ayam | Mie Sedaap Soto | Mie Sedaap Kari Spesial | Sarimi Isi 2 Ayam Bawang | Pop Mie Ayam | Chitato Sapi Panggang 68g | Qtela Singkong Original 60g | Taro Net Seaweed 70g | Pringles Original 107g | Oreo Original 133g | Roma Kelapa 300g | Biskuat Original 150g | Khong Guan Assorted 550g | Beng Beng | Silverqueen Cashew 65g | Nabati Richoco 100g | Nextar Brownies 110g | Wafer Tango Vanilla 115g | Garuda Kacang Atom 80g | Dua Kelinci Kacang Kulit 100g | Roma Marie Susu 200g | Sari Roti Tawar | Beras Pandan Wangi | Beras Setra Ramos | Beras Rojo Lele | Gula Pasir Curah | Gula Batu | Minyak Goreng Sania 2L | Minyak Goreng Fortune 2L | Minyak Goreng Tropical 1L | Tepung Segitiga Biru | Tepung Cakra Kembar | Tepung Kunci Biru | Telur Ayam Negeri | Telur Ayam Kampung | Garam Halus Beryodium 250g | Garam Refina 500g | Kecap Manis Bango 220ml | Kecap Manis ABC 275ml | Saus Sambal ABC 335ml | Saus Tomat ABC 335ml | Penyedap Masako Sapi 250g | Penyedap Royco Ayam 230g | Bawang Merah | Bawang Putih | Sabun Mandi Lifebuoy 85g | Sabun Mandi Lux 85g | Deterjen Rinso Anti Noda 770g | Deterjen SoKlin 800g | Rinso Cair 700ml | Sunlight Jeruk Nipis 750ml | Sabun Cuci Mama Lemon 700ml | Shampo Sunsilk 170ml | Shampo Clear 160ml | Pasta Gigi Pepsodent 190g | Pasta Gigi Close Up 160g | Minyak Telon Konicare 60ml | Minyak Kayu Putih Cap Lang 60ml | Bedak My Baby 100g | Tisu Paseo 250s | Baterai ABC AA | Korek Api Gas Tokai | Satuan | Pilih satuan… | Qty | Hapus | Batal | Simpan Pembelian",
+      "teks": "Pembelian Baru | ✕ | Cukup isi barang dan jumlahnya, karena pembelian tidak memakai harga. Stok produk bertambah otomatis di server setelah pembelian disimpan. | Tanggal | Supplier (opsional) | Catatan (opsional) | Item pembelian | + Baris | Produk | Satuan | Pilih satuan… | Qty | Hapus | Batal | Simpan Pembelian",
       "adaKataHarga": true,
       "adaSubtotal": false,
       "adaTotalPembelian": false,
@@ -78,7 +78,7 @@
       "jumlahInputAngka": 1
     },
     "kirimBody": {
-      "tanggal": "2026-09-21",
+      "tanggal": "2026-09-24",
       "supplier": null,
       "note": null,
       "items": [
@@ -92,13 +92,13 @@
     "balasan": {
       "status": 201,
       "body": {
-        "id": 13,
-        "tanggal": "2026-09-21",
+        "id": 25,
+        "tanggal": "2026-09-24",
         "supplier": null,
         "total": 0,
         "note": null,
         "void": false,
-        "created_at": "2026-09-21T12:51:56.042Z",
+        "created_at": "2026-09-23T20:16:40.684Z",
         "user_id": 1,
         "user_name": "Super Admin",
         "user": {
@@ -107,7 +107,7 @@
         },
         "items": [
           {
-            "id": 13,
+            "id": 25,
             "product_id": 1,
             "product_name": "Sedaap Soto",
             "unit_id": 1,
@@ -123,79 +123,79 @@
     "pesanDiLayar": "(modal tertutup)",
     "sebelumBeli": {
       "produk": 101,
-      "sedaap": 160,
-      "penjualan": 2,
-      "pembelian": 0,
-      "omzet": {
-        "status": 200,
-        "body": {
-          "hari_ini": {
-            "total": 439000,
-            "transaksi": 1
-          },
-          "bulan_ini": {
-            "total": 1209000,
-            "transaksi": 2
-          },
-          "tahun_ini": {
-            "total": 1209000,
-            "transaksi": 2
-          },
-          "hari_ini_items": 3
-        }
-      }
-    },
-    "setelahBeli": {
-      "produk": 101,
-      "sedaap": 162,
-      "penjualan": 2,
+      "sedaap": 720,
+      "penjualan": 9,
       "pembelian": 1,
       "omzet": {
         "status": 200,
         "body": {
           "hari_ini": {
-            "total": 439000,
-            "transaksi": 1
+            "total": 2066000,
+            "transaksi": 5
           },
           "bulan_ini": {
-            "total": 1209000,
-            "transaksi": 2
+            "total": 5100000,
+            "transaksi": 9
           },
           "tahun_ini": {
-            "total": 1209000,
-            "transaksi": 2
+            "total": 5100000,
+            "transaksi": 9
           },
-          "hari_ini_items": 3
+          "hari_ini_items": 16
+        }
+      }
+    },
+    "setelahBeli": {
+      "produk": 101,
+      "sedaap": 722,
+      "penjualan": 9,
+      "pembelian": 2,
+      "omzet": {
+        "status": 200,
+        "body": {
+          "hari_ini": {
+            "total": 2066000,
+            "transaksi": 5
+          },
+          "bulan_ini": {
+            "total": 5100000,
+            "transaksi": 9
+          },
+          "tahun_ini": {
+            "total": 5100000,
+            "transaksi": 9
+          },
+          "hari_ini_items": 16
         }
       }
     },
     "dihapus": [
       {
-        "id": 13,
+        "id": 25,
         "status": 200
       }
     ],
     "setelahBersih": {
       "produk": 101,
-      "sedaap": 160,
-      "penjualan": 2,
-      "pembelian": 0,
+      "sedaap": 720,
+      "penjualan": 9,
+      "pembelian": 1,
       "omzet": {
         "status": 200,
         "body": {
           "hari_ini": {
-            "total": 439000,
-            "transaksi": 1
+            "total": 2066000,
+            "transaksi": 5
           },
           "bulan_ini": {
-            "total": 1209000,
-            "transaksi": 2
+            "total": 5100000,
+            "transaksi": 9
           },
           "tahun_ini": {
-            "total": 1209000,
-            "transaksi": 2
+            "total": 5100000,
+            "transaksi": 9
           },
-          "hari_ini_items": 3
+          "hari_ini_items": 16
         }
       }
     }
@@ -204,25 +204,25 @@
     "dataUji": {
       "jual": {
         "status": 201,
-        "id": 45
+        "id": 177
       },
       "beli": {
         "status": 201,
-        "id": 14
+        "id": 26
       }
     },
     "umum": {
       "pageProp": "laporan",
       "kopTampil": true,
-      "kopTeks": "Toko Hakim | Laporan Umum | Periode: 21/09/2026 s/d 21/09/2026 | Dicetak: 21/09/2026, 19.52",
+      "kopTeks": "Toko Hakim | Laporan Umum | Periode: 24/09/2026 s/d 24/09/2026 | Dicetak: 24/09/2026, 03.17",
       "sidebarTampil": false,
       "headerTampil": false,
       "tabTampil": false,
       "tombolCetakTampil": false,
       "kartuRentangTampil": false,
       "tabelTampil": true,
-      "barisTabel": 4,
-      "barisTotal": "TOTAL\t\t6\tRp 447.100\tRp 41.600",
+      "barisTabel": 5,
+      "barisTotal": "TOTAL\t\t10\tRp 851.600\tRp 36.700",
       "judulKartu": [
         "Rentang",
         "Ringkasan",
@@ -232,7 +232,7 @@
     "pembelian": {
       "pageProp": "laporan",
       "kopTampil": true,
-      "kopTeks": "Toko Hakim | Laporan Pembelian | Periode: 21/09/2026 s/d 21/09/2026 | Dicetak: 21/09/2026, 19.52",
+      "kopTeks": "Toko Hakim | Laporan Pembelian | Periode: 24/09/2026 s/d 24/09/2026 | Dicetak: 24/09/2026, 03.17",
       "sidebarTampil": false,
       "headerTampil": false,
       "tabTampil": false,
@@ -240,7 +240,7 @@
       "kartuRentangTampil": false,
       "tabelTampil": true,
       "barisTabel": 2,
-      "barisTotal": "TOTAL\t2\t2",
+      "barisTotal": "TOTAL\t1\t10",
       "judulKartu": [
         "Rentang",
         "Ringkasan",
@@ -251,7 +251,7 @@
     "penjualan": {
       "pageProp": "laporan",
       "kopTampil": true,
-      "kopTeks": "Toko Hakim | Laporan Penjualan | Periode: 21/09/2026 s/d 21/09/2026 | Dicetak: 21/09/2026, 19.52",
+      "kopTeks": "Toko Hakim | Laporan Penjualan | Periode: 24/09/2026 s/d 24/09/2026 | Dicetak: 24/09/2026, 03.17",
       "sidebarTampil": false,
       "headerTampil": false,
       "tabTampil": false,
@@ -259,7 +259,7 @@
       "kartuRentangTampil": false,
       "tabelTampil": true,
       "barisTabel": 1,
-      "barisTotal": "TOTAL\t2\tRp 447.100",
+      "barisTotal": "TOTAL\t6\tRp 2.074.100",
       "judulKartu": [
         "Rentang",
         "Ringkasan",
@@ -269,15 +269,15 @@
     "transaksi": {
       "pageProp": "laporan",
       "kopTampil": true,
-      "kopTeks": "Toko Hakim | Laporan Semua Transaksi | Periode: 21/09/2026 s/d 21/09/2026 | Dicetak: 21/09/2026, 19.52",
+      "kopTeks": "Toko Hakim | Laporan Semua Transaksi | Periode: 24/09/2026 s/d 24/09/2026 | Dicetak: 24/09/2026, 03.17",
       "sidebarTampil": false,
       "headerTampil": false,
       "tabTampil": false,
       "tombolCetakTampil": false,
       "kartuRentangTampil": false,
       "tabelTampil": true,
-      "barisTabel": 4,
-      "barisTotal": "TOTAL\t\t\t\t\tRp 1.325.100\tRp 1.327.000\tRp 1.900\t\t\t\t\t\t6\t\t\t\tRp 447.100\tRp 41.600\t\t",
+      "barisTabel": 17,
+      "barisTotal": "TOTAL\t\t\t\t\tRp 21.153.600\tRp 21.941.500\tRp 787.900\t\t\t\t\t\t19\t\t\t\tRp 2.074.100\tRp 103.000\t\t",
       "judulKartu": [
         "Rentang",
         "Laporan Semua Transaksi"
@@ -286,7 +286,7 @@
     "laba-rugi": {
       "pageProp": "laporan",
       "kopTampil": true,
-      "kopTeks": "Toko Hakim | Laporan Laba Rugi | Periode: 21/09/2026 s/d 21/09/2026 | Dicetak: 21/09/2026, 19.52",
+      "kopTeks": "Toko Hakim | Laporan Laba Rugi | Periode: 24/09/2026 s/d 24/09/2026 | Dicetak: 24/09/2026, 03.17",
       "sidebarTampil": false,
       "headerTampil": false,
       "tabTampil": false,
@@ -308,7 +308,7 @@
       "lebarPx": 219,
       "lebarMm": 58,
       "strukTerlihat": true,
-      "barisAwal": "TOKO HAKIM |  | No | INV-20260921-0008",
+      "barisAwal": "TOKO HAKIM |  | No | INV-2026-000107",
       "tombolCetakTampil": false
     },
     "tombolSemuaLaporan": {
@@ -390,47 +390,47 @@
   },
   "offline": {
     "offline": {
-      "uuid": "332bd1d5-1429-4ddc-8b68-3a075b4ab6b4",
+      "uuid": "066ea505-ccab-4842-ae04-a84d3b3095dd",
       "nomorSementara": true,
       "pelangganTersimpan": true
     },
     "sebelumOffline": {
-      "penjualan": 2,
-      "sedaap": 160
+      "penjualan": 9,
+      "sedaap": 720
     },
     "sesudahSinkron": {
-      "penjualan": 3,
-      "sedaap": 159
+      "penjualan": 10,
+      "sedaap": 719
     },
     "tenang": {
-      "penjualan": 3,
-      "sedaap": 159
+      "penjualan": 10,
+      "sedaap": 719
     },
     "duplikatDenganUuidSama": 1,
     "hapus": [
       {
-        "uuid": "332bd1d5-1429-4ddc-8b68-3a075b4ab6b4",
-        "id": 46,
+        "uuid": "066ea505-ccab-4842-ae04-a84d3b3095dd",
+        "id": 178,
         "status": 200
       }
     ],
     "setelahBersih": {
-      "penjualan": 2,
-      "sedaap": 160
+      "penjualan": 9,
+      "sedaap": 720
     }
   },
   "data": {
     "sebelum": {
       "produk": 101,
-      "sedaap": 160,
-      "penjualan": 2,
-      "pembelian": 0
+      "sedaap": 720,
+      "penjualan": 9,
+      "pembelian": 1
     },
     "sesudah": {
       "produk": 101,
-      "sedaap": 160,
-      "penjualan": 2,
-      "pembelian": 0
+      "sedaap": 720,
+      "penjualan": 9,
+      "pembelian": 1
     }
   }
 }

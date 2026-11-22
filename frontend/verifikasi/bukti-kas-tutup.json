@@ -1,0 +1,42 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "setelahBukaKas": "Kas dibuka 18.06 · modal Rp 80.000 · seharusnya di laci Rp 80.000 ",
+  "selisihDiDialog": "Selisih Rp 20.000",
+  "urlSetelahTutup": "http://127.0.0.1:3000/kasir",
+  "tetapDiKasir": true,
+  "laporan": {
+    "judul": "Laporan Tutup Kas — Kasir Uji",
+    "modal": true,
+    "seharusnya": true,
+    "fisik": true,
+    "selisih": true,
+    "transaksi": true,
+    "adaTombolCetak": true
+  },
+  "riwayatKasir": {
+    "urlDitolak": "http://127.0.0.1:3000/kasir",
+    "dilemparKeKasir": true,
+    "adaMenu": false
+  },
+  "riwayatSuperadmin": {
+    "adaMenu": true,
+    "jumlahTotal": 3,
+    "barisUji": [
+      "Kasir Uji 19/11/2026, 18.06 19/11/2026, 18.06 Rp 80.000 Rp 80.000 Rp 100.000 Rp 20.000 Rp 0 Lihat"
+    ]
+  },
+  "halamanKasir": {
+    "jumlahBarang": true,
+    "totalQty": true,
+    "potongan": "Jumlah barang 1",
+    "potonganQty": "Total qty 2"
+  },
+  "struk": {
+    "teks": "TOKO HAKIM No INV-2026-000013 Tanggal 19/11/2026, 18.06 Kasir Admin Uji Produk Uji Kas 2 pcs x Rp 5.000 Rp 10.000 Jumlah 1 barang · 2 qty TOTAL Rp 10.000 Metode Tunai Dibayar Rp 50.000 Kembalian Rp 40.000 Terima kasih telah berbelanja Barang yang sudah dibeli tidak dapat ditukar",
+    "jumlah": "Jumlah 1 barang · 2 qty"
+  },
+  "pembersihan": {
+    "catatan": "data dua akun uji dihapus lewat SQL langsung",
+    "selesai": true
+  }
+}

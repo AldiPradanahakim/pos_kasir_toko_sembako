@@ -1,7 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { api } from '../api';
-import { Alert, Button, Card, Input, Kosong, Label, Modal, Select } from '../components/ui';
+import Pagination, { potongHalaman } from '../components/Pagination';
+import { Alert, Button, Card, Input, InputUang, Kosong, Label, Modal, Select } from '../components/ui';
 import { db } from '../db';
 import { parseUang, rupiah } from '../lib/format';
 import { useOnline } from '../lib/useOnline';
@@ -24,6 +25,17 @@ const barisKosong = (unit_id: number): BarisUnit => ({
   barcode: '',
 });
 
+/**
+ * Satuan hitung yang berlaku, mengikuti aturan server: pilihan superadmin, kalau kosong
+ * satuan isi terbesar (isi 1 hanya mengulang base_unit), kalau tidak ada sama sekali base_unit.
+ */
+function satuanHitung(p: Product): string {
+  const dipilih = p.units.find((u) => u.unit_id === p.base_unit_id);
+  if (dipilih) return dipilih.unit_name;
+  const terbesar = [...p.units].filter((u) => u.isi > 1).sort((a, b) => b.isi - a.isi)[0];
+  return terbesar ? terbesar.unit_name : p.base_unit;
+}
+
 export default function Produk() {
   const online = useOnline();
   const products = useLiveQuery(() => db.products.toArray(), [], [] as Product[]);
@@ -31,6 +43,8 @@ export default function Produk() {
   const units = useLiveQuery(() => db.units.toArray(), [], []);
 
   const [cari, setCari] = useState('');
+  const [halaman, setHalaman] = useState(1);
+  const [perHalaman, setPerHalaman] = useState(20);
   const [buka, setBuka] = useState(false);
   const [edit, setEdit] = useState<Product | null>(null);
   const [error, setError] = useState('');
@@ -41,6 +55,8 @@ export default function Produk() {
   const [baseUnit, setBaseUnit] = useState('pcs');
   const [barcode, setBarcode] = useState('');
   const [aktif, setAktif] = useState(true);
+  const [baseUnitId, setBaseUnitId] = useState('');
+  const [izinMinus, setIzinMinus] = useState(false);
   const [baris, setBaris] = useState<BarisUnit[]>([]);
 
   const daftar = products.filter((p) => {
@@ -49,9 +65,24 @@ export default function Produk() {
     return (
       p.name.toLowerCase().includes(q) ||
       (p.category_name ?? '').toLowerCase().includes(q) ||
-      (p.barcode ?? '').toLowerCase().includes(q)
+      (p.barcode ?? '').toLowerCase().includes(q) ||
+      p.units.some((u) => u.unit_name.toLowerCase().includes(q))
     );
   });
+
+  // Halaman dijepit: menghapus/menyaring baris bisa menyisakan nomor halaman yang sudah lewat.
+  const jumlahHalaman = Math.max(1, Math.ceil(daftar.length / perHalaman));
+  const hal = Math.min(halaman, jumlahHalaman);
+  const halamanIni = potongHalaman(daftar, hal, perHalaman);
+
+  /**
+   * Satuan hitung hanya boleh dari satuan produk ini. Kalau barisnya sudah dihapus, pilihannya
+   * dianggap "Otomatis" (dikirim null) supaya server tidak menolak 422.
+   */
+  const satuanHitungDipilih = baris.some((b) => b.unit_id === Number(baseUnitId)) ? baseUnitId : '';
+  const opsiSatuanHitung = baris
+    .map((b) => units.find((u) => u.id === b.unit_id))
+    .filter((u): u is NonNullable<typeof u> => Boolean(u));
 
   function bukaTambah() {
     setEdit(null);
@@ -60,6 +91,8 @@ export default function Produk() {
     setBaseUnit('pcs');
     setBarcode('');
     setAktif(true);
+    setBaseUnitId('');
+    setIzinMinus(false);
     setBaris([barisKosong(units[0]?.id ?? 0)]);
     setError('');
     setBuka(true);
@@ -72,6 +105,8 @@ export default function Produk() {
     setBaseUnit(p.base_unit);
     setBarcode(p.barcode ?? '');
     setAktif(p.is_active);
+    setBaseUnitId(p.base_unit_id ? String(p.base_unit_id) : '');
+    setIzinMinus(p.izin_minus ?? false);
     setBaris(
       p.units.map((u) => ({
         unit_id: u.unit_id,
@@ -130,6 +165,10 @@ export default function Produk() {
       base_unit: baseUnit,
       barcode: barcode.trim() || null,
       is_active: aktif,
+      // PUT mengganti SELURUH produk: kalau dua field ini tidak ikut, pengaturan yang sudah
+      // dipilih superadmin tereset diam-diam tiap kali produk disunting.
+      base_unit_id: satuanHitungDipilih ? Number(satuanHitungDipilih) : null,
+      izin_minus: izinMinus,
       units: baris.map((b) => ({
         unit_id: b.unit_id,
         isi: parseInt(b.isi, 10),
@@ -177,11 +216,18 @@ export default function Produk() {
 
       <Card title={`Daftar Produk (${daftar.length})`}>
         <div className="mb-3 max-w-sm">
-          <Input value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari nama / barcode…" />
+          <Input
+            value={cari}
+            onChange={(e) => {
+              setCari(e.target.value);
+              setHalaman(1);
+            }}
+            placeholder="Cari nama / barcode / satuan…"
+          />
         </div>
         {/* Di HP daftar dibaca sebagai kartu supaya 7 kolom tabel tidak melebarkan halaman. */}
         <ul className="space-y-2 md:hidden">
-          {daftar.map((p) => (
+          {halamanIni.map((p) => (
             <li key={p.id} className="min-w-0 rounded-md border border-slate-200 p-3">
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0 break-words font-medium">{p.name}</span>
@@ -196,6 +242,14 @@ export default function Produk() {
               <p className="mt-1 text-xs text-slate-500">
                 {p.category_name ?? 'Tanpa kategori'} · satuan dasar {p.base_unit}
                 {p.barcode ? ` · ${p.barcode}` : ''}
+              </p>
+              <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
+                <span className="text-slate-500">
+                  Satuan hitung: <b className="text-slate-700">{satuanHitung(p)}</b>
+                </span>
+                {p.izin_minus && (
+                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-amber-700">Boleh minus</span>
+                )}
               </p>
               <ul className="mt-2 space-y-0.5">
                 {p.units.map((u) => (
@@ -225,6 +279,7 @@ export default function Produk() {
                 <th className="py-2">Nama</th>
                 <th className="py-2">Kategori</th>
                 <th className="py-2">Base</th>
+                <th className="py-2">Satuan hitung</th>
                 <th className="py-2">Barcode</th>
                 <th className="py-2">Satuan</th>
                 <th className="py-2">Status</th>
@@ -232,11 +287,12 @@ export default function Produk() {
               </tr>
             </thead>
             <tbody>
-              {daftar.map((p) => (
+              {halamanIni.map((p) => (
                 <tr key={p.id} className="border-b border-slate-50 align-top">
                   <td className="min-w-0 break-words py-2 font-medium">{p.name}</td>
                   <td className="py-2">{p.category_name ?? '-'}</td>
                   <td className="py-2">{p.base_unit}</td>
+                  <td className="py-2">{satuanHitung(p)}</td>
                   <td className="py-2 font-mono text-xs">{p.barcode ?? '-'}</td>
                   <td className="py-2">
                     <ul className="space-y-0.5">
@@ -250,13 +306,20 @@ export default function Produk() {
                     </ul>
                   </td>
                   <td className="py-2">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs ${
-                        p.is_active ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-600'
-                      }`}
-                    >
-                      {p.is_active ? 'Aktif' : 'Nonaktif'}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-1">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs ${
+                          p.is_active ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-600'
+                        }`}
+                      >
+                        {p.is_active ? 'Aktif' : 'Nonaktif'}
+                      </span>
+                      {p.izin_minus && (
+                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">
+                          Boleh minus
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="whitespace-nowrap py-2 text-right">
                     <Button variant="ghost" onClick={() => bukaEdit(p)} disabled={!online}>
@@ -272,6 +335,16 @@ export default function Produk() {
           </table>
         </div>
         {!daftar.length && <Kosong>Belum ada produk.</Kosong>}
+        <Pagination
+          total={daftar.length}
+          halaman={hal}
+          perHalaman={perHalaman}
+          onHalaman={setHalaman}
+          onPerHalaman={(n) => {
+            setPerHalaman(n);
+            setHalaman(1);
+          }}
+        />
       </Card>
 
       <Modal
@@ -305,6 +378,19 @@ export default function Produk() {
               </Select>
             </div>
             <div>
+              <Label>Satuan hitung</Label>
+              {/* Pilihannya hanya satuan produk ini; kalau barisnya dihapus, pilihan ini jatuh
+                  ke "Otomatis" dan dikirim null supaya server tidak menolak 422. */}
+              <Select value={satuanHitungDipilih} onChange={(e) => setBaseUnitId(e.target.value)}>
+                <option value="">Otomatis (satuan terbesar)</option>
+                {opsiSatuanHitung.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div>
               <Label>Barcode produk (opsional)</Label>
               <Input value={barcode} onChange={(e) => setBarcode(e.target.value)} />
             </div>
@@ -319,6 +405,16 @@ export default function Produk() {
               onChange={(e) => setAktif(e.target.checked)}
             />
             Aktif
+          </label>
+
+          <label className="flex min-h-sentuh cursor-pointer items-center gap-3 text-sm">
+            <input
+              type="checkbox"
+              className="h-5 w-5 shrink-0"
+              checked={izinMinus}
+              onChange={(e) => setIzinMinus(e.target.checked)}
+            />
+            Izinkan jual saat stok kosong
           </label>
 
           <div>
@@ -361,21 +457,11 @@ export default function Produk() {
                   </div>
                   <div className="min-w-0">
                     <Label>Harga jual</Label>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={b.harga_jual}
-                      onChange={(e) => ubahBaris(i, { harga_jual: e.target.value.replace(/[^\d]/g, '') })}
-                    />
+                    <InputUang nilai={b.harga_jual} onNilai={(harga_jual) => ubahBaris(i, { harga_jual })} />
                   </div>
                   <div className="min-w-0">
                     <Label>Harga modal</Label>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={b.harga_modal}
-                      onChange={(e) => ubahBaris(i, { harga_modal: e.target.value.replace(/[^\d]/g, '') })}
-                    />
+                    <InputUang nilai={b.harga_modal} onNilai={(harga_modal) => ubahBaris(i, { harga_modal })} />
                   </div>
                   <div className="min-w-0">
                     <Label>Barcode satuan</Label>

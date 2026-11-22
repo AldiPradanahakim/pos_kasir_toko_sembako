@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../api';
-import { Alert, Button, Card, Input, Kosong, Label, Modal, Select, Stat } from '../components/ui';
+import { Alert, Button, Card, Input, InputUang, Kosong, Label, Modal, Select, Stat } from '../components/ui';
 import { formatTanggal, parseUang, rupiah, tanggalLokal } from '../lib/format';
 import { useOnline } from '../lib/useOnline';
+import { useAuth } from '../store';
+import type { PelangganSaldo } from '../types';
 
 /** Catatan hutang/piutang seperti yang dikirim server: `pihak`, bukan `nama`. */
 interface CatatanHutang {
@@ -39,13 +41,22 @@ const sisaDari = (d: CatatanHutang): number => {
 const lunas = (d: CatatanHutang): boolean => d.status === 'lunas' || sisaDari(d) <= 0;
 
 export default function HutangPiutang() {
+  /**
+   * Kasir mencatat hutang/piutang baru dan pelunasan (itu pekerjaan meja kasir).
+   * Mengubah nominal atau menghapus catatan adalah koreksi pembukuan: hanya superadmin.
+   * Server menegakkan hal yang sama (PUT/DELETE /debts butuh superadmin).
+   */
+  const superadmin = useAuth((st) => st.user?.role) === 'superadmin';
   const online = useOnline();
 
   const [rows, setRows] = useState<CatatanHutang[]>([]);
+  /** Saldo tagihan per pelanggan: yang dilihat pemilik saat menagih. */
+  const [saldo, setSaldo] = useState<PelangganSaldo[]>([]);
   const [memuat, setMemuat] = useState(false);
   const [error, setError] = useState('');
   const [tipe, setTipe] = useState('');
   const [status, setStatus] = useState('');
+  const [cari, setCari] = useState('');
 
   const [buka, setBuka] = useState(false);
   const [edit, setEdit] = useState<CatatanHutang | null>(null);
@@ -66,7 +77,12 @@ export default function HutangPiutang() {
     setError('');
     setMemuat(true);
     try {
-      setRows(daftarDari(await api.get<unknown>('/debts?limit=200')));
+      const [daftarBon, perPelanggan] = await Promise.all([
+        api.get<unknown>('/debts?limit=200'),
+        api.get<{ rows: PelangganSaldo[] }>('/debts/pelanggan?tipe=piutang'),
+      ]);
+      setRows(daftarDari(daftarBon));
+      setSaldo(perPelanggan.rows ?? []);
     } catch (err) {
       setRows([]);
       setError(err instanceof Error ? err.message : 'Gagal memuat hutang & piutang');
@@ -85,6 +101,20 @@ export default function HutangPiutang() {
     if (status === 'lunas' && !lunas(d)) return false;
     return true;
   });
+
+  // Pencarian di memori atas baris yang sudah dimuat (server sudah mengirim 200 terakhir).
+  const kata = cari.trim().toLowerCase();
+  const tampil = kata
+    ? daftar.filter((d) =>
+        [
+          d.pihak,
+          d.keterangan,
+          d.user_name,
+          d.tipe === 'piutang' ? 'piutang' : 'hutang',
+          lunas(d) ? 'lunas' : 'belum lunas',
+        ].some((t) => (t ?? '').toLowerCase().includes(kata)),
+      )
+    : daftar;
 
   const belumLunasUtang = rows
     .filter((d) => d.tipe === 'utang' && !lunas(d))
@@ -167,8 +197,9 @@ export default function HutangPiutang() {
     }
     setProses(true);
     try {
-      // `dibayar` di API adalah TOTAL yang sudah dibayar, bukan tambahan.
-      await api.put(`/debts/${bayar.id}`, { dibayar: (Number(bayar.dibayar) || 0) + nominal });
+      // Endpoint ini mencatat cicilan (tambahan), menulis riwayat, dan memasukkan
+      // pelunasan piutang ke buku kas — bukan sekadar menimpa kolom `dibayar`.
+      await api.post(`/debts/${bayar.id}/bayar`, { jumlah: nominal });
       setBayar(null);
       await muat();
     } catch (err) {
@@ -238,10 +269,74 @@ export default function HutangPiutang() {
         </div>
       </Card>
 
-      <Card title={`Daftar (${daftar.length})`}>
+      <Card
+        title={`Piutang per Pelanggan (${saldo.length})`}
+        actions={
+          <span className="text-sm text-slate-600">
+            Total {rupiah(saldo.reduce((a, r) => a + Number(r.sisa), 0))}
+          </span>
+        }
+      >
+        {!saldo.length ? (
+          <Kosong>Belum ada pelanggan yang berutang.</Kosong>
+        ) : (
+          <div className="tabel-scroll">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 text-left text-xs uppercase text-slate-500">
+                  <th className="py-2 pr-3">Pelanggan</th>
+                  <th className="py-2 pr-3 text-right">Bon</th>
+                  <th className="py-2 pr-3 text-right">Sisa</th>
+                  <th className="py-2 pr-3">Bon tertua</th>
+                  <th className="py-2 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {saldo.map((r) => (
+                  <tr key={`${r.customer_id ?? 'x'}-${r.nama}`} className="border-b border-slate-50">
+                    <td className="py-2 pr-3">
+                      <p className="font-medium">{r.nama}</p>
+                      {r.telepon && <p className="text-xs text-slate-500">{r.telepon}</p>}
+                    </td>
+                    <td className="py-2 pr-3 text-right">{r.jumlah_bon}</td>
+                    <td className="py-2 pr-3 text-right font-semibold">{rupiah(Number(r.sisa))}</td>
+                    <td className="whitespace-nowrap py-2 pr-3">{formatTanggal(r.bon_tertua)}</td>
+                    <td className="whitespace-nowrap py-2 text-right">
+                      <Button
+                        variant="ghost"
+                        ukuran="sm"
+                        className="text-teal-700"
+                        onClick={() => {
+                          setTipe('piutang');
+                          setStatus('belum');
+                          setCari(r.nama);
+                        }}
+                      >
+                        Lihat bon
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      <Card title={`Daftar (${tampil.length})`}>
+        <div className="mb-3">
+          <Input
+            type="search"
+            value={cari}
+            onChange={(e) => setCari(e.target.value)}
+            placeholder="Nama orang / supplier atau keterangan…"
+            aria-label="Cari hutang piutang"
+          />
+        </div>
+
         {/* HP: kartu per catatan. */}
         <div className="space-y-2 md:hidden">
-          {daftar.map((d) => (
+          {tampil.map((d) => (
             <div key={d.id} className="rounded-md border border-slate-200 p-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -291,18 +386,22 @@ export default function HutangPiutang() {
                       Bayar
                     </Button>
                   )}
-                  <Button variant="ghost" ukuran="sm" onClick={() => bukaEdit(d)} disabled={!online}>
-                    Ubah
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    ukuran="sm"
-                    className="text-red-700"
-                    onClick={() => void hapus(d)}
-                    disabled={!online}
-                  >
-                    Hapus
-                  </Button>
+                  {superadmin && (
+                    <>
+                      <Button variant="ghost" ukuran="sm" onClick={() => bukaEdit(d)} disabled={!online}>
+                        Ubah
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        ukuran="sm"
+                        className="text-red-700"
+                        onClick={() => void hapus(d)}
+                        disabled={!online}
+                      >
+                        Hapus
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -325,7 +424,7 @@ export default function HutangPiutang() {
               </tr>
             </thead>
             <tbody>
-              {daftar.map((d) => (
+              {tampil.map((d) => (
                 <tr key={d.id} className="border-b border-slate-50">
                   <td className="py-2 pr-3">
                     <span
@@ -377,18 +476,22 @@ export default function HutangPiutang() {
                         Bayar
                       </Button>
                     )}
-                    <Button variant="ghost" ukuran="sm" onClick={() => bukaEdit(d)} disabled={!online}>
-                      Ubah
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      ukuran="sm"
-                      className="text-red-700"
-                      onClick={() => void hapus(d)}
-                      disabled={!online}
-                    >
-                      Hapus
-                    </Button>
+                    {superadmin && (
+                      <>
+                        <Button variant="ghost" ukuran="sm" onClick={() => bukaEdit(d)} disabled={!online}>
+                          Ubah
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          ukuran="sm"
+                          className="text-red-700"
+                          onClick={() => void hapus(d)}
+                          disabled={!online}
+                        >
+                          Hapus
+                        </Button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -397,6 +500,9 @@ export default function HutangPiutang() {
         </div>
 
         {!daftar.length && <Kosong>Belum ada catatan hutang atau piutang.</Kosong>}
+        {!!daftar.length && !tampil.length && (
+          <Kosong>Tidak ada catatan yang cocok dengan pencarian "{cari.trim()}".</Kosong>
+        )}
       </Card>
 
       <Modal
@@ -425,12 +531,7 @@ export default function HutangPiutang() {
             </div>
             <div>
               <Label>Jumlah (Rp)</Label>
-              <Input
-                inputMode="numeric"
-                value={jumlah}
-                onChange={(e) => setJumlah(e.target.value.replace(/[^\d]/g, ''))}
-                required
-              />
+              <InputUang nilai={jumlah} onNilai={setJumlah} required />
             </div>
             <div>
               <Label>Jatuh tempo (opsional)</Label>
@@ -475,13 +576,7 @@ export default function HutangPiutang() {
             </div>
             <div>
               <Label>Jumlah bayar (Rp)</Label>
-              <Input
-                inputMode="numeric"
-                value={jumlahBayar}
-                onChange={(e) => setJumlahBayar(e.target.value.replace(/[^\d]/g, ''))}
-                autoFocus
-                required
-              />
+              <InputUang nilai={jumlahBayar} onNilai={setJumlahBayar} autoFocus required />
             </div>
             <div className="flex flex-wrap gap-2">
               <Button

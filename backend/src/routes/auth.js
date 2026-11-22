@@ -23,6 +23,9 @@ router.post('/login', async (req, res) => {
   if (!user.is_active) throw new ApiError(401, 'Akun tidak aktif, hubungi superadmin');
 
   const token = newToken();
+  // Tiap login membuat satu baris dan tidak ada yang pernah membersihkannya.
+  // Buang yang sudah kedaluwarsa supaya tabel token tidak menumpuk tanpa batas.
+  await q('DELETE FROM tokens WHERE expires_at <= now()');
   await q(
     `INSERT INTO tokens (user_id, token_hash, expires_at)
      VALUES ($1, $2, now() + ($3 || ' hours')::interval)`,

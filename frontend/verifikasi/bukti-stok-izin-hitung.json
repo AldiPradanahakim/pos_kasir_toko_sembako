@@ -1,0 +1,516 @@
+{
+  "base": "http://localhost:3000",
+  "produkUji": {
+    "id": 28,
+    "nama": "Ale-Ale 350ml",
+    "satuanHitung": "dus"
+  },
+  "paginationProduk": {
+    "total": 101,
+    "awal": "Menampilkan 1–20 dari 101",
+    "baris20": 20
+  },
+  "cariProduk": {
+    "kataKunci": "dus",
+    "jumlah": 20,
+    "semuaPunyaSatuan": true
+  },
+  "kolomSatuanHitung": [
+    "Ale-Ale 350ml",
+    "Minuman",
+    "pcs",
+    "dus",
+    "8993287144153"
+  ],
+  "patchPengaturan": {
+    "status": 200,
+    "base_unit_id": 4,
+    "izin_minus": false
+  },
+  "formProduk": {
+    "nilaiSelectAwal": "4",
+    "labelSelectAwal": "dus",
+    "izinTercentangAwal": false
+  },
+  "putPertama": {
+    "payload": {
+      "base_unit_id": 4,
+      "izin_minus": true
+    },
+    "produk": {
+      "base_unit_id": 4,
+      "izin_minus": true
+    }
+  },
+  "hapusBarisSatuan": {
+    "jumlahBarisAwal": 3,
+    "nilaiSelectSesudahHapus": "",
+    "base_unit_idTerkirim": null,
+    "satuanTerkirim": 1
+  },
+  "paginationStok": {
+    "total": 101,
+    "awal": "Menampilkan 1–20 dari 101",
+    "baris20": 20
+  },
+  "cariStok": {
+    "jumlah": 20,
+    "semuaStokPunyaSatuan": true
+  },
+  "barisStok": [
+    "Ale-Ale 350ml",
+    "dus",
+    "0 dus",
+    "0 pcs",
+    "normal Tidak boleh minus Izinkan minus"
+  ],
+  "riwayat": {
+    "jumlahRiwayat": 100,
+    "tipeContoh": "Keluar",
+    "produkContoh": "Sedaap Soto",
+    "riwayatKosong": 0,
+    "pesanKosong": true,
+    "riwayatTipe": 48,
+    "semuaTipeCocok": true,
+    "riwayatProduk": 52,
+    "semuaProdukCocok": true
+  },
+  "kontrolIzin": {
+    "statusSebelum": "normal\nTidak boleh minus\nIzinkan minus",
+    "statusSesudah": "normal\nBoleh minus\nLarang minus",
+    "lencanaSebelum": true,
+    "lencanaSesudah": true,
+    "metode": [
+      "PATCH /products/28/pengaturan"
+    ],
+    "body": [
+      "{\"izin_minus\":true}"
+    ],
+    "izinServer": true
+  },
+  "kartuHp": "Stok per Produk (1) | Hanya tampilkan minus | Ale-Ale 350ml | normal | Stok: 0 dus | 0 pcs | Boleh minus | Larang minus",
+  "kasirDiizinkan": {
+    "teksHasil": "Ale-Ale 350ml |  | Minuman |  | Sisa 0 dus |  | pcs · Rp 4.000 | dus · Rp 88.000",
+    "jumlahBaris": 1
+  },
+  "kasirDitolak": {
+    "teksHasil": "Ale-Ale 350ml |  | Minuman |  | Sisa 0 dus · stok kosong (sisa 0 dus), minta izin superadmin |  | pcs · Rp 4.000 | dus · Rp 88.000",
+    "jumlahBaris": 0,
+    "galat": "Stok \"Ale-Ale 350ml\" tidak cukup (sisa 0, butuh 24). Minta superadmin memberi izin jual stok kosong."
+  },
+  "offline": {
+    "sebelum": {
+      "stok_base": 300,
+      "stok_hitung": 2.08,
+      "display_hitung": "2,08 dus",
+      "display": "2 dus 12 pcs"
+    },
+    "sesudah": {
+      "stok_base": 156,
+      "stok_hitung": 1.08,
+      "display_hitung": "1,08 dus",
+      "display": "1 dus 12 pcs",
+      "satuan_hitung": "dus",
+      "minus": false
+    }
+  },
+  "sisaKeranjangDus": {
+    "sebelum": "UJI Hitung Dus 144 | Tanpa kategori | Sisa 1,08 dus | pcs · Rp 1.000 | dus · Rp 144.000",
+    "sesudah": "UJI Hitung Dus 144 | Tanpa kategori | Sisa 0,08 dus | pcs · Rp 1.000 | dus · Rp 144.000"
+  },
+  "sisaKeranjangPcs": {
+    "sebelum": "UJI Stok Satu Pcs | Tanpa kategori | Sisa 1 pcs | pcs · Rp 2.000",
+    "sesudah": "UJI Stok Satu Pcs | Tanpa kategori | Sisa 0 pcs · stok kosong (sisa 0 pcs), minta izin superadmin | pcs · Rp 2.000"
+  },
+  "qtyNaik": {
+    "setelahTambah": [
+      "1 / UJI Stok Satu Pcs / pcs",
+      "− / 1 / +",
+      "Rp 2.000",
+      "Rp 2.000",
+      "✕"
+    ],
+    "qtySetelahPlus": "1",
+    "galat": "Stok \"UJI Stok Satu Pcs\" tidak cukup (sisa 1, butuh 2). Minta superadmin memberi izin jual stok kosong."
+  },
+  "qtyDialog": {
+    "baris": [
+      "1 / UJI Stok Satu Pcs / pcs",
+      "− / 1 / +",
+      "Rp 2.000",
+      "Rp 2.000",
+      "✕"
+    ],
+    "galat": "Stok \"UJI Stok Satu Pcs\" tidak cukup (sisa 1, butuh 2). Minta superadmin memberi izin jual stok kosong.",
+    "dialogMasihTerbuka": true
+  },
+  "kasirLencana": {
+    "tombolIzin": 0,
+    "lencanaTerlihat": true
+  },
+  "pemulihan": {
+    "status": 200,
+    "produk": {
+      "base_unit_id": 4,
+      "izin_minus": false,
+      "units": 2
+    },
+    "utuh": true
+  },
+  "lulus": true,
+  "cek": [
+    {
+      "nama": "Produk: default 20 baris + penghitung halaman",
+      "lulus": true,
+      "detail": {
+        "baris": 20,
+        "halaman": "Menampilkan 1–20 dari 101"
+      }
+    },
+    {
+      "nama": "Produk: pilihan 10 baris",
+      "lulus": true,
+      "detail": {
+        "baris": 10,
+        "halaman": "Menampilkan 1–10 dari 101"
+      }
+    },
+    {
+      "nama": "Produk: halaman berikutnya menggeser daftar",
+      "lulus": true,
+      "detail": {
+        "halaman": "Menampilkan 11–20 dari 101",
+        "baris": 10
+      }
+    },
+    {
+      "nama": "Produk: pilihan 50 baris",
+      "lulus": true,
+      "detail": {
+        "baris": 50,
+        "halaman": "Menampilkan 1–50 dari 101"
+      }
+    },
+    {
+      "nama": "Produk: pencarian menjangkau nama satuan",
+      "lulus": true,
+      "detail": {
+        "jumlah": 20,
+        "halaman": "Menampilkan 1–20 dari 70",
+        "contoh": "Sedaap Soto\tMakanan\tpcs\tdus\t- | pcs · isi 1 · jual Rp 2.700 · modal Rp 2.500 | dus · isi 40 · jual Rp 105.000 · modal Rp"
+      }
+    },
+    {
+      "nama": "Produk: kolom Satuan hitung terisi sesuai aturan server (otomatis = satuan terbesar)",
+      "lulus": true,
+      "detail": {
+        "kolom": "dus",
+        "diharapkan": "dus",
+        "baris": [
+          "Ale-Ale 350ml",
+          "Minuman",
+          "pcs",
+          "dus",
+          "8993287144153"
+        ]
+      }
+    },
+    {
+      "nama": "PATCH /products/:id/pengaturan menyalakan satuan hitung",
+      "lulus": true,
+      "detail": {
+        "status": 200,
+        "base_unit_id": 4
+      }
+    },
+    {
+      "nama": "Form Produk: satuan hitung terisi dari produk",
+      "lulus": true,
+      "detail": {
+        "nilai": "4",
+        "label": "dus"
+      }
+    },
+    {
+      "nama": "Form Produk: checkbox izin jual stok kosong ada dan mengikuti produk",
+      "lulus": true,
+      "detail": {
+        "tercentang": false
+      }
+    },
+    {
+      "nama": "PUT /products: izin_minus + base_unit_id ikut terkirim",
+      "lulus": true,
+      "detail": {
+        "base_unit_id": 4,
+        "izin_minus": true
+      }
+    },
+    {
+      "nama": "PUT /products: pengaturan TIDAK tereset sesudah simpan",
+      "lulus": true,
+      "detail": {
+        "base_unit_id": 4,
+        "izin_minus": true
+      }
+    },
+    {
+      "nama": "PUT /products: mematikan izin lewat form tidak menghapus satuan hitung",
+      "lulus": true,
+      "detail": {
+        "izin_minus": false,
+        "base_unit_id": 4
+      }
+    },
+    {
+      "nama": "Satuan hitung hilang -> pilihan jatuh ke Otomatis",
+      "lulus": true,
+      "detail": ""
+    },
+    {
+      "nama": "Satuan hitung hilang -> payload mengirim null (bukan id satuan yang sudah dihapus)",
+      "lulus": true,
+      "detail": {
+        "jumlahBarisAwal": 3,
+        "nilaiSelectSesudahHapus": "",
+        "base_unit_idTerkirim": null,
+        "satuanTerkirim": 1
+      }
+    },
+    {
+      "nama": "PUT yang dibatalkan tidak mengubah produk di server",
+      "lulus": true,
+      "detail": {
+        "base_unit_id": 4
+      }
+    },
+    {
+      "nama": "Stok: default 20 baris + penghitung halaman",
+      "lulus": true,
+      "detail": {
+        "baris": 20,
+        "halaman": "Menampilkan 1–20 dari 101"
+      }
+    },
+    {
+      "nama": "Stok: 10 / berikutnya / 50 baris",
+      "lulus": true,
+      "detail": {
+        "baris10": 10,
+        "halaman10b": "Menampilkan 11–20 dari 101",
+        "baris50": 50
+      }
+    },
+    {
+      "nama": "Stok: pencarian menjangkau satuan hitung",
+      "lulus": true,
+      "detail": {
+        "jumlah": 20,
+        "contoh": "Sedaap Soto\tdus\t18 dus\t18 dus | normal | Tidak boleh minus | Izinkan minus"
+      }
+    },
+    {
+      "nama": "Stok: angka utama dalam satuan hitung + kolom Satuan hitung",
+      "lulus": true,
+      "detail": {
+        "kolom": [
+          "Ale-Ale 350ml",
+          "dus",
+          "0 dus",
+          "0 pcs"
+        ],
+        "diharapkan": [
+          "Ale-Ale 350ml",
+          "dus",
+          "0 dus"
+        ]
+      }
+    },
+    {
+      "nama": "Stok: base tetap ditampilkan sebagai keterangan sekunder",
+      "lulus": true,
+      "detail": "0 pcs"
+    },
+    {
+      "nama": "Riwayat stok: pencarian menyaring baris yang dimuat (produk + tipe)",
+      "lulus": true,
+      "detail": {
+        "jumlahRiwayat": 100,
+        "tipeContoh": "Keluar",
+        "produkContoh": "Sedaap Soto",
+        "riwayatKosong": 0,
+        "pesanKosong": true,
+        "riwayatTipe": 48,
+        "semuaTipeCocok": true,
+        "riwayatProduk": 52,
+        "semuaProdukCocok": true
+      }
+    },
+    {
+      "nama": "Stok: tombol izin memakai PATCH /products/:id/pengaturan dan mengubah server",
+      "lulus": true,
+      "detail": {
+        "statusSebelum": "normal\nTidak boleh minus\nIzinkan minus",
+        "statusSesudah": "normal\nBoleh minus\nLarang minus",
+        "lencanaSebelum": true,
+        "lencanaSesudah": true,
+        "metode": [
+          "PATCH /products/28/pengaturan"
+        ],
+        "body": [
+          "{\"izin_minus\":true}"
+        ],
+        "izinServer": true
+      }
+    },
+    {
+      "nama": "Stok: lencana berubah Tidak boleh minus -> Boleh minus",
+      "lulus": true,
+      "detail": {
+        "sebelum": "normal\nTidak boleh minus\nIzinkan minus",
+        "sesudah": "normal\nBoleh minus\nLarang minus"
+      }
+    },
+    {
+      "nama": "Stok HP: kartu menampilkan satuan hitung + lencana izin",
+      "lulus": true,
+      "detail": "Stok per Produk (1) | Hanya tampilkan minus | Ale-Ale 350ml | normal | Stok: 0 dus | 0 pcs | Boleh minus | Larang minus"
+    },
+    {
+      "nama": "Kasir: stok ditampilkan di hasil pencarian dalam satuan hitung",
+      "lulus": true,
+      "detail": "Ale-Ale 350ml |  | Minuman |  | Sisa 0 dus |  | pcs · Rp 4.000 | dus · Rp 88.000"
+    },
+    {
+      "nama": "Kasir: izin menyala -> barang boleh masuk keranjang",
+      "lulus": true,
+      "detail": {
+        "jumlahBaris": 1
+      }
+    },
+    {
+      "nama": "Stok: tombol Larang minus mematikan izin di server",
+      "lulus": true,
+      "detail": {
+        "izin_minus": false
+      }
+    },
+    {
+      "nama": "Kasir: stok kosong ditandai jelas di hasil pencarian",
+      "lulus": true,
+      "detail": "Ale-Ale 350ml |  | Minuman |  | Sisa 0 dus · stok kosong (sisa 0 dus), minta izin superadmin |  | pcs · Rp 4.000 | dus · Rp 88.000"
+    },
+    {
+      "nama": "Kasir: menambah barang melebihi stok DITOLAK dan keranjang tidak berubah",
+      "lulus": true,
+      "detail": {
+        "baris": 0,
+        "galat": "Stok \"Ale-Ale 350ml\" tidak cukup (sisa 0, butuh 24). Minta superadmin memberi izin jual stok kosong."
+      }
+    },
+    {
+      "nama": "Offline: keadaan awal 300 base = 2,08 dus",
+      "lulus": true,
+      "detail": {
+        "stok_base": 300,
+        "stok_hitung": 2.08,
+        "display_hitung": "2,08 dus",
+        "display": "2 dus 12 pcs"
+      }
+    },
+    {
+      "nama": "Offline: penjualan 1 dus (144 base) memotong stok_base DAN memperbarui stok_hitung/display_hitung",
+      "lulus": true,
+      "detail": {
+        "stok_base": 156,
+        "stok_hitung": 1.08,
+        "display_hitung": "1,08 dus",
+        "display": "1 dus 12 pcs",
+        "satuan_hitung": "dus",
+        "minus": false
+      }
+    },
+    {
+      "nama": "Offline: display_hitung TIDAK basi (bukan 2,08 dus)",
+      "lulus": true,
+      "detail": "1,08 dus"
+    },
+    {
+      "nama": "Offline: display base ikut diperbarui",
+      "lulus": true,
+      "detail": "1 dus 12 pcs"
+    },
+    {
+      "nama": "Kasir: sisa stok berkurang setelah barang masuk keranjang (satuan hitung, koma Indonesia)",
+      "lulus": true,
+      "detail": {
+        "sebelum": "UJI Hitung Dus 144 | Tanpa kategori | Sisa 1,08 dus | pcs · Rp 1.000 | dus · Rp 144.000",
+        "sesudah": "UJI Hitung Dus 144 | Tanpa kategori | Sisa 0,08 dus | pcs · Rp 1.000 | dus · Rp 144.000"
+      }
+    },
+    {
+      "nama": "Kasir: sisa stok di hasil pencarian jadi 0 setelah keranjang memakai seluruh stok",
+      "lulus": true,
+      "detail": {
+        "sebelum": "UJI Stok Satu Pcs | Tanpa kategori | Sisa 1 pcs | pcs · Rp 2.000",
+        "sesudah": "UJI Stok Satu Pcs | Tanpa kategori | Sisa 0 pcs · stok kosong (sisa 0 pcs), minta izin superadmin | pcs · Rp 2.000"
+      }
+    },
+    {
+      "nama": "Kasir: penanda stok kosong ikut menyebut sisa yang sama",
+      "lulus": true,
+      "detail": "UJI Stok Satu Pcs | Tanpa kategori | Sisa 0 pcs · stok kosong (sisa 0 pcs), minta izin superadmin | pcs · Rp 2.000"
+    },
+    {
+      "nama": "Kasir: tombol + melebihi stok ditolak, qty tetap",
+      "lulus": true,
+      "detail": {
+        "setelahTambah": [
+          "1 / UJI Stok Satu Pcs / pcs",
+          "− / 1 / +",
+          "Rp 2.000",
+          "Rp 2.000",
+          "✕"
+        ],
+        "qtySetelahPlus": "1",
+        "galat": "Stok \"UJI Stok Satu Pcs\" tidak cukup (sisa 1, butuh 2). Minta superadmin memberi izin jual stok kosong."
+      }
+    },
+    {
+      "nama": "Kasir: qty dinaikkan lewat pop up juga ditolak, baris tidak berubah",
+      "lulus": true,
+      "detail": {
+        "baris": [
+          "1 / UJI Stok Satu Pcs / pcs",
+          "− / 1 / +",
+          "Rp 2.000",
+          "Rp 2.000",
+          "✕"
+        ],
+        "galat": "Stok \"UJI Stok Satu Pcs\" tidak cukup (sisa 1, butuh 2). Minta superadmin memberi izin jual stok kosong.",
+        "dialogMasihTerbuka": true
+      }
+    },
+    {
+      "nama": "Kasir (bukan superadmin): hanya lencana, tanpa tombol izin",
+      "lulus": true,
+      "detail": {
+        "tombolIzin": 0,
+        "lencanaTerlihat": true
+      }
+    },
+    {
+      "nama": "Produk uji dikembalikan persis ke keadaan awal",
+      "lulus": true,
+      "detail": {
+        "status": 200,
+        "produk": {
+          "base_unit_id": 4,
+          "izin_minus": false,
+          "units": 2
+        },
+        "utuh": true
+      }
+    }
+  ]
+}

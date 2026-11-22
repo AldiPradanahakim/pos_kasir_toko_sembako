@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../../api';
+import Pagination, { potongHalaman } from '../../components/Pagination';
 import { ActionBar, Alert, Button, Card, Input, Kosong, Label } from '../../components/ui';
 import { db } from '../../db';
 import { parseUang } from '../../lib/format';
@@ -94,6 +95,8 @@ export default function StokOpname() {
   const stok = useLiveQuery(() => db.cachedStock.toArray(), [], [] as StockRow[]);
 
   const [cari, setCari] = useState('');
+  const [halaman, setHalaman] = useState(1);
+  const [perHalaman, setPerHalaman] = useState(20);
   const [fisik, setFisik] = useState<Record<number, string>>({});
   const [memuat, setMemuat] = useState(false);
   const [error, setError] = useState('');
@@ -120,6 +123,14 @@ export default function StokOpname() {
     const q = cari.trim().toLowerCase();
     return q ? semua.filter((b) => b.nama.toLowerCase().includes(q)) : semua;
   }, [semua, cari]);
+
+  /**
+   * Halaman dijepit ke jumlah halaman yang ada: menyaring daftar bisa menyusutkan
+   * hasil, dan nomor halaman yang tersimpan tidak boleh melewati ujungnya.
+   */
+  const jumlahHalaman = Math.max(1, Math.ceil(terlihat.length / perHalaman));
+  const halamanAman = Math.min(halaman, jumlahHalaman);
+  const halamanIni = potongHalaman(terlihat, halamanAman, perHalaman);
 
   const onUbah = useCallback((id: number, nilai: string) => {
     setFisik((lama) => {
@@ -198,22 +209,53 @@ export default function StokOpname() {
             <Input
               type="search"
               placeholder="Nama produk…"
+              aria-label="Cari produk untuk dihitung"
               value={cari}
-              onChange={(e) => setCari(e.target.value)}
+              onChange={(e) => {
+                setCari(e.target.value);
+                // Kata kunci baru = daftar baru; kembali ke halaman pertama supaya
+                // pengguna tidak mendarat di halaman yang sudah tidak ada.
+                setHalaman(1);
+              }}
             />
           </div>
           {semua.length === 0 ? (
             <Kosong>Data produk lokal masih kosong. Buka halaman lain saat online agar data tersinkron.</Kosong>
           ) : terlihat.length === 0 ? (
-            <Kosong>Tidak ada produk yang cocok.</Kosong>
+            <Kosong>Tidak ada produk yang cocok dengan pencarian "{cari.trim()}".</Kosong>
           ) : (
             <div>
-              {terlihat.map((b) => (
+              {halamanIni.map((b) => (
                 <BarisOpname key={b.id} baris={b} nilai={fisik[b.id] ?? ''} onUbah={onUbah} />
               ))}
+              <Pagination
+                total={terlihat.length}
+                halaman={halamanAman}
+                perHalaman={perHalaman}
+                onHalaman={setHalaman}
+                onPerHalaman={(n) => {
+                  setPerHalaman(n);
+                  setHalaman(1);
+                }}
+              />
             </div>
           )}
         </div>
+      </Card>
+
+      <Card
+        title="Riwayat Stok Opname"
+        actions={
+          <Button variant="secondary" ukuran="sm" onClick={() => void muatRiwayat()} disabled={!online}>
+            Muat riwayat
+          </Button>
+        }
+      >
+        {errorRiwayat ? (
+          <Alert>{errorRiwayat}</Alert>
+        ) : (
+          <TabelLaporan rows={riwayat} kosong="Belum ada opname tersimpan. Tekan Muat riwayat." />
+        )}
       </Card>
 
       <ActionBar>
@@ -233,21 +275,6 @@ export default function StokOpname() {
           </p>
         </div>
       </ActionBar>
-
-      <Card
-        title="Riwayat Stok Opname"
-        actions={
-          <Button variant="secondary" ukuran="sm" onClick={() => void muatRiwayat()} disabled={!online}>
-            Muat riwayat
-          </Button>
-        }
-      >
-        {errorRiwayat ? (
-          <Alert>{errorRiwayat}</Alert>
-        ) : (
-          <TabelLaporan rows={riwayat} kosong="Belum ada opname tersimpan. Tekan Muat riwayat." />
-        )}
-      </Card>
     </div>
   );
 }

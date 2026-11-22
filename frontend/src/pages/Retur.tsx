@@ -1,10 +1,12 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../api';
-import { Alert, Button, Card, Input, Kosong, Label, Modal, Select, Stat } from '../components/ui';
+import CariSelect from '../components/CariSelect';
+import { Alert, Button, Card, Input, InputUang, Kosong, Label, Modal, Select, Stat } from '../components/ui';
 import { db } from '../db';
 import { formatTanggal, formatTanggalJam, parseUang, rupiah, tanggalLokal } from '../lib/format';
 import { useOnline } from '../lib/useOnline';
+import { useAuth } from '../store';
 import type { Product, Purchase, Sale } from '../types';
 
 /** Satu retur = satu barang (server menyimpan per baris, bukan per dokumen). */
@@ -46,12 +48,15 @@ function daftarDari<T>(data: unknown): T[] {
 const labelTipe = (t: string): string => (t === 'pembelian' ? 'Retur pembelian' : 'Retur penjualan');
 
 export default function Retur() {
+  /** Hapus retur membalik stok dan kas: koreksi pembukuan, jadi hanya superadmin. */
+  const superadmin = useAuth((st) => st.user?.role) === 'superadmin';
   const online = useOnline();
   const products = useLiveQuery(() => db.products.toArray(), [], [] as Product[]);
 
   const [dari, setDari] = useState(tanggalLokal());
   const [sampai, setSampai] = useState(tanggalLokal());
   const [filterTipe, setFilterTipe] = useState('');
+  const [cari, setCari] = useState('');
   const [rows, setRows] = useState<BarisRetur[]>([]);
   const [memuat, setMemuat] = useState(false);
   const [error, setError] = useState('');
@@ -135,6 +140,34 @@ export default function Retur() {
   const totalDaftar = rows.reduce((s, r) => s + (Number(r.jumlah) || 0), 0);
   const jumlahPenjualan = rows.filter((r) => r.tipe !== 'pembelian').length;
   const produkTerpilih = products.find((p) => p.id === Number(productId));
+
+  // Pencarian di memori: daftar retur sudah dimuat utuh dari server, jadi mengetik
+  // tidak perlu memanggil ulang API.
+  const tampil = useMemo(() => {
+    const q = cari.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter((r) =>
+      [r.product_name, r.alasan, r.unit_name, r.user_name, labelTipe(r.tipe), `#${r.ref_id ?? ''}`].some((t) =>
+        (t ?? '').toLowerCase().includes(q),
+      ),
+    );
+  }, [rows, cari]);
+
+  const opsiProduk = useMemo(
+    () =>
+      products.map((p) => ({
+        value: p.id,
+        label: p.name,
+        hint: p.category_name ?? p.barcode ?? undefined,
+      })),
+    [products],
+  );
+
+  const opsiDokumen = useMemo(() => dokumen.map((d) => ({ value: d.id, label: d.label })), [dokumen]);
+
+  // Total di kaki tabel mengikuti baris yang terlihat, bukan seluruh rentang: kalau
+  // pengguna menyaring, angka TOTAL harus cocok dengan yang ada di layar.
+  const totalTampil = tampil.reduce((s, r) => s + (Number(r.jumlah) || 0), 0);
 
   function bukaTambah() {
     setTipe('penjualan');
@@ -305,9 +338,24 @@ export default function Retur() {
           server).
         </p>
 
+        <div className="mb-3">
+          <Input
+            type="search"
+            value={cari}
+            onChange={(e) => setCari(e.target.value)}
+            placeholder="Nama barang, alasan, kasir…"
+            aria-label="Cari retur"
+          />
+          {cari.trim() !== '' && (
+            <p className="mt-1 text-xs text-slate-600">
+              {tampil.length} dari {rows.length} retur cocok.
+            </p>
+          )}
+        </div>
+
         {/* HP: kartu per retur. */}
         <div className="space-y-2 md:hidden">
-          {rows.map((r) => (
+          {tampil.map((r) => (
             <div key={r.id} className="rounded-md border border-slate-200 p-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -323,17 +371,19 @@ export default function Retur() {
                 </div>
                 <p className="shrink-0 text-sm font-semibold">{rupiah(r.jumlah)}</p>
               </div>
-              <div className="mt-2 flex justify-end">
-                <Button
-                  variant="ghost"
-                  ukuran="sm"
-                  className="text-red-700"
-                  onClick={() => void hapus(r)}
-                  disabled={!online}
-                >
-                  Hapus
-                </Button>
-              </div>
+              {superadmin && (
+                <div className="mt-2 flex justify-end">
+                  <Button
+                    variant="ghost"
+                    ukuran="sm"
+                    className="text-red-700"
+                    onClick={() => void hapus(r)}
+                    disabled={!online}
+                  >
+                    Hapus
+                  </Button>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -354,7 +404,7 @@ export default function Retur() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {tampil.map((r) => (
                 <tr key={r.id} className="border-b border-slate-50">
                   <td className="py-2 pr-3">
                     <span
@@ -378,26 +428,30 @@ export default function Retur() {
                   <td className="py-2 pr-3">{r.alasan ?? '-'}</td>
                   <td className="py-2 pr-3">{r.user_name ?? '-'}</td>
                   <td className="whitespace-nowrap py-2 text-right">
-                    <Button
-                      variant="ghost"
-                      ukuran="sm"
-                      className="text-red-700"
-                      onClick={() => void hapus(r)}
-                      disabled={!online}
-                    >
-                      Hapus
-                    </Button>
+                    {superadmin ? (
+                      <Button
+                        variant="ghost"
+                        ukuran="sm"
+                        className="text-red-700"
+                        onClick={() => void hapus(r)}
+                        disabled={!online}
+                      >
+                        Hapus
+                      </Button>
+                    ) : (
+                      <span className="text-xs text-slate-400">—</span>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
-            {rows.length > 0 && (
+            {tampil.length > 0 && (
               <tfoot>
                 <tr className="border-t border-slate-200 font-semibold">
                   <td className="py-2 pr-3" colSpan={4}>
                     TOTAL
                   </td>
-                  <td className="py-2 pr-3 text-right">{rupiah(totalDaftar)}</td>
+                  <td className="py-2 pr-3 text-right">{rupiah(totalTampil)}</td>
                   <td colSpan={3} />
                 </tr>
               </tfoot>
@@ -406,6 +460,9 @@ export default function Retur() {
         </div>
 
         {!rows.length && <Kosong>Belum ada retur pada rentang ini.</Kosong>}
+        {!!rows.length && !tampil.length && (
+          <Kosong>Tidak ada retur yang cocok dengan pencarian "{cari.trim()}".</Kosong>
+        )}
       </Card>
 
       <Modal open={buka} title="Retur Baru" onClose={() => setBuka(false)} width="max-w-2xl" tinggiPenuh>
@@ -431,24 +488,15 @@ export default function Retur() {
             </div>
             <div>
               <Label>{tipe === 'penjualan' ? 'Struk penjualan' : 'Nota pembelian'} (opsional)</Label>
-              <Select
+              <CariSelect
                 value={refId}
-                onChange={(e) => void pilihDokumen(e.target.value)}
+                onChange={(v) => void pilihDokumen(v)}
+                options={opsiDokumen}
+                ariaLabel={tipe === 'penjualan' ? 'Struk penjualan' : 'Nota pembelian'}
+                placeholder={memuatDok ? 'Memuat daftar…' : 'Tanpa referensi dokumen'}
+                kosong="Tidak ada dokumen yang cocok."
                 disabled={memuatDok || !dokumen.length}
-              >
-                <option value="">
-                  {memuatDok
-                    ? 'Memuat daftar…'
-                    : dokumen.length
-                      ? 'Tanpa referensi dokumen'
-                      : 'Tidak ada dokumen yang bisa dirujuk'}
-                </option>
-                {dokumen.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.label}
-                  </option>
-                ))}
-              </Select>
+              />
             </div>
           </div>
 
@@ -469,21 +517,18 @@ export default function Retur() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <Label>Barang</Label>
-              <Select
+              <CariSelect
                 value={productId}
-                onChange={(e) => {
-                  setProductId(e.target.value);
+                onChange={(v) => {
+                  setProductId(v);
                   setUnitId('');
                 }}
+                options={opsiProduk}
+                ariaLabel="Barang"
+                placeholder="Ketik nama atau barcode barang…"
+                kosong="Tidak ada barang yang cocok."
                 required
-              >
-                <option value="">Pilih barang…</option>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </Select>
+              />
             </div>
             <div>
               <Label>Satuan</Label>
@@ -512,12 +557,7 @@ export default function Retur() {
             </div>
             <div>
               <Label>{tipe === 'penjualan' ? 'Uang kembali ke pembeli (Rp)' : 'Uang diterima dari supplier (Rp)'}</Label>
-              <Input
-                inputMode="numeric"
-                value={jumlah}
-                onChange={(e) => setJumlah(e.target.value.replace(/[^\d]/g, ''))}
-                placeholder="0"
-              />
+              <InputUang nilai={jumlah} onNilai={setJumlah} placeholder="0" />
             </div>
           </div>
 

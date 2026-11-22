@@ -27,6 +27,8 @@ const SLUG = [
   'harian',
   'laba',
   'harga',
+  'per-kasir',
+  'per-jam',
 ];
 
 const bukti = { base: BASE, laporan: [], ekspor: [] };
@@ -64,6 +66,8 @@ for (const slug of SLUG) {
 for (const [slug, nama] of [
   ['export-arus-stok', 'laporan-arus-stok.csv'],
   ['export-arus-keuangan', 'laporan-arus-keuangan.csv'],
+  ['export-per-kasir', 'laporan-per-kasir.csv'],
+  ['export-per-jam', 'laporan-per-jam.csv'],
 ]) {
   await page.goto(`${BASE}/laporan/${slug}`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(2500);

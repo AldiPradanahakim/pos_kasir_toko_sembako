@@ -1,0 +1,68 @@
+{
+  "base": "http://localhost:3000",
+  "cariSelect": {
+    "kataKunci": "Sedaa",
+    "jumlahOpsiSebelum": 50,
+    "jumlahHasil": 3,
+    "contohHasil": [
+      "Sedaap Soto",
+      "Mie Sedaap Soto",
+      "Mie Sedaap Kari Spesial"
+    ],
+    "semuaCocok": true,
+    "menyaring": true,
+    "nilaiKolom": "Sedaap Soto",
+    "terpilihBenar": true,
+    "dropdownTertutup": true,
+    "satuanTerpilih": true
+  },
+  "stokOpname": {
+    "halaman1": {
+      "jumlahBaris": 20,
+      "info": "Menampilkan 1–20 dari 101",
+      "contohNama": [
+        "Apache Filter 12",
+        "Deterjen Rinso Anti Noda 770g",
+        "Dji Sam Soe 234 12"
+      ]
+    },
+    "halaman2": {
+      "jumlahBaris": 20,
+      "info": "Menampilkan 21–40 dari 101",
+      "contohNama": [
+        "Aqua 600ml",
+        "Aqua Galon 19L",
+        "Baterai ABC AA"
+      ]
+    },
+    "potong20": true,
+    "halamanBerbeda": true,
+    "terisiMenurutBilahAksi": "Simpan Stok Opname (1)",
+    "riwayat": {
+      "ada": true,
+      "tinggiJendela": 844,
+      "urutanBenar": true,
+      "atas": 3481,
+      "layar": 4.1
+    },
+    "nilaiSetelahKembali": "7",
+    "kosongSaatCari": true,
+    "halamanResetKeSatu": true,
+    "riwayatSaatTabelPendek": {
+      "atas": 721,
+      "layar": 0.9,
+      "terlihat": true
+    },
+    "riwayatSaat50Baris": {
+      "atas": 7835,
+      "layar": 9.3,
+      "terlihat": false
+    },
+    "riwayatSaat10Baris": {
+      "atas": 2035,
+      "layar": 2.4,
+      "terlihat": false
+    }
+  },
+  "lulus": true
+}

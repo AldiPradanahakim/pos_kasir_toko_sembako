@@ -8,8 +8,11 @@
  *    superadmin. Satu-satunya area yang bergulir di dalamnya adalah tabel keranjang
  *    (daftar produk sudah dihapus, hasil pencarian muncul sebagai daftar melayang).
  *    Di HP (<768px) menggulir masih wajar, tetapi baris aksi harus tetap terjangkau.
- *  - Susunan kasir gaya minimarket: kolom KIRI = nama pelanggan, kotak cari, lalu tabel
- *    keranjang; kolom KANAN = total pembayaran. Di HP keduanya menumpuk (keranjang dulu).
+ *  - Susunan kasir: kotak cari + nama pelanggan dalam SATU baris, lalu tabel keranjang yang
+ *    mengambil sisa tinggi kolom kiri; kolom KANAN = total pembayaran. Di HP keduanya
+ *    menumpuk (keranjang dulu). Tinggi tabel keranjang diukur dalam JUMLAH BARIS yang muat,
+ *    karena itu keluhan aslinya ("cuma 4 baris").
+ *  - Judul kolom keranjang (Barang/Qty/Harga/Subtotal/Hapus) tetap menempel saat isinya digulir.
  *  - Sidebar hanya tampil kalau lebar >=1280px DAN penunjuknya presisi (mouse/trackpad).
  *    iPad Pro melaporkan pointer kasar, jadi sidebar hilang di 1024 (potret) dan 1366 (landscape).
  *  - Kasir tidak pernah dapat sidebar di lebar mana pun.
@@ -74,11 +77,9 @@ const petakanKasir = (page) =>
       const r = el.getBoundingClientRect();
       return { w: Math.round(r.width), h: Math.round(r.height), top: Math.round(r.top), bottom: Math.round(r.bottom) };
     };
-    const isiKartu = (awal) => {
-      const h2 = [...document.querySelectorAll('section > header > h2')].find((h) =>
-        h.textContent.trim().startsWith(awal),
-      );
-      const div = h2?.closest('section')?.querySelector(':scope > div');
+    // Kotak yang bergulir adalah pembungkus langsung tabel keranjang.
+    const isiKartu = (tabel) => {
+      const div = tabel?.parentElement;
       if (!div) return null;
       const cs = getComputedStyle(div);
       return {
@@ -108,16 +109,15 @@ const petakanKasir = (page) =>
     const navBawah = [...document.querySelectorAll('nav')].find(
       (n) => getComputedStyle(n).position === 'fixed' && n.getBoundingClientRect().bottom >= window.innerHeight - 1,
     );
-    const judulKeranjang = [...document.querySelectorAll('section > header > h2')].find((h) =>
-      h.textContent.trim().startsWith('Keranjang'),
-    );
-    const kartuKeranjang = judulKeranjang?.closest('section') ?? null;
+    const tabelKeranjang = document.querySelector('main table');
+    const kotakGulirKeranjang = tabelKeranjang?.parentElement ?? null;
+    const kartuKeranjang = tabelKeranjang?.closest('section') ?? null;
     const kolomKeranjang = kartuKeranjang?.parentElement ?? null;
     const kartuPembayaran = [...document.querySelectorAll('section')].find((s) =>
       /Total Pembayaran/.test(s.innerText),
     );
     const namaPelanggan = [...document.querySelectorAll('main input')].find((i) =>
-      /Bu Siti/.test(i.getAttribute('placeholder') ?? ''),
+      /^Nama tuan\/nyonya/.test(i.getAttribute('aria-label') ?? ''),
     );
     const kotakCari = document.querySelector('main input[type="search"]');
     return {
@@ -128,7 +128,7 @@ const petakanKasir = (page) =>
       mainOverflowY: main ? getComputedStyle(main).overflowY : null,
       mainScrollHeight: main?.scrollHeight ?? null,
       mainClientHeight: main?.clientHeight ?? null,
-      keranjang: isiKartu('Keranjang'),
+      keranjang: isiKartu(tabelKeranjang),
       // Kartu daftar produk lama harus benar-benar hilang.
       produkLamaAda: [...document.querySelectorAll('section > header > h2')].some((h) =>
         /Daftar produk/i.test(h.textContent),
@@ -141,15 +141,19 @@ const petakanKasir = (page) =>
       barAksiKotak: kotak(bar),
       barAksiLengket: bar ? getComputedStyle(bar).position : null,
       barAksiTerjangkau: bar ? bar.getBoundingClientRect().bottom <= window.innerHeight + 1 : null,
-      // Susunan kolom: kiri (pelanggan + cari + keranjang) vs kanan (pembayaran).
+      // Susunan kolom: kiri (cari + pelanggan sebaris, lalu keranjang) vs kanan (pembayaran).
       susunan: {
         namaPelanggan: kotak(namaPelanggan),
         kotakCari: kotak(kotakCari),
         keranjang: kotak(kolomKeranjang),
         kartuKeranjang: kotak(kartuKeranjang),
+        kotakGulirKeranjang: kotak(kotakGulirKeranjang),
         pembayaran: kotak(kartuPembayaran),
-        namaDiAtasCari:
-          (namaPelanggan?.getBoundingClientRect().top ?? 1e9) < (kotakCari?.getBoundingClientRect().top ?? -1e9),
+        cariDanPelangganSebaris:
+          Math.abs(
+            (namaPelanggan?.getBoundingClientRect().top ?? 1e9) -
+              (kotakCari?.getBoundingClientRect().top ?? -1e9),
+          ) <= 2,
         cariDiAtasKeranjang:
           (kotakCari?.getBoundingClientRect().bottom ?? 1e9) <=
           (kartuKeranjang?.getBoundingClientRect().top ?? -1e9) + 2,
@@ -192,12 +196,10 @@ for (const k of kasusKasir) {
   await page.waitForTimeout(500);
 
   const peta = await petakanKasir(page);
-  // Keranjang harus terbaca sebagai tabel sungguhan sejak tablet: semua kolom terlihat.
+  // Keranjang harus terbaca sebagai tabel sungguhan sejak tablet: kolom yang tampil
+  // diukur lebarnya (kolom Harga/Subtotal memang disembunyikan di layar sempit).
   const kolomKeranjang = await page.evaluate(() => {
-    const h2 = [...document.querySelectorAll('section > header > h2')].find((h) =>
-      h.textContent.trim().startsWith('Keranjang'),
-    );
-    const tabel = h2?.closest('section')?.querySelector('table');
+    const tabel = document.querySelector('main table');
     if (!tabel) return null;
     return [...tabel.querySelectorAll('thead th')].map((th) => ({
       teks: th.textContent.trim(),
@@ -206,26 +208,23 @@ for (const k of kasusKasir) {
   });
   // Area dalam harus bisa bergulir sendiri tanpa menggeser halaman.
   const gulirDalam = await page.evaluate(() => {
-    const h2 = [...document.querySelectorAll('section > header > h2')].find((h) =>
-      h.textContent.trim().startsWith('Keranjang'),
-    );
-    const div = h2?.closest('section')?.querySelector(':scope > div');
+    const div = document.querySelector('main table')?.parentElement;
     if (!div) return null;
     const halamanSebelum = window.scrollY;
     div.scrollTop = 100;
     const hasil = {
       scrollTopSetelahDigeser: div.scrollTop,
       halamanIkutBergeser: window.scrollY !== halamanSebelum,
+      judulKolomMenempel: [...document.querySelectorAll('main thead th')].every(
+        (th) => getComputedStyle(th).position === 'sticky',
+      ),
     };
     div.scrollTop = 0;
     return hasil;
   });
   // Berapa baris keranjang yang benar-benar muat terlihat (inti keluhan pemilik).
   const barisTerlihat = await page.evaluate(() => {
-    const h2 = [...document.querySelectorAll('section > header > h2')].find((h) =>
-      h.textContent.trim().startsWith('Keranjang'),
-    );
-    const div = h2?.closest('section')?.querySelector(':scope > div');
+    const div = document.querySelector('main table')?.parentElement;
     if (!div) return null;
     const kotakIsi = div.getBoundingClientRect();
     const baris = [...div.querySelectorAll('tbody tr')].map((tr) => tr.getBoundingClientRect());

@@ -1,12 +1,15 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import { useAuth } from './store';
+import Dashboard from './pages/Dashboard';
 import HutangPiutang from './pages/HutangPiutang';
+import Kas from './pages/Kas';
 import Kasir from './pages/Kasir';
 import Kategori from './pages/Kategori';
 import Keuangan from './pages/Keuangan';
 import Laporan from './pages/Laporan';
 import Login from './pages/Login';
+import Pelanggan from './pages/Pelanggan';
 import Pembelian from './pages/Pembelian';
 import Pengaturan from './pages/Pengaturan';
 import Produk from './pages/Produk';
@@ -28,9 +31,23 @@ function Terlindungi({ children, superadminSaja = false }: { children: JSX.Eleme
 
 export default function App() {
   const token = useAuth((s) => s.token);
+  const siap = useAuth((s) => s.siap);
   return (
     <Routes>
-      <Route path="/login" element={token ? <Navigate to="/kasir" replace /> : <Login />} />
+      {/* Selama sesi belum selesai diperiksa, jangan melompat ke /kasir: token yang ternyata
+          ditolak server akan membuat halaman bolak-balik antara /login dan /kasir. */}
+      <Route
+        path="/login"
+        element={
+          !siap ? (
+            <p className="p-8 text-center text-sm text-slate-500">Memuat…</p>
+          ) : token ? (
+            <Navigate to="/kasir" replace />
+          ) : (
+            <Login />
+          )
+        }
+      />
       <Route
         element={
           <Terlindungi>
@@ -40,6 +57,14 @@ export default function App() {
       >
         <Route path="/kasir" element={<Kasir />} />
         <Route path="/kasir/struk/:uuid" element={<Struk />} />
+        <Route
+          path="/kas"
+          element={
+            <Terlindungi superadminSaja>
+              <Kas />
+            </Terlindungi>
+          }
+        />
         <Route path="/riwayat" element={<Riwayat />} />
         <Route path="/stok" element={<Stok />} />
         <Route path="/stok/scan" element={<StokScan />} />
@@ -69,11 +94,7 @@ export default function App() {
         />
         <Route
           path="/pembelian"
-          element={
-            <Terlindungi superadminSaja>
-              <Pembelian />
-            </Terlindungi>
-          }
+          element={<Pembelian />}
         />
         <Route
           path="/keuangan"
@@ -85,17 +106,25 @@ export default function App() {
         />
         <Route
           path="/hutang-piutang"
+          element={<HutangPiutang />}
+        />
+        <Route
+          path="/pelanggan"
           element={
             <Terlindungi superadminSaja>
-              <HutangPiutang />
+              <Pelanggan />
             </Terlindungi>
           }
         />
         <Route
           path="/retur"
+          element={<Retur />}
+        />
+        <Route
+          path="/dashboard"
           element={
             <Terlindungi superadminSaja>
-              <Retur />
+              <Dashboard />
             </Terlindungi>
           }
         />

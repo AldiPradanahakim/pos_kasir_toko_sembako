@@ -10,13 +10,10 @@ import { useAuth } from '../store';
 import type { Sale } from '../types';
 
 /**
- * Batalkan = amber (transaksi tetap tercatat, stok kembali) dan Hapus = merah
- * (record hilang permanen). Warna dan kata sengaja dibedakan jauh supaya staf
- * tidak tertukar saat melayani pelanggan.
+ * Transaksi yang sudah tercetak/dibayar bersifat FINAL: tidak ada tombol "Batalkan Transaksi".
+ * Satu-satunya jalan mengoreksi adalah "Hapus Permanen" (khusus superadmin), dan itu
+ * membuang barisnya dari riwayat. Warna merah dipakai hanya untuk tindakan merusak itu.
  */
-const GAYA_BATAL =
-  'border border-amber-300 !bg-amber-50 !text-amber-800 hover:!bg-amber-100 active:!bg-amber-200';
-
 const LABEL_STATUS: Record<string, string> = {
   '': 'Semua status',
   selesai: 'Selesai',
@@ -38,11 +35,24 @@ export default function Riwayat() {
   const [error, setError] = useState('');
   const [sukses, setSukses] = useState('');
   const [detail, setDetail] = useState<Sale | null>(null);
-  const [batal, setBatal] = useState<Sale | null>(null);
   const [hapus, setHapus] = useState<Sale | null>(null);
   const [purge, setPurge] = useState(false);
 
   const pending = useLiveQuery(() => db.pendingSales.orderBy('created_at').toArray(), [], []);
+
+  /**
+   * Penyaring langsung atas baris yang SUDAH dimuat: mengetik tidak menunggu tombol
+   * "Tampilkan" dan ikut mencari nama kasir, yang tidak dicari server.
+   */
+  const tampil = useMemo(() => {
+    const kata = q.trim().toLowerCase();
+    if (!kata) return rows;
+    return rows.filter((s) =>
+      [s.no_struk, s.uuid, s.nama_pelanggan, s.user_name, labelMetode(s.metode_bayar), s.status].some((t) =>
+        (t ?? '').toLowerCase().includes(kata),
+      ),
+    );
+  }, [rows, q]);
 
   const query = useMemo(() => {
     const p = new URLSearchParams();
@@ -142,8 +152,14 @@ export default function Riwayat() {
             </Select>
           </div>
           <div>
-            <Label>Cari (no struk / produk)</Label>
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="INV-…" />
+            <Label>Cari (no struk / pelanggan / kasir)</Label>
+            <Input
+              type="search"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="INV-…"
+              aria-label="Cari transaksi"
+            />
           </div>
           <div className="flex items-end">
             <Button className="w-full" onClick={muat} disabled={!online || memuat}>
@@ -154,7 +170,7 @@ export default function Riwayat() {
       </Card>
 
       <Card
-        title={`Transaksi (${rows.length})`}
+        title={`Transaksi (${tampil.length})`}
         actions={
           superadmin ? (
             <Button variant="danger" ukuran="sm" disabled={!online} onClick={() => setPurge(true)}>
@@ -165,7 +181,7 @@ export default function Riwayat() {
       >
         {/* HP: kartu satu kolom. Tabel lebar hanya muncul dari md ke atas. */}
         <ul className="space-y-2 md:hidden">
-          {rows.map((s) => (
+          {tampil.map((s) => (
             <li key={s.id} className="min-w-0 rounded-md border border-slate-200 p-3">
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0 break-all font-mono text-xs">{s.no_struk ?? s.uuid.slice(0, 8)}</span>
@@ -181,7 +197,6 @@ export default function Riwayat() {
                 tumpuk
                 onDetail={bukaDetail}
                 onCetak={(uuid) => navigate(`/kasir/struk/${uuid}`)}
-                onBatal={setBatal}
                 onHapus={setHapus}
               />
             </li>
@@ -202,7 +217,7 @@ export default function Riwayat() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((s) => (
+              {tampil.map((s) => (
                 <tr key={s.id} className="border-b border-slate-50">
                   <td className="py-2 font-mono text-xs">{s.no_struk ?? s.uuid.slice(0, 8)}</td>
                   <td className="whitespace-nowrap py-2">{formatTanggalJam(s.created_at)}</td>
@@ -220,7 +235,6 @@ export default function Riwayat() {
                       tumpuk={false}
                       onDetail={bukaDetail}
                       onCetak={(uuid) => navigate(`/kasir/struk/${uuid}`)}
-                      onBatal={setBatal}
                       onHapus={setHapus}
                     />
                   </td>
@@ -230,6 +244,9 @@ export default function Riwayat() {
           </table>
         </div>
         {!rows.length && <Kosong>Belum ada transaksi pada rentang ini. Klik "Tampilkan" untuk memuat.</Kosong>}
+        {!!rows.length && !tampil.length && (
+          <Kosong>Tidak ada transaksi yang cocok dengan pencarian "{q.trim()}".</Kosong>
+        )}
       </Card>
 
       <Modal
@@ -246,7 +263,7 @@ export default function Riwayat() {
               <p>Kasir: {detail.user_name ?? detail.user?.name ?? '-'}</p>
               <p>Metode: {labelMetode(detail.metode_bayar)}</p>
               <p>Status: {detail.status}</p>
-              {detail.nama_pelanggan && <p>Pelanggan: {detail.nama_pelanggan}</p>}
+              {detail.nama_pelanggan && <p>Tuan/Nyonya: {detail.nama_pelanggan}</p>}
               {detail.status === 'dibatalkan' && <p className="sm:col-span-2">Alasan batal: {detail.alasan_batal}</p>}
             </div>
             <div className="tabel-scroll">
@@ -284,19 +301,6 @@ export default function Riwayat() {
               <span>Kembalian {rupiah(detail.kembalian)}</span>
             </div>
           </div>
-        )}
-      </Modal>
-
-      <Modal open={!!batal} title="Batalkan Transaksi" onClose={() => setBatal(null)}>
-        {batal && (
-          <FormBatal
-            sale={batal}
-            perluKredensial={!superadmin}
-            onSelesai={() => {
-              setBatal(null);
-              void muat();
-            }}
-          />
         )}
       </Modal>
 
@@ -348,7 +352,6 @@ function AksiTransaksi({
   tumpuk,
   onDetail,
   onCetak,
-  onBatal,
   onHapus,
 }: {
   sale: Sale;
@@ -358,7 +361,6 @@ function AksiTransaksi({
   tumpuk: boolean;
   onDetail: (id: number) => void;
   onCetak: (uuid: string) => void;
-  onBatal: (sale: Sale) => void;
   onHapus: (sale: Sale) => void;
 }) {
   const ukuran = tumpuk ? 'md' : 'sm';
@@ -371,17 +373,6 @@ function AksiTransaksi({
       <Button variant="ghost" ukuran={ukuran} className={lebar} onClick={() => onCetak(sale.uuid)}>
         Cetak ulang
       </Button>
-      {sale.status !== 'dibatalkan' && (
-        <Button
-          variant="secondary"
-          ukuran={ukuran}
-          className={`${GAYA_BATAL} ${lebar}`}
-          disabled={!online}
-          onClick={() => onBatal(sale)}
-        >
-          Batalkan Transaksi
-        </Button>
-      )}
       {superadmin && (
         <Button variant="danger" ukuran={ukuran} className={lebar} disabled={!online} onClick={() => onHapus(sale)}>
           Hapus Permanen
@@ -418,8 +409,8 @@ function FormHapus({ sale, onSelesai }: { sale: Sale; onSelesai: (pesan: string)
         <span className="block font-semibold">Transaksi ini dihapus permanen dari riwayat.</span>
         No struk <b>{nomor}</b> sebesar <b>{rupiah(sale.total)}</b> hilang dan tidak bisa dikembalikan.
         <span className="mt-1 block">
-          Stok transaksi ini DIKEMBALIKAN ke produk. Beda dengan "Batalkan Transaksi": batalkan tetap mencatat
-          transaksinya sebagai "Dibatalkan", sedangkan "Hapus" membuang barisnya dari riwayat.
+          Stok transaksi ini DIKEMBALIKAN ke produk. Transaksi yang sudah tercetak tidak bisa
+          dibatalkan — "Hapus" membuang barisnya dari riwayat dan mengembalikan stoknya.
         </span>
       </Alert>
 
@@ -570,81 +561,5 @@ function FormPurge({
         </Button>
       </div>
     </div>
-  );
-}
-
-function FormBatal({
-  sale,
-  perluKredensial,
-  onSelesai,
-}: {
-  sale: Sale;
-  perluKredensial: boolean;
-  onSelesai: () => void;
-}) {
-  const [alasan, setAlasan] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const boleh = alasan.trim().length > 0 && (!perluKredensial || (username.trim() && password));
-
-  async function kirim(e: React.FormEvent) {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      await api.post(`/sales/${sale.id}/cancel`, {
-        alasan_batal: alasan.trim(),
-        ...(perluKredensial ? { superadmin_username: username.trim(), superadmin_password: password } : {}),
-      });
-      onSelesai();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal membatalkan transaksi');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <form onSubmit={kirim} className="space-y-3">
-      <Alert tone="info">
-        Transaksi <b>{sale.no_struk ?? sale.uuid}</b> sebesar <b>{rupiah(sale.total)}</b> akan dibatalkan dan stok
-        dikembalikan. Transaksinya tetap tercatat di riwayat sebagai "Dibatalkan".
-      </Alert>
-
-      <div>
-        <Label>Alasan pembatalan (wajib)</Label>
-        <Input value={alasan} onChange={(e) => setAlasan(e.target.value)} required />
-      </div>
-
-      {perluKredensial && (
-        <div className="grid grid-cols-1 gap-3 rounded-md bg-amber-50 p-3 md:grid-cols-2">
-          <div className="text-xs text-amber-800 md:col-span-2">
-            Hanya superadmin yang dapat membatalkan. Masukkan kredensial superadmin.
-          </div>
-          <div>
-            <Label>Username superadmin</Label>
-            <Input value={username} onChange={(e) => setUsername(e.target.value)} required />
-          </div>
-          <div>
-            <Label>Password superadmin</Label>
-            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          </div>
-        </div>
-      )}
-
-      {error && <Alert>{error}</Alert>}
-
-      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-        <Button type="button" variant="secondary" onClick={onSelesai}>
-          Batal
-        </Button>
-        <Button type="submit" variant="secondary" className={GAYA_BATAL} disabled={!boleh || loading}>
-          {loading ? 'Memproses…' : 'Batalkan Transaksi'}
-        </Button>
-      </div>
-    </form>
   );
 }

@@ -1,6 +1,6 @@
 import express from 'express';
 import { q, tx, jakartaDate } from '../db.js';
-import { findSuperadmin, requireSuperadmin } from '../auth.js';
+import { requireSuperadmin } from '../auth.js';
 import {
   ApiError, toBool, toInt, toStr, dateOrNull, limitOf, insertCashFlow,
 } from '../lib.js';
@@ -12,11 +12,18 @@ async function saleDetail(where, params) {
   const { rows } = await q(
     `SELECT s.id, s.uuid, s.no_struk, s.created_at, s.synced_at, s.total, s.metode_bayar,
             s.dibayar, s.kembalian, s.status, s.alasan_batal, s.nama_pelanggan,
+            s.customer_id, c.nama AS customer_nama, s.shift_id,
+            COALESCE(dp.sisa, 0) AS sisa_piutang,
             u.id AS user_id, u.name AS user_name,
             d.id AS dibatalkan_oleh_id, d.name AS dibatalkan_oleh_name
        FROM sales s
        JOIN users u ON u.id = s.user_id
        LEFT JOIN users d ON d.id = s.dibatalkan_oleh
+       LEFT JOIN customers c ON c.id = s.customer_id
+       LEFT JOIN LATERAL (
+         SELECT SUM(d2.jumlah - d2.dibayar) AS sisa
+           FROM debts d2 WHERE d2.sale_id = s.id AND d2.status = 'belum'
+       ) dp ON true
       WHERE ${where}`,
     params,
   );
@@ -48,6 +55,10 @@ async function saleDetail(where, params) {
     kembalian: sale.kembalian,
     status: sale.status,
     nama_pelanggan: sale.nama_pelanggan,
+    customer_id: sale.customer_id,
+    customer_nama: sale.customer_nama,
+    shift_id: sale.shift_id,
+    sisa_piutang: Number(sale.sisa_piutang),
     alasan_batal: sale.alasan_batal,
     dibatalkan_oleh: sale.dibatalkan_oleh_id
       ? { id: sale.dibatalkan_oleh_id, name: sale.dibatalkan_oleh_name }
@@ -56,15 +67,20 @@ async function saleDetail(where, params) {
   };
 }
 
-// Nomor struk tidak bolong: baris counter hari itu dikunci dan dinaikkan dalam transaksi yang sama.
-async function nextNoStruk(c, day) {
+/**
+ * Nomor struk tidak bolong: baris counter tahun itu dikunci dan dinaikkan dalam transaksi
+ * yang sama. Format `INV-<tahun>-<6 digit>` — tanggal TIDAK diulang di nomor karena sudah
+ * tercetak di barisnya sendiri, dan 6 digit perlu karena setahun bisa ribuan transaksi
+ * (4 digit per hari tidak cukup begitu satu hari tembus 999 struk).
+ */
+async function nextNoStruk(c, tahun) {
   const { rows } = await c.query(
-    `INSERT INTO struk_counters (day, last) VALUES ($1, 1)
-     ON CONFLICT (day) DO UPDATE SET last = struk_counters.last + 1
+    `INSERT INTO struk_counters_tahun (tahun, last) VALUES ($1, 1)
+     ON CONFLICT (tahun) DO UPDATE SET last = struk_counters_tahun.last + 1
      RETURNING last`,
-    [day],
+    [tahun],
   );
-  return `INV-${day.replaceAll('-', '')}-${String(rows[0].last).padStart(4, '0')}`;
+  return `INV-${tahun}-${String(rows[0].last).padStart(6, '0')}`;
 }
 
 // POST /sales — idempotent terhadap uuid dari perangkat.
@@ -78,6 +94,9 @@ router.post('/sales', async (req, res) => {
   if (toStr(req.body?.metode_bayar) !== 'tunai') throw new ApiError(422, "metode_bayar harus 'tunai'");
 
   const namaPelanggan = toStr(req.body?.nama_pelanggan);
+  // Bon = pelanggan berutang sisa. Nama wajib supaya piutangnya bisa ditagih ke orang.
+  const bon = toBool(req.body?.bon, false);
+  if (bon && !namaPelanggan) throw new ApiError(422, 'Nama pelanggan wajib diisi untuk transaksi bon');
 
   let createdAt = null;
   if (req.body?.created_at !== undefined && req.body?.created_at !== null && req.body?.created_at !== '') {
@@ -141,22 +160,96 @@ router.post('/sales', async (req, res) => {
       lines.push(line);
     }
 
-    // Hanya tunai: `dibayar` wajib dan tidak boleh kurang dari total.
-    const dibayar = toInt(req.body?.dibayar);
+    // Tunai penuh: `dibayar` wajib dan tidak boleh kurang dari total.
+    // Bon: boleh DP (termasuk 0), sisanya jadi piutang pelanggan.
+    const dibayarInput = req.body?.dibayar === undefined || req.body?.dibayar === null
+      ? null
+      : toInt(req.body.dibayar);
+    if (dibayarInput !== null && dibayarInput < 0) throw new ApiError(422, 'dibayar harus bilangan bulat >= 0');
+    const dibayar = dibayarInput ?? (bon ? 0 : null);
     if (dibayar === null) throw new ApiError(422, 'dibayar wajib diisi untuk pembayaran tunai');
-    if (dibayar < total) throw new ApiError(422, `dibayar (${dibayar}) kurang dari total (${total})`);
-    const kembalian = dibayar - total;
+    if (bon && dibayar >= total) throw new ApiError(422, 'Bon hanya untuk pembayaran yang kurang dari total');
+    if (!bon && dibayar < total) throw new ApiError(422, `dibayar (${dibayar}) kurang dari total (${total})`);
+    const kembalian = bon ? 0 : dibayar - total;
+
+    // Barang yang dijual harus ada, kecuali superadmin sudah memberi izin minus per produk.
+    // Diperiksa di dalam transaksi yang sama, sebelum baris `sales` dibuat: kalau di luar,
+    // dua sync bersamaan bisa sama-sama lolos dari stok yang sama. Baris produk dikunci
+    // (FOR UPDATE, urut id supaya tidak deadlock) sehingga sync kedua menunggu sync pertama.
+    const butuh = new Map();
+    for (const l of lines) {
+      butuh.set(l.product_id, (butuh.get(l.product_id) ?? 0) + l.isi_snapshot * l.qty);
+    }
+    // Dua langkah, dan urutannya penting: kunci baris produknya dulu, BARU baca stoknya.
+    // Kalau SUM(stock_movements) dihitung di query yang sama dengan FOR UPDATE, subquery itu
+    // masih memakai snapshot saat pernyataan dimulai — yaitu sebelum transaksi saingan commit.
+    // Akibatnya dua sync bersamaan sama-sama melihat stok lama dan dua-duanya lolos, walau
+    // baris produknya terkunci. Query kedua baru jalan setelah kunci didapat, jadi snapshotnya
+    // (READ COMMITTED = per pernyataan) sudah memuat penjualan yang menang balapan.
+    const ids = [...butuh.keys()].sort((a, b) => a - b);
+    await c.query('SELECT id FROM products WHERE id = ANY($1::bigint[]) ORDER BY id FOR UPDATE', [ids]);
+    const { rows: stokRows } = await c.query(
+      `SELECT p.id, p.name, p.izin_minus,
+              COALESCE((SELECT SUM(sm.qty_base) FROM stock_movements sm WHERE sm.product_id = p.id), 0) AS stok
+         FROM products p
+        WHERE p.id = ANY($1::bigint[])`,
+      [ids],
+    );
+    for (const r of stokRows) {
+      const sisa = Number(r.stok);
+      const jumlah = butuh.get(r.id);
+      if (sisa - jumlah < 0 && !r.izin_minus) {
+        throw new ApiError(
+          422,
+          `Stok "${r.name}" tidak cukup (sisa ${sisa}, butuh ${jumlah}). Minta superadmin memberi izin jual stok kosong.`,
+        );
+      }
+    }
 
     const when = createdAt ?? new Date();
-    const noStruk = await nextNoStruk(c, jakartaDate(when));
+    const noStruk = await nextNoStruk(c, Number(jakartaDate(when).slice(0, 4)));
+
+    // Shift kasir yang sedang terbuka: penjualan (dan kasnya) menempel ke situ supaya
+    // tutup kas bisa membandingkan uang fisik dengan yang seharusnya ada.
+    const { rows: shiftRows } = await c.query(
+      'SELECT id FROM shifts WHERE user_id = $1 AND ditutup_pada IS NULL',
+      [req.user.id],
+    );
+    const shiftId = shiftRows[0]?.id ?? null;
+
+    // Bon: pelanggan dicari dari nama (tanpa beda huruf besar/kecil), dibuat kalau belum ada.
+    let customerId = null;
+    if (namaPelanggan) {
+      const { rows: cust } = await c.query(
+        `INSERT INTO customers (nama) VALUES ($1)
+         ON CONFLICT (lower(nama)) DO UPDATE SET nama = customers.nama
+         RETURNING id`,
+        [namaPelanggan],
+      );
+      customerId = cust[0].id;
+    }
 
     const { rows: saleRows } = await c.query(
       `INSERT INTO sales (uuid, no_struk, user_id, total, metode_bayar, dibayar, kembalian,
-                          status, created_at, synced_at, nama_pelanggan)
-       VALUES ($1, $2, $3, $4, 'tunai', $5, $6, 'selesai', $7, now(), $8) RETURNING id`,
-      [uuid, noStruk, req.user.id, total, dibayar, kembalian, when, namaPelanggan],
+                          status, created_at, synced_at, nama_pelanggan, customer_id, shift_id)
+       VALUES ($1, $2, $3, $4, 'tunai', $5, $6, 'selesai', $7, now(), $8, $9, $10) RETURNING id`,
+      [uuid, noStruk, req.user.id, total, dibayar, kembalian, when, namaPelanggan, customerId, shiftId],
     );
     const saleId = saleRows[0].id;
+
+    if (bon) {
+      const { rows: debt } = await c.query(
+        `INSERT INTO debts (tipe, pihak, jumlah, dibayar, keterangan, status, user_id, customer_id, sale_id)
+         VALUES ('piutang', $1, $2, $3, $4, 'belum', $5, $6, $7) RETURNING id`,
+        [namaPelanggan, total, dibayar, `Bon ${noStruk}`, req.user.id, customerId, saleId],
+      );
+      if (dibayar > 0) {
+        await c.query(
+          'INSERT INTO debt_payments (debt_id, jumlah, catatan, user_id) VALUES ($1, $2, $3, $4)',
+          [debt[0].id, dibayar, 'DP saat transaksi', req.user.id],
+        );
+      }
+    }
 
     for (const l of lines) {
       await c.query(
@@ -174,17 +267,18 @@ router.post('/sales', async (req, res) => {
       );
     }
 
-    // Kas masuk sebesar total transaksi, di transaksi yang sama — buku kas tidak
-    // pernah beda dengan penjualannya. tanggal memakai hari Jakarta dari created_at.
+    // Kas masuk sebesar uang yang tinggal di laci: total untuk tunai penuh (kembalian
+    // keluar lagi, jadi bukan pemasukan), dan DP saja untuk bon — sisanya belum jadi uang.
     await insertCashFlow(c, {
       tanggal: jakartaDate(when),
       tipe: 'masuk',
       kategori: 'penjualan',
-      jumlah: total,
+      jumlah: bon ? dibayar : total,
       keterangan: `Penjualan ${noStruk}`,
       refType: 'sale',
       refId: saleId,
       userId: req.user.id,
+      shiftId,
     });
 
     return { id: saleId, created: true };
@@ -235,61 +329,6 @@ router.get('/sales/:id', async (req, res) => {
   res.json(sale);
 });
 
-// Batal transaksi penuh. Kasir boleh, asal membawa kredensial superadmin yang sah.
-router.post('/sales/:id/cancel', async (req, res) => {
-  const id = toInt(req.params.id);
-  if (id === null) throw new ApiError(404, 'Transaksi tidak ditemukan');
-
-  const alasan = toStr(req.body?.alasan_batal);
-  if (!alasan) throw new ApiError(422, 'alasan_batal wajib diisi');
-
-  let actor = req.user;
-  if (req.user.role !== 'superadmin') {
-    const sa = await findSuperadmin(req.body?.superadmin_username, req.body?.superadmin_password);
-    if (!sa) throw new ApiError(403, 'Butuh kredensial superadmin yang sah untuk membatalkan transaksi');
-    actor = sa;
-  }
-
-  await tx(async (c) => {
-    const { rows } = await c.query('SELECT id, status, total, no_struk FROM sales WHERE id = $1 FOR UPDATE', [id]);
-    if (!rows.length) throw new ApiError(404, 'Transaksi tidak ditemukan');
-    if (rows[0].status === 'dibatalkan') throw new ApiError(422, 'Transaksi ini sudah dibatalkan');
-
-    // no_struk tetap tersimpan; transaksi tidak pernah dihapus.
-    await c.query(
-      `UPDATE sales SET status = 'dibatalkan', alasan_batal = $1, dibatalkan_oleh = $2 WHERE id = $3`,
-      [alasan, actor.id, id],
-    );
-
-    const { rows: items } = await c.query(
-      'SELECT product_id, qty, isi_snapshot FROM sale_items WHERE sale_id = $1',
-      [id],
-    );
-    for (const it of items) {
-      await c.query(
-        `INSERT INTO stock_movements (product_id, type, qty_base, reference_type, reference_id, note, user_id)
-         VALUES ($1, 'pembatalan', $2, 'sale', $3, $4, $5)`,
-        [it.product_id, it.isi_snapshot * it.qty, id, `Batal: ${alasan}`, actor.id],
-      );
-    }
-
-    // Baris kas penjualan TIDAK dihapus; dibuat baris lawan hari ini supaya buku kas
-    // tetap seimbang dan jejak pembatalannya kelihatan.
-    await insertCashFlow(c, {
-      tanggal: jakartaDate(new Date()),
-      tipe: 'keluar',
-      kategori: 'pembatalan',
-      jumlah: rows[0].total,
-      keterangan: `Pembatalan ${rows[0].no_struk ?? id}`,
-      refType: 'sale',
-      refId: id,
-      userId: actor.id,
-    });
-  });
-
-  res.json(await saleDetail('s.id = $1', [id]));
-});
-
 /**
  * Hapus permanen penjualan (superadmin) beserta item dan baris kasnya.
  *
@@ -320,8 +359,13 @@ async function deleteSales(c, sales, { restore, userId }) {
     }
   }
 
-  // Baris kas milik transaksi ini ikut hilang supaya buku kas tetap konsisten.
-  await c.query(`DELETE FROM cash_flows WHERE ref_type = 'sale' AND ref_id = ANY($1::bigint[])`, [ids]);
+  // Baris kas milik transaksi ini ikut hilang supaya buku kas tetap konsisten —
+  // termasuk pelunasan bon yang piutangnya ikut terhapus lewat ON DELETE CASCADE.
+  await c.query(
+    `DELETE FROM cash_flows WHERE ref_type = 'sale' AND ref_id = ANY($1::bigint[])
+        OR (ref_type = 'debt' AND ref_id IN (SELECT id FROM debts WHERE sale_id = ANY($1::bigint[])))`,
+    [ids],
+  );
   const { rowCount } = await c.query('DELETE FROM sales WHERE id = ANY($1::bigint[])', [ids]);
 
   return { ok: true, deleted: rowCount, restored_movements: restored, restore_stock: restore };

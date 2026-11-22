@@ -44,9 +44,9 @@ const client = new pg.Client({ connectionString: url });
 
 const TABLES = [
   'products', 'product_units', 'categories', 'sales', 'sale_items',
-  'stock_movements', 'struk_counters', 'users', 'units', 'tokens',
+  'stock_movements', 'struk_counters_tahun', 'users', 'units', 'tokens',
   'product_aliases', 'cash_flows', 'purchases', 'purchase_items',
-  'debts', 'returns', 'stock_opnames',
+  'debts', 'debt_payments', 'customers', 'shifts', 'returns', 'stock_opnames',
 ];
 
 async function main() {
@@ -56,15 +56,18 @@ async function main() {
   await client.query('BEGIN');
 
   // 1. Data transaksi + data produk. RESTART IDENTITY supaya penomoran mulai dari 1 lagi.
+  //    `customers`, `debt_payments`, dan `shifts` WAJIB ikut ditulis: ketiganya tidak
+  //    direferensikan ke tabel yang di-truncate, jadi CASCADE tidak menyentuhnya dan
+  //    reset akan menyisakan nama pelanggan lama serta shift kas yang menggantung.
   await client.query(
-    `TRUNCATE sale_items, stock_movements, sales, struk_counters,
+    `TRUNCATE sale_items, stock_movements, sales, struk_counters_tahun,
               product_units, products, categories,
               product_aliases, cash_flows, purchases, purchase_items,
-              debts, returns, stock_opnames
+              debts, debt_payments, customers, shifts, returns, stock_opnames
      RESTART IDENTITY CASCADE`,
   );
   console.log('  dihapus  : transaksi, item, pergerakan stok, counter struk, produk, kategori,'
-    + ' buku kas, pembelian, retur, hutang, opname, alias');
+    + ' buku kas, pembelian, retur, hutang, pelanggan, shift, opname, alias');
 
   // 2. Token login dibuang seluruhnya.
   const tok = await client.query('DELETE FROM tokens');
@@ -91,12 +94,14 @@ async function main() {
   }
 
   // 4. Satuan: sisakan hanya 10 satuan seed, dan aktifkan kembali yang sempat dinonaktifkan.
-  const extraUnits = await client.query('DELETE FROM units WHERE name <> ALL($1::text[])', [SEED_UNITS]);
-  for (const name of SEED_UNITS) {
+  const namaSeed = SEED_UNITS.map((u) => u.name);
+  const extraUnits = await client.query('DELETE FROM units WHERE name <> ALL($1::text[])', [namaSeed]);
+  for (const u of SEED_UNITS) {
     await client.query(
-      `INSERT INTO units (name, is_active) VALUES ($1, true)
-       ON CONFLICT (name) DO UPDATE SET is_active = true, updated_at = now()`,
-      [name],
+      `INSERT INTO units (name, inisial, is_active) VALUES ($1, $2, true)
+       ON CONFLICT (name) DO UPDATE
+         SET is_active = true, inisial = COALESCE(units.inisial, EXCLUDED.inisial), updated_at = now()`,
+      [u.name, u.inisial],
     );
   }
   console.log(`  dihapus  : ${extraUnits.rowCount} satuan di luar daftar seed; ${SEED_UNITS.length} satuan seed dipastikan aktif`);
