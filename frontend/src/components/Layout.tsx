@@ -1,10 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { db } from '../db';
 import { formatTanggalJam } from '../lib/format';
+import { useKasTerbuka } from '../lib/shift';
 import { useOnline } from '../lib/useOnline';
-import { useAuth, useSync } from '../store';
+import { useAuth, useSync, useUi } from '../store';
 
 interface Menu {
   to: string;
@@ -48,6 +49,7 @@ const GRUP: { judul: string; menu: Menu[] }[] = [
     menu: [
       { to: '/pengaturan', label: 'Pengaturan', superadminSaja: true },
       { to: '/users', label: 'Pengguna', superadminSaja: true },
+      { to: '/audit', label: 'Jejak Audit', superadminSaja: true },
     ],
   },
 ];
@@ -57,6 +59,10 @@ export default function Layout() {
   const keluar = useAuth((s) => s.keluar);
   const online = useOnline();
   const lastSyncAt = useSync((s) => s.lastSyncAt);
+  const menuTersembunyi = useUi((s) => s.menuTersembunyi);
+  // Dibaca dari localStorage shift, bukan state halaman kasir: kuncinya harus berlaku di
+  // SEMUA halaman, bukan hanya saat layar kasir sedang terbuka.
+  const kasTerbuka = useKasTerbuka();
   const navigate = useNavigate();
   const lokasi = useLocation();
   const [drawer, setDrawer] = useState(false);
@@ -76,7 +82,14 @@ export default function Layout() {
   // Pindah halaman = tutup drawer supaya kontennya langsung terlihat.
   useEffect(() => setDrawer(false), [lokasi.pathname]);
 
+  /**
+   * Kasir tidak boleh keluar selama kasnya masih terbuka. Tombolnya sudah dinonaktifkan,
+   * penjagaan di sini menutup jalur lain (mis. papan ketik yang memicu klik programatik).
+   */
+  const keluarTerkunci = !superadmin && kasTerbuka;
+
   async function doKeluar() {
+    if (keluarTerkunci) return;
     await keluar();
     navigate('/login', { replace: true });
   }
@@ -121,13 +134,21 @@ export default function Layout() {
     <div className="border-t border-slate-100 p-3 text-xs text-slate-500">
       <p className="text-sm font-semibold text-slate-700">{user?.name ?? '-'}</p>
       <p className="mb-2">{superadmin ? 'Superadmin' : 'Kasir'}</p>
-      <button
-        type="button"
-        onClick={() => void doKeluar()}
-        className="min-h-sentuh w-full rounded-md bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
-      >
-        Keluar
-      </button>
+      {/* Hanya superadmin: tombol Keluar-nya tinggal di sini (sidebar desktop / drawer HP).
+          Kasir memakai tombol di header, dan tombol kedua di drawer hanya membingungkan. */}
+      {superadmin ? (
+        <button
+          type="button"
+          onClick={() => void doKeluar()}
+          className="min-h-sentuh w-full rounded-md bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+        >
+          Keluar
+        </button>
+      ) : (
+        // Kasir: tombolnya cuma satu, di header. Di sini hanya alasannya — tombol abu-abu di
+        // header tidak bisa menjelaskan apa pun di layar sentuh (tooltip butuh kursor).
+        keluarTerkunci && <p className="text-xs text-amber-700">Tutup kas dulu sebelum keluar.</p>
+      )}
     </div>
   );
 
@@ -182,20 +203,50 @@ export default function Layout() {
         }`}
       >
         <header className="no-print sticky top-0 z-30 flex flex-wrap items-center gap-2 border-b border-slate-200 bg-white px-3 py-2 sm:px-4">
-          <button
-            type="button"
-            onClick={() => setDrawer(true)}
-            aria-label="Buka menu"
-            aria-expanded={drawer}
-            className={`flex min-h-sentuh items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 ${
-              superadmin ? 'desktop:hidden' : ''
-            }`}
-          >
-            <span aria-hidden className="text-lg leading-none">
-              ☰
-            </span>
-            Menu
-          </button>
+          {menuTersembunyi ? (
+            // Shift sudah ditutup (lihat Kasir): yang dibutuhkan tinggal keluar, bukan menu.
+            <button
+              type="button"
+              onClick={() => void doKeluar()}
+              className="flex min-h-sentuh items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700"
+            >
+              Keluar
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setDrawer(true)}
+              aria-label="Buka menu"
+              aria-expanded={drawer}
+              className={`flex min-h-sentuh items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 ${
+                superadmin ? 'desktop:hidden' : ''
+              }`}
+            >
+              <span aria-hidden className="text-lg leading-none">
+                ☰
+              </span>
+              Menu
+            </button>
+          )}
+
+          {/* Kasir tidak punya sidebar, jadi "Keluar" hanya bisa dijangkau lewat drawer yang
+              harus digulir. Tombolnya ditaruh langsung di header; selama kas masih terbuka
+              tombolnya mati (abu-abu), bukan hilang — supaya jelas kenapa tidak bisa dipakai. */}
+          {!superadmin && !menuTersembunyi && (
+            <button
+              type="button"
+              onClick={() => void doKeluar()}
+              disabled={keluarTerkunci}
+              title={keluarTerkunci ? 'Tutup kas dulu sebelum keluar' : undefined}
+              className={`flex min-h-sentuh items-center rounded-md border px-3 py-2 text-sm font-medium ${
+                keluarTerkunci
+                  ? 'cursor-not-allowed border-slate-200 text-slate-400'
+                  : 'border-slate-300 text-slate-700'
+              }`}
+            >
+              Keluar
+            </button>
+          )}
 
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-xs">
             <span
@@ -212,9 +263,13 @@ export default function Layout() {
               </span>
             )}
             {gagal > 0 && (
-              <span className="rounded-full bg-red-100 px-2 py-1 font-medium text-red-700">
+              <Link
+                to="/riwayat"
+                className="rounded-full bg-red-100 px-2 py-1 font-medium text-red-700 underline decoration-red-400 underline-offset-2"
+                title="Buka Riwayat untuk mengirim ulang"
+              >
                 {gagal} ditolak server
-              </span>
+              </Link>
             )}
           </div>
           <p className="hidden text-xs text-slate-500 sm:block">

@@ -63,13 +63,24 @@ export async function siapkanGambar(file: File): Promise<Blob> {
 }
 
 /**
- * Baca teks dari foto struk dengan bahasa Indonesia. Worker dibuat sekali per
- * panggilan lalu dimatikan supaya tidak tertinggal di memori; data bahasanya
- * di-cache tesseract.js di IndexedDB sehingga panggilan berikutnya cepat.
+ * Aset OCR dilayani dari origin sendiri (`frontend/public/ocr`), bukan dari CDN.
+ *
+ * Alasannya keamanan: kode yang diunduh dari CDN pihak ketiga berjalan di origin aplikasi
+ * ini. Kalau CDN-nya disusupi, skrip itu bisa membaca token kasir di localStorage. Dengan
+ * semua aset di `self`, CSP bisa menutup jalur keluar sepenuhnya (`default-src 'self'`).
+ *
+ * - worker.min.js        : 124 KB, dari paket tesseract.js
+ * - core/*.wasm.js       : dua varian (SIMD dan biasa); pemilihnya ada di dalam worker
+ * - lang/ind.traineddata.gz : data bahasa Indonesia, di-cache tesseract.js di IndexedDB
  */
+const OCR_BASE = '/ocr';
+
 export async function bacaTeks(file: File, lapor?: (p: Progres) => void): Promise<string> {
   const gambar = await siapkanGambar(file);
   const worker = await createWorker('ind', 1, {
+    workerPath: `${OCR_BASE}/worker.min.js`,
+    corePath: `${OCR_BASE}/core`,
+    langPath: `${OCR_BASE}/lang`,
     logger: (m: { status: string; progress: number }) => lapor?.(m),
   });
   try {

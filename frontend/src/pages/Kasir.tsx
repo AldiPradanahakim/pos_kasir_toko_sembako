@@ -10,7 +10,7 @@ import { db } from '../db';
 import { rupiah, parseUang } from '../lib/format';
 import { useOnline } from '../lib/useOnline';
 import { useShift } from '../lib/shift';
-import { useAuth } from '../store';
+import { useAuth, useUi } from '../store';
 import { hitungStok, simpanPenjualan, type KeranjangItem } from '../sync';
 import type { Product, ProductUnit, Shift, StockRow } from '../types';
 
@@ -27,6 +27,7 @@ const BUKAN_HURUF = /[^\p{L}\s.'-]/gu;
 export default function Kasir() {
   const navigate = useNavigate();
   const user = useAuth((s) => s.user);
+  const setMenuTersembunyi = useUi((s) => s.setMenuTersembunyi);
   const online = useOnline();
 
   const products = useLiveQuery(
@@ -47,6 +48,14 @@ export default function Kasir() {
   const [pesan, setPesan] = useState('');
   /** Laporan satu-satunya yang dilihat kasir: hasil tutup kas yang baru saja dia lakukan. */
   const [laporanTutup, setLaporanTutup] = useState<Shift | null>(null);
+  /**
+   * Selama laporan tutup kas tampil, shift sudah selesai: header mengganti tombol "Menu"
+   * dengan "Keluar" (lihat Layout) supaya kasir tidak membuka menu lagi setelah menghitung uang.
+   */
+  useEffect(() => {
+    setMenuTersembunyi(!!laporanTutup);
+    return () => setMenuTersembunyi(false);
+  }, [laporanTutup, setMenuTersembunyi]);
   const [error, setError] = useState('');
   const [sedangSimpan, setSedangSimpan] = useState(false);
   const [editBaris, setEditBaris] = useState<number | null>(null);
@@ -400,7 +409,6 @@ export default function Kasir() {
       // saat uang 80.000 jadi 100.000 dicocokkan (modal, seharusnya, fisik, selisih).
       // Riwayat kas seluruh kasir khusus superadmin, jadi kasir tidak diarahkan ke sana.
       setLaporanTutup(hasil);
-      setPesan(`Kas ditutup. Selisih ${rupiah(hasil.selisih ?? 0)}.`);
     } catch (e) {
       setErrorKas(e instanceof Error ? e.message : 'Gagal menutup kas');
     } finally {
@@ -478,17 +486,23 @@ export default function Kasir() {
     // Tata letak kasir gaya minimarket: kiri = pelanggan, kotak cari, lalu tabel keranjang
     // yang besar; kanan = total & pembayaran. Halaman ini tidak menggulir sejak tablet ,
     // yang bergulir hanya daftar hasil cari dan tabel keranjang.
-    <div className="flex flex-col gap-3 md:min-h-0 md:flex-1">
+    // Saat kas belum dibuka (termasuk setelah tutup kas) halaman ini HARUS bisa digulir:
+    // laporan tutup kas lebih tinggi dari layar, sedangkan tata letak kasir mengunci tinggi
+    // 100dvh. Tanpa `md:overflow-y-auto` bagian bawah laporan terpotong dan tak terjangkau.
+    <div
+      className={`flex flex-col gap-3 md:min-h-0 md:flex-1 ${!shift ? 'md:overflow-y-auto' : ''}`}
+    >
       {/* Kas belum dibuka: jangan biarkan jual dulu, uang fisik nanti tidak bisa dicocokkan. */}
       {memuatKas ? (
         <Card>
           <Kosong>Memuat status kas…</Kosong>
         </Card>
+      ) : !shift && laporanTutup ? (
+        // Shift baru saja ditutup: yang tampil HANYA laporannya. Kartu "Buka Kas" muncul
+        // lagi setelah laporan ditutup, supaya kasir tidak mengira masih ada yang harus
+        // dikerjakan di shift yang sudah selesai.
+        <LaporanTutupKas shift={laporanTutup} onTutup={() => setLaporanTutup(null)} />
       ) : !shift ? (
-        <>
-        {laporanTutup && (
-          <LaporanTutupKas shift={laporanTutup} onTutup={() => setLaporanTutup(null)} />
-        )}
         <Card title="Buka Kas">
           <div className="space-y-3">
             <p className="text-sm text-slate-600">
@@ -504,16 +518,12 @@ export default function Kasir() {
               />
             </div>
             {errorKas && <Alert>{errorKas}</Alert>}
-            {/* Setelah tutup kas, shift jadi null sehingga kartu kasir (tempat pesan sr-only)
-                hilang. Pesan selisih harus tetap terlihat di sini, bukan cuma di pembaca layar. */}
-            {pesan && <Alert tone="sukses">{pesan}</Alert>}
             {!onlineKas && <Alert tone="info">Offline: kas dibuka lokal, dicatat ke server saat online.</Alert>}
             <Button ukuran="lg" className="w-full" disabled={sedangKas} onClick={() => void simpanBukaKas()}>
               {sedangKas ? 'Membuka…' : 'Buka Kas'}
             </Button>
           </div>
         </Card>
-        </>
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
           <span className="text-slate-600">

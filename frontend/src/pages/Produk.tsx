@@ -112,7 +112,7 @@ export default function Produk() {
         unit_id: u.unit_id,
         isi: String(u.isi),
         harga_jual: String(u.harga_jual),
-        harga_modal: String(u.harga_modal),
+        harga_modal: String(u.harga_modal ?? ''),
         barcode: u.barcode ?? '',
       })),
     );

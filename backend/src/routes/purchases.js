@@ -1,6 +1,7 @@
 import express from 'express';
 import { q, tx } from '../db.js';
 import { requireSuperadmin } from '../auth.js';
+import { audit } from '../audit.js';
 import {
   ApiError, toInt, toStr, dateOrNull, limitOf, todayJakarta,
 } from '../lib.js';
@@ -149,7 +150,7 @@ router.delete('/purchases/:id', requireSuperadmin, async (req, res) => {
   const id = toInt(req.params.id);
   if (id === null) throw new ApiError(404, 'Pembelian tidak ditemukan');
 
-  await tx(async (c) => {
+  const hapus = await tx(async (c) => {
     const { rows } = await c.query('SELECT id, supplier FROM purchases WHERE id = $1 FOR UPDATE', [id]);
     if (!rows.length) throw new ApiError(404, 'Pembelian tidak ditemukan');
 
@@ -165,8 +166,10 @@ router.delete('/purchases/:id', requireSuperadmin, async (req, res) => {
 
     await c.query(`DELETE FROM cash_flows WHERE ref_type = 'purchase' AND ref_id = $1`, [id]);
     await c.query('DELETE FROM purchases WHERE id = $1', [id]);
+    return rows[0];
   });
 
+  await audit(req, 'purchases.delete', 'purchases', id, hapus);
   res.json({ ok: true });
 });
 

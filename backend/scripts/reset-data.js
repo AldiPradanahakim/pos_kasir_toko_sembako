@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import pg from 'pg';
-import { SEED_UNITS, SEED_SETTINGS, SEED_SUPERADMIN } from './seed.js';
+import { SEED_UNITS, SEED_SETTINGS, SEED_SUPERADMIN, buatPasswordAcak } from './seed.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -85,12 +85,16 @@ async function main() {
     );
     console.log(`  dijaga   : superadmin (id ${sa[0].id}), password TIDAK diubah`);
   } else {
+    const password = buatPasswordAcak();
     const { rows } = await client.query(
       `INSERT INTO users (name, username, password, role, is_active)
        VALUES ($1, $2, $3, 'superadmin', true) RETURNING id`,
-      [SEED_SUPERADMIN.name, SEED_SUPERADMIN.username, await bcrypt.hash(SEED_SUPERADMIN.password, 10)],
+      [SEED_SUPERADMIN.name, SEED_SUPERADMIN.username, await bcrypt.hash(password, 10)],
     );
-    console.log(`  dibuat   : superadmin (id ${rows[0].id}) dengan password seed`);
+    console.log(`  dibuat   : superadmin (id ${rows[0].id})`);
+    console.log('');
+    console.log(`  Password superadmin (hanya ditampilkan sekali): ${password}`);
+    console.log('');
   }
 
   // 4. Satuan: sisakan hanya 10 satuan seed, dan aktifkan kembali yang sempat dinonaktifkan.

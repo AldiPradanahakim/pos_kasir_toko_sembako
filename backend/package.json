@@ -15,6 +15,7 @@
     "seed:produk": "node scripts/seed-produk.js",
     "backfill:kas": "node scripts/backfill-kas.js",
     "reset:data": "node scripts/reset-data.js",
+    "reset:password": "node scripts/reset-password.js",
     "smoke": "node scripts/smoke.js",
     "test": "node scripts/migrate.js --test --fresh && node --test --test-concurrency=1 \"tests/*.test.js\""
   },

@@ -53,6 +53,14 @@ Penjualan yang membuat stok minus **ditolak** (pesannya menyebut sisa dan kebutu
 superadmin menyalakan izin untuk produk itu di halaman stok. Stok masuk, pembelian, retur, dan stok
 opname **tidak** butuh izin — barang yang benar-benar datang atau keluar tidak boleh diblokir.
 
+Saat perangkat sedang offline, penjualan disimpan lokal lebih dulu dan dikirim ke server begitu
+jaringan kembali. Bila server menolaknya (hampir selalu karena stok sudah diambil perangkat lain),
+transaksi itu **tidak hilang**: barisnya muncul di `/riwayat` dengan alasan penolakan dan tombol
+**Kirim Ulang**. Setelah penyebabnya dibereskan — stok dikoreksi, atau superadmin menyalakan izin
+minus untuk produk itu — tombol tersebut mengirim transaksi yang sama tanpa perlu mengetik ulang,
+dan struknya memperoleh nomor server. Lencana merah **"N ditolak server"** di header menuju halaman
+itu, jadi penolakan tidak bisa terlewat.
+
 Halaman dashboard menampilkan ringkasan penjualan, stok menipis, kas, hutang/piutang, dan **saran
 pembelian** (produk yang stoknya tipis dibanding kecepatan jualnya) yang bisa diunduh sebagai CSV
 untuk dibawa ke supplier.
@@ -65,6 +73,10 @@ superadmin.
 
 Aplikasi bisa tetap dipakai saat internet mati: transaksi disimpan dulu di perangkat, lalu dikirim ke server
 secara otomatis saat online kembali — tanpa menghasilkan transaksi ganda.
+
+Lencana **Online/Offline** di header tidak hanya membaca "apakah perangkat punya jaringan", tetapi juga
+menembak `GET /api/health` tiap 15 detik. Jadi kalau komputer server mati sementara Wi-Fi toko masih
+menyala, aplikasi tetap jujur menampilkan **Offline** — bukan Online yang menyesatkan sampai transaksi gagal.
 
 ---
 
@@ -281,6 +293,11 @@ http://localhost:3000
 
 Cukup alamat itu — tidak perlu menjalankan Vite lagi.
 
+> **Menjalankan di server sungguhan (VPS + domain, tanpa komputer di toko):** lihat
+> [`deploy/PRODUKSI.md`](deploy/PRODUKSI.md). Isinya skrip pasang sekali jalan
+> (`deploy/install-server.sh`), unit systemd, Caddyfile HTTPS, backup harian, prosedur update,
+> dan syarat agar jualan tetap jalan saat internet mati.
+
 ---
 
 ## Install PWA ke Desktop
@@ -303,23 +320,48 @@ diperlukan HTTPS (misalnya lewat reverse proxy) atau akses tetap melalui `localh
 
 ---
 
-## Kredensial Default & Cara Ganti Password
+## Akun Pertama & Kebijakan Password
 
-**Akun aplikasi:**
+**Tidak ada password bawaan.** `npm run seed` membuat akun `superadmin` dengan password **acak 20
+karakter** dan mencetaknya **satu kali** di terminal:
 
-| Peran | Username | Password |
-| --- | --- | --- |
-| Superadmin | `superadmin` | `password` |
+```
+  ============================================================
+  Password superadmin (hanya ditampilkan sekali): Kf7mQ2xLpR9tVw4nHc8Z
+  Simpan di tempat aman, lalu ganti setelah masuk pertama.
+  ============================================================
+```
 
-> **WAJIB diganti sebelum dipakai berjualan sungguhan.** Selama password ini belum diganti, siapa pun
-> yang bisa membuka aplikasi dapat masuk sebagai superadmin.
+Salin sebelum menutup terminal. **Lupa password?** Tidak perlu menghapus data:
 
-Cara mengganti password superadmin:
+```
+cd backend
+npm run reset:password -- superadmin
+```
 
-1. Masuk ke aplikasi, buka halaman **`/users`** (hanya terlihat untuk superadmin).
-2. Pilih pengguna yang ingin diubah, isi kolom password dengan password baru, lalu simpan.
+Perintah itu membuat password acak baru untuk akun tersebut, mencetaknya sekali, dan menandai akun
+itu wajib mengganti password saat masuk. Butuh akses ke database (`.env`), jadi tidak bisa dipakai
+orang luar. Sesi lama akun itu langsung dicabut.
 
-Password disimpan dalam bentuk terenkripsi (bcrypt), bukan teks biasa.
+> **Username tidak peka huruf besar/kecil.** `superadmin`, `SuperAdmin`, dan `SUPERADMIN` semuanya
+> masuk ke akun yang sama; keyboard HP yang mengapitalkan huruf pertama tidak lagi membuat login
+> gagal. Password tetap peka huruf besar/kecil.
+
+**Kebijakan password** (`backend/src/password.js`) berlaku untuk akun baru dan setiap perubahan:
+
+| Aturan | Nilai |
+| --- | --- |
+| Panjang | minimal 10 karakter (maksimal 200) |
+| Isi | harus ada huruf **dan** angka |
+| Tidak boleh | sama dengan username, atau ada di daftar password umum (`password123`, `qwertyuiop`, …) |
+
+Mengganti password **milik sendiri** wajib menyebut password lama, dan sesi lain milik akun itu
+langsung dicabut. Reset oleh superadmin menandai akun **wajib ganti password**: sampai diganti,
+hanya `GET /me`, `POST /logout`, dan ganti password sendiri yang diizinkan — layar aplikasinya
+otomatis menampilkan form ganti password.
+
+Password disimpan sebagai **bcrypt** (cost 10) dengan salt per akun, bukan teks biasa dan bukan
+hash cepat seperti MD5/SHA.
 
 **Sesi login** (`frontend/src/store.ts`):
 
@@ -327,18 +369,56 @@ Password disimpan dalam bentuk terenkripsi (bcrypt), bukan teks biasa.
   (atau membuka tab baru) selalu kembali ke halaman login, walau token di perangkat masih sah.
   Tujuannya supaya siapa pun yang memegang perangkat tidak otomatis memakai sesi orang sebelumnya.
 - **Muat ulang halaman** (F5) di tab yang sama tidak memaksa login ulang — sesi masih milik tab itu.
-- **Saat perangkat tidak punya jaringan**, sesi tersimpan tetap dipakai karena login mustahil tanpa
-  jaringan. Jadi kasir tetap bisa melayani pembeli dan transaksinya menyusul saat online.
-  Kalau perangkat punya jaringan tetapi server tidak menjawab, aplikasi tetap meminta login; hanya
-  muat ulang di tab yang sudah dibuka yang tidak mengunci kasir saat server sedang mati.
+- **Saat perangkat tidak bisa menjangkau server** (tidak ada jaringan, atau VPS/PC kasir sedang
+  mati), sesi tersimpan tetap dipakai: aplikasi terbuka dan kasir bisa melayani pembeli, lalu
+  transaksinya menyusul saat server terjangkau lagi. Pemeriksaan `/me` diberi batas waktu 5 detik,
+  jadi layar tidak menggantung menunggu server yang tidak menjawab.
+  Perangkat yang **belum pernah** login tetap harus login saat online — tidak ada cara masuk offline
+  tanpa token yang pernah diterbitkan server.
 - Token yang **kedaluwarsa, dicabut, atau akun dinonaktifkan** langsung membuang sesi dan kembali ke
   halaman login. `npm run reset:data` juga mencabut semua token yang ada.
 - Tombol **Keluar** menghapus token di perangkat sekaligus di server.
+- **Percobaan login dibatasi**: 10 kegagalan dalam 15 menit mengunci alamat IP itu *dan* username
+  yang ditebak (HTTP 429, `Retry-After`). Hanya kegagalan yang dihitung, dan login yang berhasil
+  mengosongkan hitungan — jadi kasir yang sering buka-tutup aplikasi tidak pernah terkunci.
+  Batasnya diatur di `backend/.env`: `LOGIN_MAKS_GAGAL` dan `LOGIN_JENDELA_MENIT`.
 - Umur token di server **30 hari** (`TOKEN_TTL_HOURS` di `backend/.env`); token yang sudah kedaluwarsa
   dibersihkan otomatis setiap ada login baru.
 
 **Kredensial database** (hanya untuk pengembangan lokal, lihat bagian Setup PostgreSQL di atas):
 role `pos_hakim` / `pos_hakim_dev`, database `pos_hakim` dan `pos_hakim_test`.
+
+---
+
+## Batas Peran & Pengamanan
+
+Yang **tidak** boleh dilakukan kasir, dan sudah ditolak server (bukan hanya disembunyikan di UI):
+
+- membuka kas kasir lain (`GET /shifts/:id` → 403) atau melihat daftar kas semua kasir;
+- mengubah/menghapus produk, pengguna, pembelian, retur, kas manual, transaksi, jejak audit;
+- menaikkan perannya sendiri jadi superadmin (ganti password sendiri hanya boleh menyentuh password);
+- melihat **harga kulak**: `harga_modal` dan `harga_modal_snapshot` hanya dikirim ke superadmin,
+  termasuk di `/sync/pull` yang menyalin master data ke IndexedDB perangkat;
+- memundurkan tanggal transaksi lebih dari **30 hari** (perangkat yang lama offline tetap diterima).
+
+Lapisan lain:
+
+| Lapisan | Isi |
+| --- | --- |
+| Header keamanan | CSP `default-src 'self'` **tanpa origin luar**, `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: same-origin`, `Permissions-Policy`, `Cache-Control: no-store` untuk `/api`, HSTS saat HTTPS |
+| Token sesi | 32 byte acak dari `crypto.randomBytes`; server hanya menyimpan SHA-256-nya, 30 hari, dicabut saat logout / ganti password / akun dinonaktifkan |
+| Password | bcrypt cost 10 dengan salt per akun; kebijakan minimal 10 karakter, huruf + angka, tidak boleh memuat username |
+| Login | 10 gagal / 15 menit per IP **dan** per username; waktu balasan disamakan untuk username yang tidak ada (bcrypt umpan) supaya akun tidak bisa dipetakan |
+| SQL | semua nilai lewat parameter `$1..$n`; nama tabel/kolom hanya dari konstanta di kode |
+| CSV | sel yang dimulai `=`, `+`, `-`, `@` dinetralkan supaya tidak jadi rumus saat dibuka di Excel |
+| Aset OCR | worker, core wasm, dan data bahasa dilayani dari `/ocr` di server sendiri — tidak ada kode pihak ketiga yang berjalan di origin aplikasi |
+| Jejak audit | perubahan harga/produk/pengguna, hapus transaksi, koreksi kas, dan tutup kas tercatat di `audit_logs` (read-only, halaman `/audit`) |
+| Sesi offline | hanya berlaku bila perangkat pernah login; token yang ditolak server (401) selalu memaksa login ulang |
+
+Yang **belum** ada dan perlu diketahui: tidak ada 2FA, dan kasir yang memegang perangkat masih bisa
+mencatat retur/kas keluar — keduanya terlihat di laporan, tutup kas, dan jejak audit, tetapi tidak
+butuh persetujuan superadmin. Kalau toko butuh itu, berikutnya adalah alur persetujuan, bukan
+pengamanan tambahan.
 
 ---
 
@@ -354,6 +434,7 @@ Semua perintah di bawah dijalankan di dalam folder `backend`, kecuali yang ditan
 | `npm run seed` | Mengisi data dasar: akun superadmin, 10 satuan, nama toko. **Aman diulang** — data yang sudah ada tidak ditimpa |
 | `npm test` | Menjalankan pengujian otomatis backend (memakai database `pos_hakim_test`) |
 | `npm run smoke` | Menguji alur lengkap dari login sampai laporan lewat HTTP sungguhan. Memakai database **`pos_hakim_test`**, bukan database toko, dan membersihkan datanya sendiri |
+| `npm run reset:password -- <username>` | Membuat password acak baru untuk satu akun (tanpa menghapus data) dan menandainya wajib ganti saat masuk |
 | `npm run reset:data` | **Menghapus seluruh data** dan mengembalikan database ke kondisi baru dipasang (lihat peringatan di bawah) |
 
 Perintah frontend (dijalankan di folder `frontend`):

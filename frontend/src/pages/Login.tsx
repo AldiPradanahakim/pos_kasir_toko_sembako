@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Alert, Button, Input, Label } from '../components/ui';
+import { halamanAwal } from '../lib/beranda';
 import { useAuth } from '../store';
 import { pullSync } from '../sync';
 
@@ -18,9 +19,13 @@ export default function Login() {
     setLoading(true);
     try {
       await masuk(username.trim(), password);
-      // Perangkat baru: tarik master data segera, jangan tunggu siklus 30 detik.
-      void pullSync();
-      navigate('/kasir', { replace: true });
+      // Akun yang wajib ganti password ditolak semua endpoint (403); jangan menarik master
+      // data dulu. Layar ganti password yang muncul, lalu sinkronisasi berjalan sesudahnya.
+      if (!useAuth.getState().user?.must_change_password) {
+        // Perangkat baru: tarik master data segera, jangan tunggu siklus 30 detik.
+        void pullSync();
+      }
+      navigate(halamanAwal(useAuth.getState().user), { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal masuk');
     } finally {
@@ -44,6 +49,12 @@ export default function Login() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             autoComplete="username"
+            // Keyboard HP mengapitalkan huruf pertama secara otomatis; "Superadmin" tidak
+            // sama dengan akun "superadmin". Server sudah tidak peka besar/kecil, dan kolom
+            // ini juga dimatikan kapitalisasinya supaya yang diketik sesuai yang terlihat.
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             autoFocus
             required
             className="py-3"

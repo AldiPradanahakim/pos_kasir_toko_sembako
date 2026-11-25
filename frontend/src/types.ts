@@ -5,10 +5,13 @@ export interface AuthUser {
   name: string;
   username: string;
   role: Role;
+  /** Password baru direset superadmin (atau masih default): wajib diganti dulu. */
+  must_change_password?: boolean;
 }
 
 export interface UserRow extends AuthUser {
   is_active: boolean;
+  must_change_password?: boolean;
 }
 
 export interface Category {
@@ -31,7 +34,8 @@ export interface ProductUnit {
   unit_name: string;
   isi: number;
   harga_jual: number;
-  harga_modal: number;
+  /** Harga kulak. Server tidak mengirimkannya ke perangkat berperan kasir. */
+  harga_modal?: number;
   barcode: string | null;
 }
 

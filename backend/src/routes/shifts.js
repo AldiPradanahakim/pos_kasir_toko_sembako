@@ -1,6 +1,7 @@
 import express from 'express';
 import { q, tx } from '../db.js';
 import { requireSuperadmin } from '../auth.js';
+import { audit } from '../audit.js';
 import { ApiError, toInt, toStr, dateOrNull, limitOf, todayJakarta } from '../lib.js';
 
 const router = express.Router();
@@ -137,6 +138,9 @@ router.post('/shifts/tutup', async (req, res) => {
       WHERE id = $4`,
     [uangFisik, selisih, toStr(req.body?.catatan), aktif.id],
   );
+  await audit(req, 'shifts.tutup', 'shifts', aktif.id, {
+    uang_fisik: uangFisik, kas_seharusnya: aktif.kas_seharusnya, selisih,
+  });
 
   res.json(await shiftLengkap(aktif.id));
 });

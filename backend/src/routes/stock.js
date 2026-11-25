@@ -81,10 +81,13 @@ router.post('/stock/in', async (req, res) => {
 router.post('/stock/in/bulk', async (req, res) => {
   const items = req.body?.items;
   if (!Array.isArray(items) || items.length === 0) throw new ApiError(422, 'items tidak boleh kosong');
+  // Satu nota supplier realistis puluhan baris; batas ini menahan kiriman raksasa.
+  if (items.length > 200) throw new ApiError(422, 'Maksimal 200 baris per kiriman stok');
   const note = toStr(req.body?.note);
 
   const rawAliases = req.body?.aliases ?? [];
   if (!Array.isArray(rawAliases)) throw new ApiError(422, 'aliases harus berupa array');
+  if (rawAliases.length > 200) throw new ApiError(422, 'Maksimal 200 alias per kiriman');
 
   const applied = await tx(async (c) => {
     // Tahap 1: validasi seluruh baris. Belum ada satu pun tulisan di sini.

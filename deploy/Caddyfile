@@ -1,0 +1,12 @@
+# Ganti pos.tokohakim.id dengan domain yang Anda beli, lalu:
+#   sudo cp deploy/Caddyfile /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+#
+# Sertifikat HTTPS dibuat dan diperpanjang otomatis oleh Caddy (Let's Encrypt).
+# HTTPS wajib: tanpa itu service worker tidak aktif, PWA tidak bisa dipasang,
+# dan aplikasi tidak punya cache offline.
+
+pos.tokohakim.id {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:3000
+}

@@ -1,6 +1,7 @@
 import express from 'express';
 import { q } from '../db.js';
 import { requireSuperadmin } from '../auth.js';
+import { audit } from '../audit.js';
 import { ApiError, toStr } from '../lib.js';
 
 const router = express.Router();
@@ -36,7 +37,9 @@ router.put('/settings', requireSuperadmin, async (req, res) => {
   await put('toko_nama', nama);
   await put('alamat', toStr(req.body?.alamat) ?? '');
   await put('telepon', toStr(req.body?.telepon) ?? '');
-  res.json(await getSettings());
+  const hasil = await getSettings();
+  await audit(req, 'settings.update', 'settings', null, hasil);
+  res.json(hasil);
 });
 
 export default router;

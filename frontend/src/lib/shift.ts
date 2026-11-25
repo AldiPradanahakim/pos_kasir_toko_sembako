@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { api } from '../api';
 import type { KasShift, Shift } from '../types';
 import { useOnline } from './useOnline';
@@ -34,9 +34,20 @@ const baca = (): ShiftLokal | null => {
   }
 };
 
+let adaShiftLokal = baca() !== null;
+const pendengarShift = new Set<() => void>();
+
 const tulis = (s: ShiftLokal | null) => {
+  const sebelumnyaAda = adaShiftLokal;
   if (s) localStorage.setItem(KEY, JSON.stringify(s));
   else localStorage.removeItem(KEY);
+  // "Ada shift atau tidak" dibaca header di SEMUA halaman (tombol Keluar dikunci selama
+  // kas terbuka), jadi perubahannya harus langsung tersiar, bukan hanya saat pindah halaman.
+  adaShiftLokal = s !== null;
+  if (adaShiftLokal !== sebelumnyaAda) {
+    for (const f of pendengarShift) f();
+    window.dispatchEvent(new Event('th-shift-berubah'));
+  }
 };
 
 const dariServer = (s: Shift): ShiftLokal => ({
@@ -61,8 +72,10 @@ const dariServer = (s: Shift): ShiftLokal => ({
 export async function pastikanShiftTerdaftar(): Promise<void> {
   const lokal = baca();
   if (!lokal || lokal.id !== null) return;
-  const server = await api.getSilent<Shift | null>('/shifts/aktif');
-  const s = server ? dariServer(server) : dariServer(await api.post<Shift>('/shifts/buka', { modal_awal: lokal.modal_awal }));
+  const server = await api.getSilent<Shift | null>('/shifts/aktif', 15_000);
+  const s = server
+    ? dariServer(server)
+    : dariServer(await api.postSilent<Shift>('/shifts/buka', { modal_awal: lokal.modal_awal }, 15_000));
   tulis(s);
   // Kabari layar kasir yang sedang terbuka supaya tombol Tutup Kas langsung aktif.
   window.dispatchEvent(new Event('th-shift-berubah'));
@@ -165,4 +178,33 @@ export function useShift() {
   }, []);
 
   return { shift, memuat, error, online, muat, buka, tutup, catatPengeluaran, batalPengeluaran };
+}
+
+/**
+ * Apakah perangkat ini sedang memegang kas terbuka.
+ *
+ * Dipakai header (Layout) di semua halaman: selama kas terbuka, tombol Keluar dikunci.
+ * Sumbernya localStorage yang sama dengan `useShift`, bukan state per halaman — kalau
+ * diambil dari state, pindah ke halaman lain membuat kuncinya hilang dan kasir bisa
+ * keluar dengan kas masih terbuka.
+ */
+export function useKasTerbuka(): boolean {
+  return useSyncExternalStore(
+    (f) => {
+      pendengarShift.add(f);
+      // Tab lain menutup kas: localStorage berubah tanpa lewat `tulis` di tab ini.
+      const dariTabLain = (e: StorageEvent) => {
+        if (e.key !== KEY) return;
+        adaShiftLokal = baca() !== null;
+        f();
+      };
+      window.addEventListener('storage', dariTabLain);
+      return () => {
+        pendengarShift.delete(f);
+        window.removeEventListener('storage', dariTabLain);
+      };
+    },
+    () => adaShiftLokal,
+    () => false,
+  );
 }

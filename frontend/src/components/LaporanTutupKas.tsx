@@ -23,7 +23,7 @@ export default function LaporanTutupKas({ shift, onTutup }: { shift: Shift; onTu
       <Card
         title={`Laporan Tutup Kas — ${shift.user_name ?? `#${shift.user_id}`}`}
         actions={
-          <div className="no-print flex gap-2">
+          <div className="no-print flex flex-wrap justify-end gap-2">
             {onTutup && (
               <Button variant="ghost" onClick={onTutup}>
                 Tutup

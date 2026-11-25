@@ -16,7 +16,8 @@ export interface DbProductUnit {
   unit_name: string;
   isi: number;
   harga_jual: number;
-  harga_modal: number;
+  /** Harga kulak; tidak ada di salinan perangkat kasir. */
+  harga_modal?: number;
   barcode: string | null;
 }
 

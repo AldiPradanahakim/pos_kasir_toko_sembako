@@ -1,14 +1,18 @@
 import express from 'express';
 import { q, tx, jakartaDate } from '../db.js';
 import { requireSuperadmin } from '../auth.js';
+import { audit } from '../audit.js';
 import {
   ApiError, toBool, toInt, toStr, dateOrNull, limitOf, insertCashFlow,
 } from '../lib.js';
 
 const router = express.Router();
 
-/** Detail transaksi lengkap (dipakai struk & riwayat). */
-async function saleDetail(where, params) {
+/**
+ * Detail transaksi lengkap (dipakai struk & riwayat).
+ * `tanpaModal` membuang harga_modal_snapshot: kasir tidak perlu tahu harga kulak.
+ */
+async function saleDetail(where, params, { tanpaModal = false } = {}) {
   const { rows } = await q(
     `SELECT s.id, s.uuid, s.no_struk, s.created_at, s.synced_at, s.total, s.metode_bayar,
             s.dibayar, s.kembalian, s.status, s.alasan_batal, s.nama_pelanggan,
@@ -63,7 +67,7 @@ async function saleDetail(where, params) {
     dibatalkan_oleh: sale.dibatalkan_oleh_id
       ? { id: sale.dibatalkan_oleh_id, name: sale.dibatalkan_oleh_name }
       : null,
-    items,
+    items: tanpaModal ? items.map(({ harga_modal_snapshot: _m, ...it }) => it) : items,
   };
 }
 
@@ -87,8 +91,16 @@ async function nextNoStruk(c, tahun) {
 router.post('/sales', async (req, res) => {
   const uuid = toStr(req.body?.uuid);
   if (!uuid) throw new ApiError(422, 'uuid wajib diisi');
+  // uuid dibuat perangkat (UUID v4 = 36 karakter). Batas panjang menahan payload iseng yang
+  // menyelipkan megabyte teks ke kolom yang seharusnya pendek.
+  if (uuid.length > 64) throw new ApiError(422, 'uuid tidak valid');
   if (!Array.isArray(req.body?.items) || req.body.items.length === 0) {
     throw new ApiError(422, 'items tidak boleh kosong');
+  }
+  // Satu struk grosir realistis puluhan baris; 200 memberi ruang lega tanpa membuka pintu
+  // transaksi raksasa yang mengunci baris produk terlalu lama.
+  if (req.body.items.length > 200) {
+    throw new ApiError(422, 'Satu transaksi maksimal 200 baris barang');
   }
   // Toko hanya menerima tunai; QRIS dan transfer dihapus atas permintaan pemilik.
   if (toStr(req.body?.metode_bayar) !== 'tunai') throw new ApiError(422, "metode_bayar harus 'tunai'");
@@ -102,10 +114,22 @@ router.post('/sales', async (req, res) => {
   if (req.body?.created_at !== undefined && req.body?.created_at !== null && req.body?.created_at !== '') {
     const d = new Date(req.body.created_at);
     if (Number.isNaN(d.getTime())) throw new ApiError(422, 'created_at tidak valid');
+    // Waktu datang dari perangkat (transaksi offline membawa waktu jualnya), jadi harus
+    // diterima — tetapi dibatasi untuk kasir: tanpa batas, jam perangkat yang salah (atau
+    // sengaja dimundurkan) bisa melempar penjualan ke hari/bulan lain dan mengacaukan laporan.
+    // 30 hari ke belakang menampung perangkat yang lama offline; 1 hari ke depan menampung
+    // selisih jam perangkat. Superadmin tidak dibatasi: ia boleh mencatat data historis.
+    if (req.user.role !== 'superadmin') {
+      const selisihHari = (Date.now() - d.getTime()) / 86_400_000;
+      if (selisihHari > 30 || selisihHari < -1) {
+        throw new ApiError(422, 'created_at di luar batas wajar (maksimal 30 hari ke belakang)');
+      }
+    }
     createdAt = d;
   }
 
-  const existing = await saleDetail('s.uuid = $1', [uuid]);
+  const tanpaModal = req.user.role !== 'superadmin';
+  const existing = await saleDetail('s.uuid = $1', [uuid], { tanpaModal });
   if (existing) return res.json({ sale: existing, duplicate: true });
 
   const result = await tx(async (c) => {
@@ -284,7 +308,7 @@ router.post('/sales', async (req, res) => {
     return { id: saleId, created: true };
   });
 
-  const sale = await saleDetail('s.id = $1', [result.id]);
+  const sale = await saleDetail('s.id = $1', [result.id], { tanpaModal });
   res.status(result.created ? 201 : 200).json({ sale, duplicate: !result.created });
 });
 
@@ -316,7 +340,7 @@ router.get('/sales', async (req, res) => {
 });
 
 router.get('/sales/by-uuid/:uuid', async (req, res) => {
-  const sale = await saleDetail('s.uuid = $1', [req.params.uuid]);
+  const sale = await saleDetail('s.uuid = $1', [req.params.uuid], { tanpaModal: req.user.role !== 'superadmin' });
   if (!sale) throw new ApiError(404, 'Transaksi tidak ditemukan');
   res.json(sale);
 });
@@ -324,7 +348,7 @@ router.get('/sales/by-uuid/:uuid', async (req, res) => {
 router.get('/sales/:id', async (req, res) => {
   const id = toInt(req.params.id);
   if (id === null) throw new ApiError(404, 'Transaksi tidak ditemukan');
-  const sale = await saleDetail('s.id = $1', [id]);
+  const sale = await saleDetail('s.id = $1', [id], { tanpaModal: req.user.role !== 'superadmin' });
   if (!sale) throw new ApiError(404, 'Transaksi tidak ditemukan');
   res.json(sale);
 });
@@ -386,6 +410,7 @@ router.delete('/sales/:id', requireSuperadmin, async (req, res) => {
     return deleteSales(c, rows, { restore, userId: req.user.id });
   });
 
+  await audit(req, 'sales.delete', 'sales', id, { ...out, restore_stock: restore });
   res.json(out);
 });
 
@@ -415,6 +440,7 @@ router.post('/sales/purge', requireSuperadmin, async (req, res) => {
     return deleteSales(c, rows, { restore, userId: req.user.id });
   });
 
+  await audit(req, 'sales.purge', 'sales', null, { from, to, status: status || null, ...out });
   res.json({ ...out, from, to });
 });
 

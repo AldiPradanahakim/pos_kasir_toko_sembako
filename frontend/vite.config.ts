@@ -27,6 +27,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2}'],
+        // Aset OCR (worker + dua varian wasm ~8 MB + data bahasa) TIDAK di-precache:
+        // memasang PWA tidak boleh mengunduh 9 MB untuk fitur yang mungkin tidak dipakai.
+        // Diambil saat Scan Nota pertama dipakai, lalu disimpan di cache terpisah.
+        globIgnores: ['ocr/**'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,
@@ -39,6 +43,16 @@ export default defineConfig({
               cacheName: 'api-sync-pull',
               networkTimeoutSeconds: 5,
               expiration: { maxEntries: 2, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // Aset OCR dari origin sendiri: cukup diunduh sekali per perangkat.
+            urlPattern: ({ url, request }) => request.method === 'GET' && url.pathname.startsWith('/ocr/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'ocr-assets',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },

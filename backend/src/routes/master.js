@@ -1,7 +1,9 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import { q, tx } from '../db.js';
-import { requireSuperadmin } from '../auth.js';
+import { requireSuperadmin, hashToken } from '../auth.js';
+import { audit } from '../audit.js';
+import { cekPassword } from '../password.js';
 import {
   ApiError, toBool, toInt, toStr, barcodeOrNull, listProducts, getProductOr404, limitOf,
 } from '../lib.js';
@@ -25,6 +27,7 @@ function simpleMaster(table, label) {
       `INSERT INTO ${table} (name, is_active) VALUES ($1, $2) RETURNING id, name, is_active`,
       [name, toBool(req.body?.is_active)],
     );
+    await audit(req, `${table}.create`, table, rows[0].id, { name: rows[0].name });
     res.status(201).json(rows[0]);
   });
 
@@ -39,6 +42,7 @@ function simpleMaster(table, label) {
       [name, toBool(req.body?.is_active), id],
     );
     if (!rows.length) throw new ApiError(404, `${label} tidak ditemukan`);
+    await audit(req, `${table}.update`, table, id, { name: rows[0].name });
     res.json(rows[0]);
   });
 
@@ -59,6 +63,7 @@ function simpleMaster(table, label) {
       const r2 = await q(`DELETE FROM ${table} WHERE id = $1 RETURNING id`, [id]);
       if (!r2.rows.length) throw new ApiError(404, `${label} tidak ditemukan`);
     }
+    await audit(req, `${table}.delete`, table, id, { dihapusPermanen: rows.length === 0 });
     res.json({ ok: true });
   });
 
@@ -162,6 +167,7 @@ router.post('/customers', ...superadminOnly, async (req, res) => {
      RETURNING id`,
     [nama, toStr(req.body?.telepon), toStr(req.body?.catatan), toBool(req.body?.is_active)],
   );
+  await audit(req, 'customers.create', 'customers', rows[0].id, { nama });
   res.status(201).json((await q(`SELECT ${COLS_PELANGGAN} FROM customers c WHERE c.id = $1`, [rows[0].id])).rows[0]);
 });
 
@@ -176,6 +182,7 @@ router.put('/customers/:id', ...superadminOnly, async (req, res) => {
     [nama, toStr(req.body?.telepon), toStr(req.body?.catatan), toBool(req.body?.is_active), id],
   );
   if (!rows.length) throw new ApiError(404, 'Pelanggan tidak ditemukan');
+  await audit(req, 'customers.update', 'customers', id, { nama });
   res.json((await q(`SELECT ${COLS_PELANGGAN} FROM customers c WHERE c.id = $1`, [id])).rows[0]);
 });
 
@@ -185,6 +192,7 @@ router.delete('/customers/:id', ...superadminOnly, async (req, res) => {
   if (id === null) throw new ApiError(404, 'Pelanggan tidak ditemukan');
   const { rowCount } = await q('UPDATE customers SET is_active = false WHERE id = $1', [id]);
   if (!rowCount) throw new ApiError(404, 'Pelanggan tidak ditemukan');
+  await audit(req, 'customers.nonaktif', 'customers', id);
   res.json({ ok: true });
 });
 
@@ -194,6 +202,8 @@ router.get('/products', async (req, res) => {
     q: toStr(req.query.q),
     barcode: toStr(req.query.barcode),
     categoryId: toInt(req.query.category_id),
+    // Harga kulak bukan urusan kasir: hanya superadmin yang menerimanya.
+    tanpaModal: req.user.role !== 'superadmin',
   }));
 });
 
@@ -277,6 +287,7 @@ router.post('/products', ...superadminOnly, async (req, res) => {
     return id;
   });
 
+  await audit(req, 'products.create', 'products', created, { nama: p.name, units });
   res.status(201).json(await getProductOr404(created));
 });
 
@@ -314,6 +325,11 @@ router.put('/products/:id', ...superadminOnly, async (req, res) => {
     }
   });
 
+  await audit(req, 'products.update', 'products', id, {
+    nama: p.name,
+    harga: units.map((u) => ({ unit_id: u.unit_id, harga_jual: u.harga_jual, harga_modal: u.harga_modal })),
+    izin_minus: p.izin_minus,
+  });
   res.json(await getProductOr404(id));
 });
 
@@ -368,6 +384,10 @@ router.patch('/products/:id/pengaturan', ...superadminOnly, async (req, res) => 
     [izinMinus, adaBase, baseUnitId, id],
   );
 
+  await audit(req, 'products.pengaturan', 'products', id, {
+    ...(adaIzin ? { izin_minus: izinMinus } : {}),
+    ...(adaBase ? { base_unit_id: baseUnitId } : {}),
+  });
   res.json(await getProductOr404(id));
 });
 
@@ -379,11 +399,12 @@ router.delete('/products/:id', ...superadminOnly, async (req, res) => {
     [id],
   );
   if (!rows.length) throw new ApiError(404, 'Produk tidak ditemukan');
+  await audit(req, 'products.nonaktif', 'products', id);
   res.json({ ok: true });
 });
 
 // ------------------------------------------------------------------- users
-const USER_COLS = 'id, name, username, role, is_active';
+const USER_COLS = 'id, name, username, role, is_active, must_change_password';
 
 router.get('/users', ...superadminOnly, async (_req, res) => {
   const { rows } = await q(`SELECT ${USER_COLS} FROM users ORDER BY name`);
@@ -397,7 +418,8 @@ router.post('/users', ...superadminOnly, async (req, res) => {
   const role = toStr(req.body?.role);
   if (!name) throw new ApiError(422, 'Nama wajib diisi');
   if (!username) throw new ApiError(422, 'Username wajib diisi');
-  if (!password || String(password).length < 4) throw new ApiError(422, 'Password minimal 4 karakter');
+  const salah = cekPassword(password, { username });
+  if (salah) throw new ApiError(422, salah);
   if (role !== 'kasir' && role !== 'superadmin') throw new ApiError(422, "role harus 'kasir' atau 'superadmin'");
 
   const { rows } = await q(
@@ -405,10 +427,21 @@ router.post('/users', ...superadminOnly, async (req, res) => {
      VALUES ($1, $2, $3, $4, $5) RETURNING ${USER_COLS}`,
     [name, username, await bcrypt.hash(String(password), 10), role, toBool(req.body?.is_active)],
   );
+  await audit(req, 'users.create', 'users', rows[0].id, { username: rows[0].username, role: rows[0].role });
   res.status(201).json(rows[0]);
 });
 
-router.put('/users/:id', ...superadminOnly, async (req, res) => {
+/**
+ * Mengubah user boleh dilakukan superadmin, ATAU oleh user itu sendiri — tetapi yang boleh
+ * diubah sendiri hanya passwordnya. Tanpa jalur ini, kasir yang password-nya direset tidak
+ * punya cara keluar dari layar "ganti password" karena semua endpoint lain ditolak.
+ */
+function sendiriAtauSuperadmin(req, res, next) {
+  if (toInt(req.params.id) === req.user.id) return next();
+  return requireSuperadmin(req, res, next);
+}
+
+router.put('/users/:id', sendiriAtauSuperadmin, async (req, res) => {
   const id = toInt(req.params.id);
   if (id === null) throw new ApiError(404, 'User tidak ditemukan');
 
@@ -423,13 +456,41 @@ router.put('/users/:id', ...superadminOnly, async (req, res) => {
   if (role !== 'kasir' && role !== 'superadmin') throw new ApiError(422, "role harus 'kasir' atau 'superadmin'");
   if (id === req.user.id && !isActive) throw new ApiError(422, 'Tidak bisa menonaktifkan akun sendiri');
 
+  const sendiri = id === req.user.id;
+  // Kasir hanya boleh mengganti passwordnya sendiri; nama, username, role, dan status
+  // adalah wewenang superadmin. Tanpa batas ini, "sendiri" jadi jalan menaikkan role.
+  if (sendiri && req.user.role !== 'superadmin') {
+    const ubahLain = (toStr(req.body?.role) ?? current.role) !== current.role
+      || toBool(req.body?.is_active, current.is_active) !== current.is_active
+      || (toStr(req.body?.username) ?? current.username) !== current.username;
+    if (ubahLain) throw new ApiError(403, 'Hanya superadmin yang boleh mengubah data akun');
+  }
   const password = req.body?.password;
-  if (password !== undefined && password !== null && String(password) !== '') {
-    if (String(password).length < 4) throw new ApiError(422, 'Password minimal 4 karakter');
+  const gantiPassword = password !== undefined && password !== null && String(password) !== '';
+
+  if (gantiPassword) {
+    const salah = cekPassword(password, { username });
+    if (salah) throw new ApiError(422, salah);
+    // Mengganti password SENDIRI wajib menyebut password lama: token yang dicuri (mis. HP
+    // tertinggal terbuka) tidak boleh cukup untuk mengambil alih akun.
+    if (sendiri) {
+      const lama = req.body?.password_lama;
+      if (!lama) throw new ApiError(422, 'Password lama wajib diisi untuk mengganti password sendiri');
+      const { rows: pw } = await q('SELECT password FROM users WHERE id = $1', [id]);
+      if (!(await bcrypt.compare(String(lama), pw[0].password))) {
+        // 422, bukan 401: sesi pemanggil SAH — yang salah hanya isian "password lama".
+        // Dengan 401, klien membuang token dan melempar pengguna ke halaman login hanya
+        // karena salah ketik satu kali.
+        throw new ApiError(422, 'Password lama salah');
+      }
+    }
     await q(
-      `UPDATE users SET name = $1, username = $2, role = $3, is_active = $4, password = $5, updated_at = now()
-        WHERE id = $6`,
-      [name, username, role, isActive, await bcrypt.hash(String(password), 10), id],
+      `UPDATE users SET name = $1, username = $2, role = $3, is_active = $4, password = $5,
+              must_change_password = $6, updated_at = now()
+        WHERE id = $7`,
+      // Reset oleh superadmin menandai akun itu wajib mengganti password saat masuk;
+      // ganti sendiri berarti syaratnya sudah terpenuhi.
+      [name, username, role, isActive, await bcrypt.hash(String(password), 10), !sendiri, id],
     );
   } else {
     await q(
@@ -438,7 +499,22 @@ router.put('/users/:id', ...superadminOnly, async (req, res) => {
     );
   }
 
+  // Sesi lama harus mati begitu hak aksesnya berubah, kalau tidak token 30 hari milik kasir
+  // yang baru dinonaktifkan tetap bisa dipakai sampai kedaluwarsa. Token milik pemanggil
+  // sendiri dipertahankan supaya ia tidak terlempar ke halaman login tanpa alasan.
+  const hakBerubah = !isActive || role !== current.role || username !== current.username;
+  if (gantiPassword || hakBerubah) {
+    const currentHash = hashToken((req.get('authorization') || '').replace(/^Bearer\s+/i, '').trim());
+    await q('DELETE FROM tokens WHERE user_id = $1 AND token_hash <> $2', [id, currentHash]);
+  }
+
   const { rows } = await q(`SELECT ${USER_COLS} FROM users WHERE id = $1`, [id]);
+  await audit(req, 'users.update', 'users', id, {
+    username: rows[0].username,
+    role: rows[0].role,
+    is_active: rows[0].is_active,
+    ...(gantiPassword ? { password_diganti: true, oleh_sendiri: sendiri } : {}),
+  });
   res.json(rows[0]);
 });
 
@@ -459,6 +535,8 @@ router.delete('/users/:id', ...superadminOnly, async (req, res) => {
     const r = await q('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
     if (!r.rows.length) throw new ApiError(404, 'User tidak ditemukan');
   }
+  await q('DELETE FROM tokens WHERE user_id = $1', [id]);
+  await audit(req, 'users.delete', 'users', id, { dihapusPermanen: used.length === 0 });
   res.json({ ok: true });
 });
 

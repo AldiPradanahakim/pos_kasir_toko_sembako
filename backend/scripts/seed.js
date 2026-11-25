@@ -3,6 +3,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import pg from 'pg';
+import { randomBytes } from 'node:crypto';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(here, '../.env'), quiet: true });
@@ -33,18 +34,46 @@ export const SEED_SETTINGS = {
   telepon: '',
 };
 
-export const SEED_SUPERADMIN = { name: 'Super Admin', username: 'superadmin', password: 'password' };
+export const SEED_SUPERADMIN = { name: 'Super Admin', username: 'superadmin' };
+
+/**
+ * Password acak untuk superadmin baru.
+ *
+ * Dulu seed memakai "password" — satu-satunya kredensial yang tertulis di dokumentasi, dan
+ * karena itu yang paling sering dibiarkan. Sekarang password dibuat acak (20 karakter, huruf
+ * besar/kecil/angka) dan dicetak SEKALI saat seed membuat akunnya. Kalau akunnya sudah ada,
+ * password lama tidak pernah disentuh.
+ */
+export function buatPasswordAcak(panjang = 20) {
+  const abjad = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+  const n = abjad.length;
+  // Rejection sampling, bukan `byte % n`: 256 tidak habis dibagi 58, jadi modulo langsung
+  // membuat 24 huruf pertama sedikit lebih sering muncul. Selisihnya kecil, tetapi tidak ada
+  // alasan memakai cara yang bisa dibuktikan bias.
+  const batas = 256 - (256 % n);
+  let out = '';
+  while (out.length < panjang) {
+    for (const b of randomBytes(panjang * 2)) {
+      if (b >= batas) continue;
+      out += abjad[b % n];
+      if (out.length === panjang) break;
+    }
+  }
+  return out;
+}
 
 /**
  * Isi data dasar: superadmin, satuan, dan pengaturan toko.
  * Idempotent — data yang sudah ada tidak ditimpa (password superadmin tidak pernah direset di sini).
  * Dipakai oleh CLI `npm run seed` dan oleh skrip smoke.
  */
-export async function runSeed(url, { log = console.log } = {}) {
+export async function runSeed(url, { log = console.log, password } = {}) {
   const client = new pg.Client({ connectionString: url });
   await client.connect();
   try {
-    const hash = await bcrypt.hash(SEED_SUPERADMIN.password, 10);
+    const ada = await client.query('SELECT 1 FROM users WHERE username = $1', [SEED_SUPERADMIN.username]);
+    const passwordBaru = ada.rows.length ? null : (password ?? buatPasswordAcak());
+    const hash = passwordBaru ? await bcrypt.hash(passwordBaru, 10) : null;
     const { rows: sa } = await client.query(
       `INSERT INTO users (name, username, password, role, is_active)
        VALUES ($1, $2, $3, 'superadmin', true)
@@ -53,6 +82,16 @@ export async function runSeed(url, { log = console.log } = {}) {
       [SEED_SUPERADMIN.name, SEED_SUPERADMIN.username, hash],
     );
     log(`user     : ${sa[0].username} (id ${sa[0].id})`);
+    if (passwordBaru) {
+      log('');
+      log('  ============================================================');
+      log(`  Password superadmin (hanya ditampilkan sekali): ${passwordBaru}`);
+      log('  Simpan di tempat aman, lalu ganti setelah masuk pertama.');
+      log('  ============================================================');
+      log('');
+    } else {
+      log('  password : TIDAK diubah (akun sudah ada)');
+    }
 
     for (const u of SEED_UNITS) {
       await client.query(

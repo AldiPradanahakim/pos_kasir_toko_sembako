@@ -1,6 +1,7 @@
 import express from 'express';
 import { q, tx } from '../db.js';
 import { requireSuperadmin } from '../auth.js';
+import { audit } from '../audit.js';
 import {
   ApiError, toInt, toStr, dateOrNull, monthStartJakarta, todayJakarta,
 } from '../lib.js';
@@ -130,6 +131,9 @@ router.post('/cash-flows', requireSuperadmin, async (req, res) => {
                keterangan, ref_type, ref_id, created_at`,
     [tanggal, tipe, kategori, jumlah, toStr(req.body?.keterangan), req.user.id],
   );
+  await audit(req, 'cashflows.create', 'cash_flows', rows[0].id, {
+    tipe, kategori, jumlah, tanggal,
+  });
   res.status(201).json({ ...rows[0], user_name: req.user.name });
 });
 
@@ -179,6 +183,7 @@ router.put('/cash-flows/:id', requireSuperadmin, async (req, res) => {
     return rows[0];
   });
 
+  await audit(req, 'cashflows.update', 'cash_flows', id, { tipe: row.tipe, jumlah: row.jumlah, tanggal: row.tanggal });
   res.json({ ...row, user_name: req.user.name });
 });
 
@@ -187,6 +192,7 @@ router.delete('/cash-flows/:id', requireSuperadmin, async (req, res) => {
   if (id === null) throw new ApiError(404, 'Baris kas tidak ditemukan');
   const { rowCount } = await q('DELETE FROM cash_flows WHERE id = $1', [id]);
   if (!rowCount) throw new ApiError(404, 'Baris kas tidak ditemukan');
+  await audit(req, 'cashflows.delete', 'cash_flows', id);
   res.json({ ok: true });
 });
 

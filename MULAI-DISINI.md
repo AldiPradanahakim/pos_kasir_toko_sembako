@@ -61,7 +61,9 @@ npm start
 
 Lalu buka browser: `http://localhost:3000`
 
-Login: `superadmin` / `password`
+Login: `superadmin` dengan **password acak yang dicetak `npm run seed` di terminal**.
+Tidak ada password bawaan — kalau terminalnya sudah ditutup, jalankan `npm run reset:data` untuk
+membuat password baru (data transaksi ikut terhapus).
 
 Kalau `npm start` menampilkan `EADDRINUSE`, artinya server **sudah jalan** — langsung buka browser saja.
 

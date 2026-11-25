@@ -233,7 +233,15 @@ export default function Users() {
           </div>
           <div>
             <Label>Username</Label>
-            <Input value={username} onChange={(e) => setUsername(e.target.value)} required />
+            <Input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              required
+            />
           </div>
           <div>
             <Label>{edit ? 'Password baru (kosongkan bila tidak diganti)' : 'Password'}</Label>

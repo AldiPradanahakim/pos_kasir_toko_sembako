@@ -1,6 +1,7 @@
 import express from 'express';
 import { q, tx, jakartaDate } from '../db.js';
 import { requireSuperadmin } from '../auth.js';
+import { audit } from '../audit.js';
 import { ApiError, toInt, toStr, dateOrNull, limitOf, insertCashFlow, shiftTerbukaId } from '../lib.js';
 
 const router = express.Router();
@@ -239,6 +240,7 @@ router.delete('/debts/:id', requireSuperadmin, async (req, res) => {
   if (id === null) throw new ApiError(404, 'Hutang/piutang tidak ditemukan');
   const { rowCount } = await q('DELETE FROM debts WHERE id = $1', [id]);
   if (!rowCount) throw new ApiError(404, 'Hutang/piutang tidak ditemukan');
+  await audit(req, 'debts.delete', 'debts', id);
   res.json({ ok: true });
 });
 

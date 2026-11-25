@@ -7,6 +7,7 @@ import { db } from '../db';
 import { formatTanggalJam, labelMetode, rupiah, tanggalLokal } from '../lib/format';
 import { useOnline } from '../lib/useOnline';
 import { useAuth } from '../store';
+import { ulangiPenjualanDitolak } from '../sync';
 import type { Sale } from '../types';
 
 /**
@@ -37,8 +38,30 @@ export default function Riwayat() {
   const [detail, setDetail] = useState<Sale | null>(null);
   const [hapus, setHapus] = useState<Sale | null>(null);
   const [purge, setPurge] = useState(false);
+  const [mengirim, setMengirim] = useState<string | null>(null);
 
   const pending = useLiveQuery(() => db.pendingSales.orderBy('created_at').toArray(), [], []);
+
+  /**
+   * Kirim ulang penjualan yang ditolak server. Hasilnya dibaca ulang dari Dexie, bukan dari
+   * nilai kembalian: drainQueue bisa berhenti karena jaringan sebelum sempat mengubah status.
+   */
+  async function kirimUlang(uuid: string) {
+    setError('');
+    setSukses('');
+    setMengirim(uuid);
+    try {
+      await ulangiPenjualanDitolak(uuid);
+      const sisa = await db.pendingSales.get(uuid);
+      if (!sisa) setSukses('Transaksi berhasil dikirim ke server.');
+      else if (sisa.status === 'gagal') setError(`Masih ditolak server: ${sisa.error ?? 'alasan tidak tercatat'}`);
+      else setSukses('Dikirim ulang. Menunggu jawaban server, cek lagi sebentar.');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Gagal mengirim ulang');
+    } finally {
+      setMengirim(null);
+    }
+  }
 
   /**
    * Penyaring langsung atas baris yang SUDAH dimuat: mengetik tidak menunggu tombol
@@ -112,24 +135,50 @@ export default function Riwayat() {
                     <td className="py-2 font-mono text-xs">OFF-{p.uuid.slice(0, 8)}</td>
                     <td className="py-2">{formatTanggalJam(p.created_at)}</td>
                     <td className="py-2">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs ${
-                          p.status === 'gagal' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-800'
-                        }`}
-                      >
-                        {p.status === 'gagal' ? `ditolak: ${p.error ?? 'tidak diketahui'}` : 'menunggu sinkron'}
-                      </span>
+                      {p.status === 'gagal' ? (
+                        <div>
+                          <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700">
+                            ditolak server
+                          </span>
+                          <p className="mt-1 max-w-xs break-words text-xs text-red-700">
+                            {p.error ?? 'Alasan tidak tercatat'}
+                          </p>
+                        </div>
+                      ) : (
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">
+                          menunggu sinkron
+                        </span>
+                      )}
                     </td>
                     <td className="py-2 text-right">
-                      <Link to={`/kasir/struk/${p.uuid}`}>
-                        <Button variant="ghost">Struk</Button>
-                      </Link>
+                      <div className="flex flex-wrap justify-end gap-1">
+                        <Link to={`/kasir/struk/${p.uuid}`}>
+                          <Button variant="ghost">Struk</Button>
+                        </Link>
+                        {p.status === 'gagal' && (
+                          <Button
+                            variant="secondary"
+                            disabled={!online || mengirim === p.uuid}
+                            onClick={() => void kirimUlang(p.uuid)}
+                          >
+                            {mengirim === p.uuid ? 'Mengirim…' : 'Kirim Ulang'}
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          {pending.some((p) => p.status === 'gagal') && (
+            <p className="mt-3 text-sm text-slate-600">
+              Transaksi yang ditolak tetap tercatat di toko dan struknya sudah diserahkan ke pembeli,
+              jadi jangan dihapus. Perbaiki penyebabnya di server (mis. stok barang dikurangi perangkat
+              lain), lalu tekan <strong>Kirim Ulang</strong>. Bila stoknya memang habis, superadmin dapat
+              memberi izin jual stok kosong untuk barang itu di halaman Produk.
+            </p>
+          )}
         </Card>
       )}
 

@@ -59,18 +59,14 @@ export const useAuth = create<AuthState>((set, get) => ({
 
     // Aplikasi baru dibuka (tab/PWA baru): kredensial wajib diketik lagi walau token tersimpan
     // masih sah, supaya siapa pun yang memegang perangkat tidak memakai sesi orang sebelumnya.
+    // Pengecualian di bawah: perangkat tidak bisa menjangkau server sama sekali, sehingga login
+    // mustahil dan kasir harus tetap bisa berjualan offline.
     const sudahDibuka = sessionStorage.getItem(TERBUKA_KEY) === '1';
 
-    // Pengecualian: perangkat memang tidak punya jaringan, sehingga login mustahil. Sesi
-    // tersimpan dipakai supaya kasir tetap bisa melayani pembeli secara offline.
-    if (!sudahDibuka && !navigator.onLine) {
-      sessionStorage.setItem(TERBUKA_KEY, '1');
-      set({ siap: true });
-      return;
-    }
-
     try {
-      const res = await api.getSilent<{ user: AuthUser }>('/me');
+      // Batas waktu: VPS yang mati / internet yang hanya setengah jalan tidak boleh membuat
+      // layar "Memuat…" menggantung dan menahan seluruh aplikasi.
+      const res = await api.getSilent<{ user: AuthUser }>('/me', 5000);
       localStorage.setItem(USER_KEY, JSON.stringify(res.user));
       if (!sudahDibuka) {
         lupakanSesi();
@@ -85,15 +81,30 @@ export const useAuth = create<AuthState>((set, get) => ({
         lupakanSesi();
         return;
       }
-      // Server tidak menjawab. Sesi yang sudah dibuka di tab ini tetap lanjut supaya muat ulang
-      // di tengah gangguan tidak mengunci kasir; aplikasi yang baru dibuka harus lewat login.
-      if (sudahDibuka) {
-        set({ siap: true });
-        return;
-      }
-      lupakanSesi();
+      // Server tidak menjawab (tidak ada jaringan, atau VPS mati). Sesi tersimpan dipakai dan
+      // tab ditandai sudah terbuka, supaya perangkat ini tetap bisa berjualan offline; semua
+      // transaksinya masuk antrean dan dikirim saat server terjangkau lagi. Hanya berlaku bila
+      // perangkat ini pernah login (token ada) — perangkat baru tetap harus login online sekali.
+      sessionStorage.setItem(TERBUKA_KEY, '1');
+      set({ siap: true });
     }
   },
+}));
+
+interface UiState {
+  /**
+   * true = header menyembunyikan tombol "Menu" dan menampilkan "Keluar".
+   *
+   * Dipakai layar kasir setelah "Tutup Kas": shift sudah selesai, jadi tidak ada lagi yang
+   * perlu dijelajahi — kasir mencetak laporan lalu keluar, bukan membuka menu.
+   */
+  menuTersembunyi: boolean;
+  setMenuTersembunyi: (v: boolean) => void;
+}
+
+export const useUi = create<UiState>((set) => ({
+  menuTersembunyi: false,
+  setMenuTersembunyi: (v) => set({ menuTersembunyi: v }),
 }));
 
 interface SyncState {

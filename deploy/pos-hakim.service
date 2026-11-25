@@ -1,0 +1,20 @@
+[Unit]
+Description=POS Toko Hakim (API + PWA)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pos
+Group=pos
+WorkingDirectory=/opt/pos-hakim/backend
+EnvironmentFile=/opt/pos-hakim/backend/.env
+ExecStart=/usr/bin/node src/server.js
+# Kasir harus hidup lagi sendiri setelah listrik/interupsi, bukan menunggu dipanggil manual.
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

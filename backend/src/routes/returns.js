@@ -1,6 +1,7 @@
 import express from 'express';
 import { q, tx } from '../db.js';
 import { requireSuperadmin } from '../auth.js';
+import { audit } from '../audit.js';
 import {
   ApiError, toInt, toStr, dateOrNull, limitOf, insertCashFlow, shiftTerbukaId, todayJakarta,
 } from '../lib.js';
@@ -118,7 +119,7 @@ router.delete('/returns/:id', requireSuperadmin, async (req, res) => {
   const id = toInt(req.params.id);
   if (id === null) throw new ApiError(404, 'Retur tidak ditemukan');
 
-  await tx(async (c) => {
+  const hapus = await tx(async (c) => {
     const { rows } = await c.query(
       `SELECT r.id, r.tipe, r.product_id, r.unit_id, r.qty, pu.isi
          FROM returns r
@@ -138,8 +139,10 @@ router.delete('/returns/:id', requireSuperadmin, async (req, res) => {
     );
     await c.query(`DELETE FROM cash_flows WHERE ref_type = 'return' AND ref_id = $1`, [id]);
     await c.query('DELETE FROM returns WHERE id = $1', [id]);
+    return r;
   });
 
+  await audit(req, 'returns.delete', 'returns', id, hapus);
   res.json({ ok: true });
 });
 

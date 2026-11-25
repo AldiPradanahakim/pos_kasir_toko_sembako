@@ -158,15 +158,28 @@ test('users: password tidak pernah dikembalikan, tidak bisa menonaktifkan diri s
   assert.equal((await api.req('PUT', `/api/users/${me.id}`, { token, body: { is_active: false } })).status, 422);
   assert.equal((await api.req('DELETE', `/api/users/${me.id}`, { token })).status, 422);
 
-  // Ganti password lalu login dengan yang baru.
-  const upd = await api.req('PUT', `/api/users/${created.body.id}`, { token, body: { password: 'baru12345' } });
+  // Ganti password lalu login dengan yang baru. Reset oleh superadmin menandai akun itu
+  // wajib mengganti password saat masuk, jadi pemiliknya mengganti sendiri dulu.
+  const upd = await api.req('PUT', `/api/users/${created.body.id}`, { token, body: { password: 'baru123456' } });
   assert.equal(upd.status, 200);
   assert.equal(upd.body.password, undefined);
-  assert.equal((await api.req('POST', '/api/login', { body: { username: 'kasir2', password: 'baru12345' } })).status, 200);
+  assert.equal(upd.body.must_change_password, true);
+  const masukKasir = await api.req('POST', '/api/login', { body: { username: 'kasir2', password: 'baru123456' } });
+  assert.equal(masukKasir.status, 200);
+  assert.equal(masukKasir.body.user.must_change_password, true);
+  // Sebelum password diganti, endpoint lain ditolak.
+  assert.equal((await api.req('GET', '/api/products', { token: masukKasir.body.token })).status, 403);
   assert.equal((await api.req('POST', '/api/login', { body: { username: 'kasir2', password: 'rahasia123' } })).status, 401);
 
+  const gantiSendiri = await api.req('PUT', `/api/users/${created.body.id}`, {
+    token: masukKasir.body.token,
+    body: { password: 'kasirbaru123', password_lama: 'baru123456' },
+  });
+  assert.equal(gantiSendiri.status, 200);
+  assert.equal(gantiSendiri.body.must_change_password, false);
+
   // User yang sudah dipakai bertransaksi tidak dihapus, hanya dinonaktifkan.
-  const kasir = await login(api.req, 'kasir2', 'baru12345');
+  const kasir = await login(api.req, 'kasir2', 'kasirbaru123');
   const fx = await productFixture(api.req, token);
   await api.req('POST', '/api/sales', {
     token: kasir,

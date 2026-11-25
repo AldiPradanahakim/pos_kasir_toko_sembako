@@ -2,7 +2,7 @@ import { api, ApiError, TOKEN_KEY } from './api';
 import { db, LAST_SYNC_KEY, type DbProductUnit, type DbReceipt } from './db';
 import { displayStok, nomorOffline } from './lib/format';
 import { pastikanShiftTerdaftar } from './lib/shift';
-import { useSync } from './store';
+import { useAuth, useSync } from './store';
 import type { MetodeBayar, Product, Sale, StockRow, SyncPull } from './types';
 
 /** UUID v4, crypto.randomUUID hanya ada di secure context, sedangkan toko sering akses via IP LAN. */
@@ -32,7 +32,7 @@ export interface KeranjangItem {
 export async function pullSync(): Promise<boolean> {
   useSync.getState().set({ menarik: true, error: null });
   try {
-    const data = await api.getSilent<SyncPull>('/sync/pull');
+    const data = await api.getSilent<SyncPull>('/sync/pull', 20_000);
 
     const products: Product[] = (data.products ?? []).map((p) => ({
       ...p,
@@ -182,7 +182,7 @@ export async function drainQueue(): Promise<void> {
       const item = antre[0];
       if (!item) break;
       try {
-        const res = await api.postSilent<{ sale: Sale; duplicate: boolean }>('/sales', item.payload);
+        const res = await api.postSilent<{ sale: Sale; duplicate: boolean }>('/sales', item.payload, 20_000);
         await db.transaction('rw', db.pendingSales, db.receipts, async () => {
           await db.receipts.update(item.uuid, {
             no_struk: res.sale.no_struk ?? item.uuid,
@@ -202,6 +202,22 @@ export async function drainQueue(): Promise<void> {
   } finally {
     sedangKuras = false;
   }
+}
+
+/**
+ * Kirim ulang satu penjualan yang ditolak server (status 'gagal').
+ *
+ * Ditolak bukan berarti hilang: barangnya sudah dibawa pembeli dan uangnya sudah di laci.
+ * Penolakan hampir selalu karena keadaan server berubah (stok berkurang oleh perangkat lain,
+ * produk/satuan dihapus), jadi setelah penyebabnya dibereskan transaksi ini harus bisa
+ * dikirim lagi tanpa mengetik ulang. Bila masih ditolak, alasannya diperbarui oleh drainQueue.
+ */
+export async function ulangiPenjualanDitolak(uuid: string): Promise<void> {
+  const item = await db.pendingSales.get(uuid);
+  if (!item || item.status !== 'gagal') return;
+  const { error: _error, ...sisa } = item;
+  await db.pendingSales.put({ ...sisa, status: 'pending' });
+  await drainQueue();
 }
 
 /** Simpan transaksi: lokal dulu (offline-first), baru diposting ke server. */
@@ -302,6 +318,9 @@ export function mulaiSync(): void {
     // 401 di konsol setiap kali halaman login dibuka. Halaman Login sendiri yang
     // menarik master data tepat setelah berhasil masuk.
     if (!localStorage.getItem(TOKEN_KEY)) return;
+    // Akun yang wajib ganti password ditolak semua endpoint (403). Jangan memanggil apa pun
+    // sampai passwordnya diganti, supaya konsol tidak dipenuhi galat dan antrean tidak macet.
+    if (useAuth.getState().user?.must_change_password) return;
     await drainQueue();
     if (navigator.onLine) await pullSync();
   };

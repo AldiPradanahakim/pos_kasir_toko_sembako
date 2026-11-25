@@ -21,6 +21,11 @@ type Options = {
   body?: unknown;
   /** lewati redirect otomatis ke /login saat 401 (dipakai proses sync background). */
   silent?: boolean;
+  /**
+   * Batas waktu permintaan. Tanpa ini, server yang tidak menjawab (mis. VPS mati saat internet
+   * toko masih tersambung) membuat fetch menggantung bermenit-menit sebelum menyerah.
+   */
+  timeoutMs?: number;
 };
 
 async function request<T>(path: string, opts: Options = {}): Promise<T> {
@@ -35,10 +40,14 @@ async function request<T>(path: string, opts: Options = {}): Promise<T> {
   }
 
   let res: Response;
+  const ctrl = opts.timeoutMs ? new AbortController() : null;
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), opts.timeoutMs) : null;
   try {
-    res = await fetch(`/api${path}`, { method: opts.method ?? 'GET', headers, body });
+    res = await fetch(`/api${path}`, { method: opts.method ?? 'GET', headers, body, signal: ctrl?.signal });
   } catch {
     throw new ApiError(0, 'Tidak dapat menghubungi server. Periksa koneksi.');
+  } finally {
+    clearTimeout(timer!);
   }
 
   // 401 hanya berarti "sesi berakhir" kalau permintaan ini memang membawa token.
@@ -83,8 +92,14 @@ export const api = {
   patch: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PATCH', body: body ?? {} }),
   del: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
   /** Varian untuk proses background: tidak memaksa logout saat 401. */
-  postSilent: <T>(path: string, body: unknown) => request<T>(path, { method: 'POST', body, silent: true }),
-  getSilent: <T>(path: string) => request<T>(path, { silent: true }),
+  postSilent: <T>(path: string, body: unknown, timeoutMs?: number) =>
+    request<T>(path, { method: 'POST', body, silent: true, timeoutMs }),
+  getSilent: <T>(path: string, timeoutMs?: number) => request<T>(path, { silent: true, timeoutMs }),
+  /**
+   * PUT tanpa auto-logout. Dipakai mengganti password sendiri: salah ketik password lama
+   * TIDAK boleh membuang sesi dan melempar kasir ke halaman login.
+   */
+  putSilent: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PUT', body: body ?? {}, silent: true }),
   /** Unduh berkas (CSV) lewat fetch supaya header Authorization tetap terkirim. */
   unduh: (path: string, namaBerkas: string) => unduhBerkas(path, namaBerkas),
 };

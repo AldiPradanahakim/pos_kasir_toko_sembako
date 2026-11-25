@@ -168,8 +168,20 @@ export async function stockList() {
   });
 }
 
-/** Produk dalam bentuk GET /products (termasuk array units). */
-export async function listProducts({ id = null, q: search = null, barcode = null, categoryId = null } = {}) {
+/**
+ * Produk dalam bentuk GET /products (termasuk array units).
+ *
+ * `tanpaModal` membuang harga_modal dari tiap satuan. Dipakai untuk peran kasir: harga kulak
+ * adalah data pemilik, dan endpoint ini (juga /sync/pull yang memakainya) dibaca setiap
+ * perangkat kasir. Halaman yang memang butuh modal (Produk, laporan laba) hanya untuk superadmin.
+ */
+export async function listProducts({
+  id = null,
+  q: search = null,
+  barcode = null,
+  categoryId = null,
+  tanpaModal = false,
+} = {}) {
   const { rows } = await q(
     `SELECT p.id, p.name, p.category_id, c.name AS category_name, p.base_unit,
             p.barcode, p.is_active, p.base_unit_id, p.izin_minus,
@@ -192,7 +204,11 @@ export async function listProducts({ id = null, q: search = null, barcode = null
       ORDER BY p.name`,
     [id, search, barcode, categoryId],
   );
-  return rows;
+  if (!tanpaModal) return rows;
+  return rows.map((p) => ({
+    ...p,
+    units: (p.units ?? []).map(({ harga_modal: _modal, ...u }) => u),
+  }));
 }
 
 export async function getProductOr404(id) {
@@ -233,11 +249,20 @@ export async function insertCashFlow(c, {
   return rows[0].id;
 }
 
-/** Satu sel CSV: dikutip hanya bila perlu, kutip ganda digandakan. */
+/**
+ * Satu sel CSV: dikutip hanya bila perlu, kutip ganda digandakan.
+ *
+ * Sel yang dimulai `=`, `+`, `-`, `@`, tab, atau CR diberi awalan kutip tunggal. Excel dan
+ * Google Sheets menjalankan isi sel seperti itu sebagai RUMUS, jadi nama produk atau
+ * keterangan yang ditulis `=HYPERLINK(...)` akan dieksekusi saat pemilik membuka unduhannya.
+ * Angka negatif (-5000) dikecualikan supaya tetap terbaca sebagai angka.
+ */
 function csvCell(v) {
   if (v === null || v === undefined) return '';
   const s = String(v);
-  return /[",\r\n]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
+  const berbahaya = /^[=+\-@\t\r]/.test(s) && !/^-?\d+(\.\d+)?$/.test(s);
+  const isi = berbahaya ? `'${s}` : s;
+  return /[",\r\n]/.test(isi) ? `"${isi.replaceAll('"', '""')}"` : isi;
 }
 
 /** CSV dengan BOM UTF-8 supaya Excel membaca huruf beraksen dengan benar. */
@@ -257,7 +282,9 @@ export function pgError(err) {
   if (err instanceof ApiError) return err;
   if (err?.code === '23505') {
     const detail = err.detail || '';
-    if (detail.includes('(username)')) return new ApiError(422, 'Username sudah dipakai');
+    if (detail.includes('(username)') || detail.includes('lower(username)')) {
+      return new ApiError(422, 'Username sudah dipakai');
+    }
     if (detail.includes('(name)')) return new ApiError(422, 'Nama sudah dipakai');
     if (detail.includes('lower(inisial)')) return new ApiError(422, 'Inisial sudah dipakai satuan lain');
     if (detail.includes('(barcode)')) return new ApiError(422, 'Barcode sudah dipakai produk/satuan lain');

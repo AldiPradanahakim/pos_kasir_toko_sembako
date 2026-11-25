@@ -1,7 +1,10 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
+import { halamanAwal } from './lib/beranda';
 import { useAuth } from './store';
+import Audit from './pages/Audit';
 import Dashboard from './pages/Dashboard';
+import GantiPasswordWajib from './pages/GantiPasswordWajib';
 import HutangPiutang from './pages/HutangPiutang';
 import Kas from './pages/Kas';
 import Kasir from './pages/Kasir';
@@ -32,6 +35,12 @@ function Terlindungi({ children, superadminSaja = false }: { children: JSX.Eleme
 export default function App() {
   const token = useAuth((s) => s.token);
   const siap = useAuth((s) => s.siap);
+  const user = useAuth((s) => s.user);
+
+  // Password baru direset (atau masih default): server menolak semua endpoint lain, jadi
+  // tampilkan layar ganti password saja — bukan halaman yang isinya akan gagal dimuat.
+  if (siap && token && user?.must_change_password) return <GantiPasswordWajib />;
+
   return (
     <Routes>
       {/* Selama sesi belum selesai diperiksa, jangan melompat ke /kasir: token yang ternyata
@@ -42,7 +51,7 @@ export default function App() {
           !siap ? (
             <p className="p-8 text-center text-sm text-slate-500">Memuat…</p>
           ) : token ? (
-            <Navigate to="/kasir" replace />
+            <Navigate to={halamanAwal(user)} replace />
           ) : (
             <Login />
           )
@@ -153,6 +162,14 @@ export default function App() {
           }
         />
         <Route
+          path="/audit"
+          element={
+            <Terlindungi superadminSaja>
+              <Audit />
+            </Terlindungi>
+          }
+        />
+        <Route
           path="/users"
           element={
             <Terlindungi superadminSaja>
@@ -161,7 +178,7 @@ export default function App() {
           }
         />
       </Route>
-      <Route path="*" element={<Navigate to="/kasir" replace />} />
+      <Route path="*" element={<Navigate to={halamanAwal(user)} replace />} />
     </Routes>
   );
 }
